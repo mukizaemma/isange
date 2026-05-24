@@ -1,0 +1,63 @@
+/* Martin Aviator admin — matches public black / amber brand */
+body.sb-nav-fixed .sb-topnav.navbar-dark {
+    background: linear-gradient(90deg, #0a0a0a 0%, #151515 100%) !important;
+    border-bottom: 2px solid #e69138;
+}
+
+.sb-sidenav-dark {
+    background: #0a0a0a !important;
+    border-right: 1px solid rgba(230, 145, 56, 0.35);
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link {
+    color: #e8e0d5 !important;
+}
+
+.sb-sidenav-dark .sb-sidenav-menu .nav-link:hover {
+    color: #e69138 !important;
+}
+
+.sb-sidenav-dark .sb-nav-link-icon {
+    color: #e69138 !important;
+}
+
+.ma-admin-page .ma-page-head {
+    border-bottom: 2px solid rgba(230, 145, 56, 0.35);
+    padding-bottom: 0.75rem;
+}
+
+.ma-admin-page .ma-page-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0a0a0a;
+}
+
+.ma-admin-page .ma-card {
+    border-radius: 12px;
+    border: 1px solid rgba(230, 145, 56, 0.25);
+    overflow: hidden;
+}
+
+.ma-admin-page .ma-card-head {
+    background: linear-gradient(135deg, #faf7f2 0%, #fff 100%);
+    border-bottom: 1px solid rgba(230, 145, 56, 0.2);
+    font-weight: 600;
+}
+
+.ma-admin-page .btn-ma-primary {
+    background: #e69138;
+    border-color: #e69138;
+    color: #0a0a0a;
+    font-weight: 700;
+}
+
+.ma-admin-page .btn-ma-primary:hover {
+    background: #c2782f;
+    border-color: #c2782f;
+    color: #0a0a0a;
+}
+
+.note-editor.note-frame {
+    border-color: rgba(230, 145, 56, 0.35) !important;
+}

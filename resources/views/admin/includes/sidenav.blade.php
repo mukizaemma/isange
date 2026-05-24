@@ -1,0 +1,86 @@
+<nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+    <div class="sb-sidenav-menu">
+        <div class="nav">
+
+            <a class="nav-link" href="{{route('setting')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-sliders-h"></i></div>
+                Site settings
+            </a>
+            <a class="nav-link" href="{{route('about')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-info-circle"></i></div>
+                About content
+            </a>
+            <a class="nav-link" href="{{route('getServices')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-concierge-bell"></i></div>
+                Services
+            </a>
+            <a class="nav-link" href="{{route('getRooms')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-bed"></i></div>
+                Rooms
+            </a>
+
+            <a class="nav-link" href="{{route('facilityCrud')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-swimming-pool"></i></div>
+                Facilities
+            </a>
+
+            <a class="nav-link" href="{{ route('diningMenu') }}">
+                <div class="sb-nav-link-icon"><i class="fas fa-utensils"></i></div>
+                Dining page &amp; gallery
+            </a>
+
+            <a class="nav-link" href="{{ route('diningMenu.manage') }}">
+                <div class="sb-nav-link-icon"><i class="fas fa-book-open"></i></div>
+                Restaurant menu
+            </a>
+
+            <a class="nav-link" href="{{ route('diningMenu.categories.manage') }}">
+                <div class="sb-nav-link-icon"><i class="fas fa-layer-group"></i></div>
+                Menu categories
+            </a>
+
+            <a class="nav-link" href="{{route('slides')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-images"></i></div>
+                Home slider
+            </a>
+            <a class="nav-link" href="{{ route('pageHeaders') }}">
+                <div class="sb-nav-link-icon"><i class="fas fa-panorama"></i></div>
+                Page banners
+            </a>
+            <a class="nav-link" href="{{route('getGalleries')}}">
+                <div class="sb-nav-link-icon"><i class="fas fa-photo-video"></i></div>
+                Gallery
+            </a>
+            {{-- <a class="nav-link" href="{{route('slides')}}">
+                <div class="sb-nav-link-icon"><i class="far fa-envelope-open"></i></div>
+                Updates
+            </a> --}}
+            <hr>
+            {{-- <a class="nav-link" href="{{route('RestoMenu')}}">
+                <div class="sb-nav-link-icon"><i class="fa fa-hotel"></i></div>
+                Restaurant Menu
+            </a>
+            <hr> --}}
+
+            <a class="nav-link" href="{{route('bookings')}}">
+                <div class="sb-nav-link-icon"><i class="far fa-heart"></i></div>
+                Reservations
+            </a>
+            <a class="nav-link" href="{{ route('guestInsights') }}">
+                <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
+                Guest insights
+            </a>
+            <a class="nav-link" href="https://analytics.google.com/" target="_blank">
+                <div class="sb-nav-link-icon"><i class="fa fa-globe"></i></div>
+                Google Analytics
+            </a>             
+
+
+
+        </div>
+    </div>
+    <div class="sb-sidenav-footer">
+        <div class="small">Logged in as:</div>
+        Susper Admin
+    </div>
+</nav>
