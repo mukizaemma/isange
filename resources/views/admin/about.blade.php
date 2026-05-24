@@ -52,42 +52,12 @@
                                             </div>
                                         </div>
 
-                                        <div class="row mt-4">
-                                            @php
-                                                $imageSections = [
-                                                    ['label' => 'Why Choose Us Image', 'field' => 'aboutImage'],
-                                                    ['label' => 'Contact Us Header Image', 'field' => 'middleImage'],
-                                                    ['label' => 'Rooms Page Header Image', 'field' => 'chooseusImage'],
-                                                ];
-                                            @endphp
-                                        
-                                            @foreach ($imageSections as $section)
-                                                <div class="col-lg-6 col-md-12">
-                                                    <div class="card shadow-lg border-0">
-                                                        <div class="card-body text-center">
-                                                            <h6 class="mb-3">{{ $section['label'] }}</h6>
-                                        
-                                                            <!-- Image Preview -->
-                                                            <div class="image-preview mb-3">
-                                                                <img src="{{ asset('storage/images/gallery/'.$data->{$section['field']}) }}" 
-                                                                    alt="Current Image" class="img-fluid rounded shadow" width="150px">
-                                                            </div>
-                                        
-                                                            <!-- Upload New Image -->
-                                                            <label class="custom-file-upload btn btn-outline-success btn-sm">
-                                                                <input type="file" name="{{ $section['field'] }}" class="d-none" onchange="previewImage(event, '{{ $section['field'] }}')">
-                                                                <i class="fas fa-upload"></i> Change Image
-                                                            </label>
-                                        
-                                                            <p class="text-muted mt-2" style="font-size: 12px;">
-                                                                Recommended Size: <b>540x600 pixels</b>
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            @endforeach
+                                        <div class="alert alert-info mt-4 mb-0">
+                                            <i class="fas fa-panorama me-1"></i>
+                                            Page hero images and captions are managed under
+                                            <a href="{{ route('pageHeaders') }}" class="alert-link fw-semibold">Page banners</a>
+                                            (Accommodation, Contact, About, and other inner pages).
                                         </div>
-                                        
 
                                     </div>
 

@@ -105,11 +105,29 @@ class FrontLayoutComposer
                 ->get()));
         }
 
-        if (! array_key_exists('navRooms', $data)) {
-            $view->with('navRooms', Cache::remember('front_layout.nav_rooms', 300, fn () => Room::query()
-                ->select(['roomName', 'slug'])
-                ->orderBy('roomName')
-                ->get()));
+        if (! array_key_exists('navRoomsList', $data) || ! array_key_exists('navApartmentsList', $data)) {
+            $navAccommodation = Cache::remember('front_layout.nav_accommodation', 300, function () {
+                $columns = ['roomName', 'slug', 'accommodation_type'];
+
+                return [
+                    'rooms' => Room::query()
+                        ->select($columns)
+                        ->where(function ($query) {
+                            $query->where('accommodation_type', Room::TYPE_ROOM)
+                                ->orWhereNull('accommodation_type');
+                        })
+                        ->orderBy('roomName')
+                        ->get(),
+                    'apartments' => Room::query()
+                        ->select($columns)
+                        ->where('accommodation_type', Room::TYPE_APARTMENT)
+                        ->orderBy('roomName')
+                        ->get(),
+                ];
+            });
+
+            $view->with('navRoomsList', $navAccommodation['rooms']);
+            $view->with('navApartmentsList', $navAccommodation['apartments']);
         }
 
         if (! array_key_exists('partners', $data)) {

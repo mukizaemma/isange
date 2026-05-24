@@ -114,7 +114,7 @@
                             <div class="card ma-settings-card">
                                 <div class="ma-settings-header d-flex flex-wrap justify-content-between align-items-center gap-2">
                                     <div>
-                                        <div class="text-accent mb-1">Martin Aviator · Configuration</div>
+                                        <div class="text-accent mb-1">Isange Paradise · Configuration</div>
                                         <h1>Site settings</h1>
                                     </div>
                                     @if (session()->has('success'))

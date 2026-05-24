@@ -50,78 +50,82 @@ class PageHeaderResolver
 
     private static function fallback(string $pageKey, ?object $setting, ?object $about): array
     {
+        $flexBg = $setting->flexible_stay_bg_image ?? null;
+        $facilitiesHero = $setting->facilities_hero_image ?? null;
+        $diningHero = $setting->dining_hero_image ?? null;
+
         return match ($pageKey) {
             'booking' => [
                 'title' => 'Book a stay',
                 'subtitle' => 'First choose how you want to book, then complete your stay details.',
-                'imageFile' => $setting->flexible_stay_bg_image ?? $about->aboutImage ?? null,
-                'imageDisk' => ! empty($setting->flexible_stay_bg_image ?? null) ? 'pages' : 'gallery',
+                'imageFile' => $flexBg,
+                'imageDisk' => 'pages',
             ],
             'about' => [
                 'title' => 'About Isange Paradise',
                 'subtitle' => 'A social enterprise eco-resort on the edge of Volcanoes National Park — owned by Future 4 Kids.',
-                'imageFile' => $about->aboutImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $facilitiesHero ?? $flexBg,
+                'imageDisk' => 'pages',
             ],
             'rooms' => [
                 'title' => 'Accommodation',
                 'subtitle' => $setting->flexible_stay_subheading ?? 'Stay in comfort surrounded by nature — 15 minutes drive from/to Volcanoes National Park office.',
-                'imageFile' => $about->chooseusImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $flexBg,
+                'imageDisk' => 'pages',
             ],
             'facilities' => [
                 'title' => 'Resort Facilities',
                 'subtitle' => 'Restaurant & bar, gardens, meeting spaces, and more — surrounded by nature in Musanze.',
-                'imageFile' => $setting->facilities_hero_image ?? null,
+                'imageFile' => $facilitiesHero,
                 'imageDisk' => 'pages',
             ],
             'dining' => [
                 'title' => 'Restaurant & Bar',
                 'subtitle' => 'Fresh local flavours in a relaxed garden setting.',
-                'imageFile' => $setting->dining_hero_image ?? null,
+                'imageFile' => $diningHero,
                 'imageDisk' => 'pages',
             ],
             'experiences' => [
                 'title' => 'Experiences & Activities',
                 'subtitle' => 'Explore Northern Rwanda from Musanze — gorilla trekking, volcanoes, culture, and community visits.',
-                'imageFile' => $setting->facilities_hero_image ?? null,
+                'imageFile' => $facilitiesHero,
                 'imageDisk' => 'pages',
             ],
             'future4kids' => [
                 'title' => 'Future 4 Kids',
                 'subtitle' => 'Isange Paradise is owned by Future 4 Kids — your stay funds education, healthcare, and empowerment in Rwanda.',
-                'imageFile' => $about->aboutImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $facilitiesHero ?? $flexBg,
+                'imageDisk' => 'pages',
             ],
             'contact' => [
                 'title' => 'Get in touch',
                 'subtitle' => 'Choose how you would like to reach us or book — no contact form required.',
-                'imageFile' => $about->middleImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $facilitiesHero ?? $diningHero,
+                'imageDisk' => 'pages',
             ],
             'gallery' => [
                 'title' => 'Gallery',
                 'subtitle' => 'Moments from Isange Paradise and the Musanze region.',
-                'imageFile' => $about->middleImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $facilitiesHero ?? $flexBg,
+                'imageDisk' => 'pages',
             ],
             'terms' => [
                 'title' => 'Terms & Conditions',
                 'subtitle' => 'Please read these terms before booking your stay.',
-                'imageFile' => $about->middleImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $flexBg,
+                'imageDisk' => 'pages',
             ],
             'services' => [
                 'title' => 'Our Services',
                 'subtitle' => 'Everything we offer to make your stay comfortable and memorable.',
-                'imageFile' => $about->aboutImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $facilitiesHero ?? $flexBg,
+                'imageDisk' => 'pages',
             ],
             'blogs' => [
                 'title' => 'News & Updates',
                 'subtitle' => 'Stories, announcements, and news from Isange Paradise.',
-                'imageFile' => $about->middleImage ?? null,
-                'imageDisk' => 'gallery',
+                'imageFile' => $flexBg,
+                'imageDisk' => 'pages',
             ],
             default => [
                 'title' => 'Page',

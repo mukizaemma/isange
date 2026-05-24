@@ -3,9 +3,13 @@
 @section('content')
 
 @php
-    $welcomeImage = ! empty($about?->aboutImage)
-        ? asset('storage/images/gallery/' . ltrim($about->aboutImage, '/'))
-        : null;
+    use App\Support\PageHeaderResolver;
+
+    $welcomeHeader = ($pageHeaders ?? collect())['about'] ?? null;
+    $welcomeImage = PageHeaderResolver::resolve('about', $setting, $about, $welcomeHeader)['imageUrl']
+        ?? (! empty($about?->aboutImage)
+            ? asset('storage/images/gallery/' . ltrim($about->aboutImage, '/'))
+            : null);
 
     $welcomeParagraphs = [];
     $welcomeHtml = $about->welcome ?? '';

@@ -1,6 +1,6 @@
 
-## About Martin Aviator Website
+## About Isange Paradise Website
 
-- Martin Aviator was developed in Laravel 10 and bootstrap. It has both backend and frontend
+- Isange Paradise was developed in Laravel 10 and bootstrap. It has both backend and frontend
 
 ## 

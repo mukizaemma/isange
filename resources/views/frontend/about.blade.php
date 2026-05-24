@@ -25,10 +25,18 @@
                     <a class="theme-btn" href="{{ route('future4kids') }}">Our impact mission <i class="far fa-angle-right"></i></a>
                 </div>
             </div>
-            @if (! empty($about->aboutImage))
+            @php
+                use App\Support\PageHeaderResolver;
+                $aboutHeaderRow = ($pageHeaders ?? collect())['about'] ?? null;
+                $aboutSideImage = PageHeaderResolver::resolve('about', $setting, $about, $aboutHeaderRow)['imageUrl']
+                    ?? (! empty($about->aboutImage)
+                        ? asset('storage/images/gallery/' . ltrim($about->aboutImage, '/'))
+                        : null);
+            @endphp
+            @if (! empty($aboutSideImage))
             <div class="col-lg-5">
                 <div class="isange-about-media wow fadeInUp delay-0-4s">
-                    <img src="{{ asset('storage/images/gallery/' . ltrim($about->aboutImage, '/')) }}" alt="Isange Paradise Eco Resort" loading="lazy">
+                    <img src="{{ $aboutSideImage }}" alt="Isange Paradise Eco Resort" loading="lazy">
                 </div>
             </div>
             @endif

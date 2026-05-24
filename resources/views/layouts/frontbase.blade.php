@@ -2,7 +2,8 @@
     $brandLogo = ! empty($setting->logo ?? null)
         ? asset('storage/images/' . ltrim($setting->logo, '/'))
         : asset('assets/images/isange-logo.png');
-    $navRooms = $navRooms ?? collect();
+    $navRoomsList = $navRoomsList ?? collect();
+    $navApartmentsList = $navApartmentsList ?? collect();
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -117,14 +118,7 @@
                                                 <li><a href="{{ route('blogs') }}">Updates</a></li>
                                             </ul>
                                         </li>
-                                        <li class="dropdown"><a href="{{ route('rooms') }}">Accommodation</a>
-                                            <ul>
-                                                <li><a href="{{ route('rooms') }}">All rooms</a></li>
-                                                @foreach ($navRooms as $navRoom)
-                                                    <li><a href="{{ route('singleRoom', ['slug' => $navRoom->slug]) }}">{{ $navRoom->roomName }}</a></li>
-                                                @endforeach
-                                            </ul>
-                                        </li>
+                                        @include('frontend.includes.nav-accommodation')
                                         <li class="dropdown"><a href="{{ route('facilities') }}">Facilities</a>
                                             <ul>
                                                 <li><a href="{{ route('dining') }}">Restaurant &amp; Bar</a></li>

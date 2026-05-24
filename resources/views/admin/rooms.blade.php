@@ -49,7 +49,6 @@
                                         <th>Room Name</th>
                                         <th>Price</th>
                                         <th>Type</th>
-                                        <th>Room style</th>
                                         <th>Image</th>
                                         <th>Gallery</th>
                                         <th>Description</th>
@@ -63,7 +62,6 @@
                                             <td>{{ $rs->roomName }}</td>
                                             <td>{!! \App\Support\Currency::formatUsdWithLocal($rs->price, $rs->price_rwf) !!}</td>
                                             <td>{{ ucfirst($rs->accommodation_type ?? 'room') }}</td>
-                                            <td>{{ $rs->category }}</td>
                                             <td><img src="{{ asset('storage/images/rooms/' . $rs->image) }}" alt="" width="150px"></td>
                                             <td>
                                                 <a href="{{route('roomImages', ['pid' =>$rs->id])}}" onclick="return !window.open(this.href, '', 'top=50 left=100 width=1100, height=700')">
@@ -124,15 +122,6 @@
                                                     <select name="accommodation_type" id="accommodation_type" class="form-select">
                                                         @foreach ($accommodationTypes as $type)
                                                             <option value="{{ $type }}">{{ ucfirst($type) }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label for="category">Room style</label>
-                                                    <select name="category" id="category" class="form-select">
-                                                        <option value="">—</option>
-                                                        @foreach ($categories as $cat)
-                                                            <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>

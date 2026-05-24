@@ -142,42 +142,6 @@ class SettingController extends Controller
         $data->welcome = $request->input('welcome');
         $data->background = $request->input('background');
 
-        if ($request->hasFile('aboutImage') && request('aboutImage') != '') {
-            $dir = 'public/images/gallery';
-
-            if (File::exists($dir)) {
-                unlink($dir);
-            }
-            $path = $request->file('aboutImage')->store($dir);
-            $fileName = str_replace($dir, '', $path);
-
-            $data->aboutImage = $fileName;
-        }
-
-        if ($request->hasFile('middleImage') && request('middleImage') != '') {
-            $dir = 'public/images/gallery';
-
-            if (File::exists($dir)) {
-                unlink($dir);
-            }
-            $path = $request->file('middleImage')->store($dir);
-            $fileName = str_replace($dir, '', $path);
-
-            $data->middleImage = $fileName;
-        }
-
-        if ($request->hasFile('chooseusImage') && request('chooseusImage') != '') {
-            $dir = 'public/images/gallery';
-
-            if (File::exists($dir)) {
-                unlink($dir);
-            }
-            $path = $request->file('chooseusImage')->store($dir);
-            $fileName = str_replace($dir, '', $path);
-
-            $data->chooseusImage = $fileName;
-        }
-
         $data->update();
 
         Cache::forget(FrontLayoutComposer::CACHE_KEY_ABOUT);

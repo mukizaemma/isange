@@ -70,15 +70,6 @@
                                             </select>
                                         </div>
                                         <div class="col-md-3">
-                                            <label for="category">Room style</label>
-                                            <select name="category" id="category" class="form-select">
-                                                <option value="">—</option>
-                                                @foreach ($categories as $cat)
-                                                    <option value="{{ $cat }}" @selected($room->category === $cat)>{{ ucfirst($cat) }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
                                             <label for="quantity">Room Size</label>
                                             <input type="text" id="quantity" class="form-control" value="{{ $room->size }}" name="size">
 
