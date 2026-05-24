@@ -200,16 +200,30 @@
                 <a href="{{ route('experiences') }}" class="theme-btn mt-3">All experiences <i class="far fa-angle-right"></i></a>
             </div>
             <div class="col-lg-7 wow fadeInUp delay-0-3s">
-                <ul class="isange-experience-list">
-                    <li><a href="{{ route('experiences') }}#gorilla"><i class="fas fa-paw" aria-hidden="true"></i> Gorilla Trekking</a></li>
-                    <li><a href="{{ route('experiences') }}#golden-monkey"><i class="fas fa-tree" aria-hidden="true"></i> Golden Monkey Trekking</a></li>
-                    <li><a href="{{ route('experiences') }}#volcano"><i class="fas fa-mountain" aria-hidden="true"></i> Volcano Hiking</a></li>
-                    <li><a href="{{ route('experiences') }}#caves"><i class="fas fa-dungeon" aria-hidden="true"></i> Musanze Caves tours</a></li>
-                    <li><a href="{{ route('experiences') }}#lakes"><i class="fas fa-water" aria-hidden="true"></i> Twin Lakes excursions</a></li>
-                    <li><a href="{{ route('experiences') }}#culture"><i class="fas fa-people-arrows" aria-hidden="true"></i> Cultural village experiences</a></li>
-                    <li><a href="{{ route('experiences') }}#birds"><i class="fas fa-dove" aria-hidden="true"></i> Bird watching</a></li>
-                    <li><a href="{{ route('experiences') }}#cycling"><i class="fas fa-bicycle" aria-hidden="true"></i> Cycling tours</a></li>
-                    <li><a href="{{ route('experiences') }}#community"><i class="fas fa-hands-helping" aria-hidden="true"></i> Community visits</a></li>
+                <ul class="isange-experience-list isange-experience-list--cart">
+                    @php
+                        $homeExperiences = [
+                            ['id' => 'gorilla', 'icon' => 'fa-paw', 'title' => 'Gorilla Trekking'],
+                            ['id' => 'golden-monkey', 'icon' => 'fa-tree', 'title' => 'Golden Monkey Trekking'],
+                            ['id' => 'volcano', 'icon' => 'fa-mountain', 'title' => 'Volcano Hiking'],
+                            ['id' => 'caves', 'icon' => 'fa-dungeon', 'title' => 'Musanze Caves tours'],
+                            ['id' => 'lakes', 'icon' => 'fa-water', 'title' => 'Twin Lakes excursions'],
+                            ['id' => 'culture', 'icon' => 'fa-people-arrows', 'title' => 'Cultural village experiences'],
+                            ['id' => 'birds', 'icon' => 'fa-dove', 'title' => 'Bird watching'],
+                            ['id' => 'cycling', 'icon' => 'fa-bicycle', 'title' => 'Cycling tours'],
+                            ['id' => 'community', 'icon' => 'fa-hands-helping', 'title' => 'Community visits'],
+                        ];
+                    @endphp
+                    @foreach ($homeExperiences as $hex)
+                    <li class="isange-experience-list__row">
+                        <a href="{{ route('experiences') }}#{{ $hex['id'] }}"><i class="fas {{ $hex['icon'] }}" aria-hidden="true"></i> {{ $hex['title'] }}</a>
+                        <button type="button" class="isange-experience-list__add" title="Add to itinerary"
+                            data-add-experience="{{ $hex['id'] }}"
+                            data-exp-title="{{ $hex['title'] }}"
+                            data-exp-icon="{{ $hex['icon'] }}"
+                            aria-label="Add {{ $hex['title'] }} to cart">+</button>
+                    </li>
+                    @endforeach
                 </ul>
             </div>
         </div>

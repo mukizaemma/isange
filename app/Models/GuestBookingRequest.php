@@ -11,6 +11,7 @@ class GuestBookingRequest extends Model
     protected $fillable = [
         'public_id',
         'room_id',
+        'cart_items',
         'check_in',
         'check_out',
         'airport_pickup',
@@ -20,16 +21,22 @@ class GuestBookingRequest extends Model
         'guest_phone',
         'guest_email',
         'guest_country',
+        'payment_method',
+        'total_usd',
+        'adults',
+        'children',
         'fulfillment_choice',
         'completed_channel',
         'message_body',
     ];
 
     protected $casts = [
+        'cart_items' => 'array',
         'check_in' => 'date',
         'check_out' => 'date',
         'airport_pickup' => 'boolean',
         'airport_dropoff' => 'boolean',
+        'total_usd' => 'decimal:2',
     ];
 
     protected static function booted(): void

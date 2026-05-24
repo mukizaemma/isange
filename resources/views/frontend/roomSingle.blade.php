@@ -1,5 +1,4 @@
 @extends('layouts.frontbase')
-<base href="/public">
 
 @section('content')
 
@@ -48,6 +47,18 @@
                             {!! $room->description !!}
                         </div>
                     @endif
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button type="button" class="theme-btn"
+                            data-add-room
+                            data-room-id="{{ $room->id }}"
+                            data-room-slug="{{ $room->slug }}"
+                            data-room-name="{{ $room->roomName }}"
+                            data-room-price="{{ $room->price }}"
+                            data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
+                            Add to stay cart
+                        </button>
+                        <a href="{{ route('booking.checkout', ['room' => $room->slug]) }}" class="theme-btn style-three">Book now</a>
+                    </div>
                 </div>
             </div>
         </div>

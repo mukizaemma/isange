@@ -1,5 +1,4 @@
 @extends('layouts.frontbase')
-<base href="/public">
 
 @section('content')
 

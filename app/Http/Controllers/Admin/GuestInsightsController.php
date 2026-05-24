@@ -21,6 +21,26 @@ class GuestInsightsController extends Controller
         $bookingRequests = GuestBookingRequest::query()->with('room')->latest()->limit(100)->get();
         $diningSubmissions = GuestDiningSubmission::query()->latest()->limit(100)->get();
 
-        return view('admin.guest-insights', compact('eventTotals', 'bookingRequests', 'diningSubmissions'));
+        $paymentMethodTotals = GuestBookingRequest::query()
+            ->selectRaw('COALESCE(payment_method, fulfillment_choice) as method, COUNT(*) as total')
+            ->groupBy('method')
+            ->orderByDesc('total')
+            ->get();
+
+        $monthlyPaymentReport = GuestBookingRequest::query()
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month, payment_method, COUNT(*) as total')
+            ->whereNotNull('payment_method')
+            ->groupBy('month', 'payment_method')
+            ->orderByDesc('month')
+            ->limit(24)
+            ->get();
+
+        return view('admin.guest-insights', compact(
+            'eventTotals',
+            'bookingRequests',
+            'diningSubmissions',
+            'paymentMethodTotals',
+            'monthlyPaymentReport',
+        ));
     }
 }

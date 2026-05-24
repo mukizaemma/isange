@@ -15,8 +15,14 @@
                 <div class="border rounded-3 p-4 p-md-5 bg-light text-center">
                     <span class="badge bg-warning text-dark mb-3">Coming soon</span>
                     <h2 class="h4 mb-3">Direct card payment</h2>
+                    @if (! empty($booking))
+                        <p class="mb-2">Reference: <code>{{ $booking->public_id }}</code></p>
+                        @if ($booking->total_usd)
+                            <p class="mb-3">Estimated total: <strong>${{ number_format((float) $booking->total_usd, 2) }}</strong></p>
+                        @endif
+                    @endif
                     @if (! empty($room))
-                        <p class="mb-3">You selected <strong>{{ $room->roomName }}</strong>. When payment is live, you will complete your booking and pay securely on this page.</p>
+                        <p class="mb-3">Primary room: <strong>{{ $room->roomName }}</strong>. When payment is live, you will complete your booking and pay securely on this page.</p>
                     @else
                         <p class="mb-3">When payment is live, you will complete your booking and pay securely on this page.</p>
                     @endif

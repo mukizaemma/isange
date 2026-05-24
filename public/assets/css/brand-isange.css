@@ -149,12 +149,41 @@ h6,
  * still treat it as a hit target, which blocks clicks on the top menu.
  * Only accept pointer events when the hidden sidebar is actually open.
  */
+/*
+ * Mobile menu backdrop: template positions it fixed at full viewport size.
+ * When the menu is closed it must not capture clicks (common “dead site” bug).
+ */
 .form-back-drop {
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 .side-content-visible .form-back-drop {
-  pointer-events: auto;
+  pointer-events: auto !important;
+}
+
+/* Preloader: if window “load” never fires (slow asset), don’t block the site forever */
+.preloader {
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+
+.preloader.is-hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
+}
+
+@keyframes ma-preloader-safety-hide {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+
+.preloader:not(.is-hidden) {
+  animation: ma-preloader-safety-hide 0s linear 9s forwards;
 }
 
 /* Header: logo | centered nav | Book Now (balanced grid on desktop) */
@@ -1776,5 +1805,143 @@ body.spa-loading::before {
     max-width: 100%;
     padding-left: 0;
     padding-right: 0;
+  }
+}
+
+/* —— Stay booking cart (rooms + experiences) —— */
+.stay-cart-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9997;
+  background: rgba(18, 22, 20, 0.96);
+  color: #f5f0e6;
+  border-top: 1px solid rgba(16, 107, 56, 0.45);
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.stay-cart-dock__bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.stay-cart-dock__toggle {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: #fff;
+}
+
+.stay-cart-dock__summary {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.stay-cart-dock__total {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stay-cart-dock__label {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.stay-cart-dock__continue {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 0.5rem 1.1rem !important;
+  font-size: 0.9rem !important;
+}
+
+.stay-cart-dock__panel {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  max-height: 45vh;
+  overflow-y: auto;
+}
+
+.stay-cart-dock__panel-inner {
+  padding: 0.75rem 1rem 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.stay-cart-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.stay-cart-line__body strong {
+  font-size: 0.9rem;
+}
+
+.stay-add-exp-btn.is-added,
+[data-add-experience].is-added {
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.ma-stay-checkout__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  .ma-stay-checkout__grid {
+    grid-template-columns: 1fr 380px;
+  }
+}
+
+.ma-stay-pay-option {
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ma-stay-pay-option:has(input:checked) {
+  border-color: var(--eco-green, #106b38) !important;
+  box-shadow: 0 0 0 2px rgba(16, 107, 56, 0.2);
+}
+
+.ma-stay-summary {
+  top: 1rem;
+}
+
+.ma-stay-summary__line strong {
+  font-size: 0.95rem;
+}
+
+body:has(.stay-cart-dock:not(.d-none)) {
+  padding-bottom: 72px;
+}
+
+@media (max-width: 575.98px) {
+  .stay-cart-dock__continue {
+    padding: 0.45rem 0.85rem !important;
+    font-size: 0.82rem !important;
+  }
+
+  .stay-cart-dock__total {
+    font-size: 1.05rem;
+  }
+
+  .ma-stay-checkout__aside .sticky-top {
+    position: static !important;
   }
 }

@@ -49,8 +49,21 @@
 <body class="home-one">
     <div class="page-wrapper">
 
-        <!-- Preloader -->
-        <div class="preloader"></div>
+        <!-- Preloader (hidden by script even if window “load” is delayed) -->
+        <div class="preloader" id="site-preloader" aria-hidden="true"></div>
+        <script>
+            (function () {
+                function hideSitePreloader() {
+                    var el = document.getElementById('site-preloader');
+                    if (!el || el.classList.contains('is-hidden')) return;
+                    el.classList.add('is-hidden');
+                }
+                document.addEventListener('DOMContentLoaded', function () {
+                    setTimeout(hideSitePreloader, 2800);
+                });
+                window.addEventListener('load', hideSitePreloader);
+            })();
+        </script>
 
         <!-- main header -->
         <header class="main-header">
@@ -245,6 +258,8 @@
         <!-- Scroll Top Button -->
         <button class="scroll-top scroll-to-target" data-target="html"><span class="fas fa-angle-double-up"></span></button>
 
+        @include('frontend.includes.stay-cart-dock')
+
     </div>
     <!--End pagewrapper-->
    
@@ -366,6 +381,15 @@
                 var requestUrl = url.toString();
                 showLoadingState(true);
 
+                var navigationTimedOut = false;
+                var timeoutId = setTimeout(function () {
+                    navigationTimedOut = true;
+                    if (inFlightController) {
+                        inFlightController.abort();
+                    }
+                    window.location.href = requestUrl;
+                }, 12000);
+
                 var fetchPromise = prefetchCache.get(requestUrl) || fetch(requestUrl, {
                     signal: inFlightController.signal,
                     headers: spaFetchHeaders,
@@ -393,10 +417,18 @@
 
                     finalizeNavigation(parsed, requestUrl, pushState);
                 }).catch(function (error) {
-                    if (error.name === 'AbortError') return;
+                    if (error.name === 'AbortError') {
+                        if (!navigationTimedOut) {
+                            showLoadingState(false);
+                        }
+                        return;
+                    }
                     window.location.href = requestUrl;
                 }).finally(function () {
-                    showLoadingState(false);
+                    clearTimeout(timeoutId);
+                    if (!navigationTimedOut) {
+                        showLoadingState(false);
+                    }
                 });
             }
 

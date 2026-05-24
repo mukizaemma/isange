@@ -35,6 +35,7 @@
                         {{ session()->get('warning') }}
                     </div>
                     @endif
+                    @include('admin.includes.validation-alert')
                 </div>
 
                 <div class="card mb-4">
@@ -42,14 +43,17 @@
                         <a href="{{route('getRooms')}}" class="btn btn-primary">Back</a>
                     </div>
                     <div class="card-body">
-                    <form class="form" action="{{ route('updateRoom', $room->id) }}" method="POST"
+                    <form class="form" id="roomUpdateForm" action="{{ route('updateRoom', $room->id) }}" method="POST"
                         enctype="multipart/form-data">
                         @csrf
                         <div class="modal-body">
                             <div class="row mt-3">
                                 <div class="col-md-6">
-                                    <label for="roomName">Room Name</label>
-                                    <input type="text" id="roomName" class="form-control" value="{{ $room->roomName }}" name="roomName">
+                                    <label for="roomName">Room Name <span class="text-danger">*</span></label>
+                                    <input type="text" id="roomName" class="form-control @error('roomName') is-invalid @enderror" value="{{ old('roomName', $room->roomName) }}" name="roomName" required maxlength="255">
+                                    @error('roomName')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                                 <div class="col-md-3">
                                     <label for="price">Room Price in USD</label>
@@ -63,11 +67,14 @@
                                     <div class="row mt-3">
                                         <div class="col-md-3">
                                             <label for="accommodation_type">Listing type</label>
-                                            <select name="accommodation_type" id="accommodation_type" class="form-select">
+                                            <select name="accommodation_type" id="accommodation_type" class="form-select @error('accommodation_type') is-invalid @enderror" required>
                                                 @foreach ($accommodationTypes as $type)
-                                                    <option value="{{ $type }}" @selected(($room->accommodation_type ?? 'room') === $type)>{{ ucfirst($type) }}</option>
+                                                    <option value="{{ $type }}" @selected(old('accommodation_type', $room->accommodation_type ?? 'room') === $type)>{{ ucfirst($type) }}</option>
                                                 @endforeach
                                             </select>
+                                            @error('accommodation_type')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                         <div class="col-md-3">
                                             <label for="quantity">Room Size</label>
@@ -102,12 +109,14 @@
                                         </div>
                                     </div>
                                     <div class="col-lg-6 col-sm-12">
-                                        <label for="image" class="form-label">Cover Image</label>
+                                        <label for="image" class="form-label">Replace cover image @if(empty($room->image))<span class="text-danger">*</span>@endif</label>
+                                        <p class="small text-muted mb-1">Leave empty to keep the current image.</p>
                                         <div class="input-group">
-
-                                            <input type="file" name="image" class="form-control"
-                                                id="image">
-
+                                            <input type="file" name="image" class="form-control @error('image') is-invalid @enderror"
+                                                id="image" accept="image/jpeg,image/png,image/gif,image/webp" @if(empty($room->image)) required @endif>
+                                            @error('image')
+                                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                                            @enderror
                                         </div>
                                     </div>
 
@@ -153,6 +162,19 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
+    var updateForm = document.getElementById('roomUpdateForm');
+    if (updateForm) {
+        updateForm.addEventListener('submit', function (e) {
+            var nameEl = document.getElementById('roomName');
+            var name = nameEl ? nameEl.value.trim() : '';
+            if (!name) {
+                e.preventDefault();
+                nameEl.classList.add('is-invalid');
+                nameEl.focus();
+            }
+        });
+    }
+
     $('#roomDescription').summernote({
         placeholder: 'Room description…',
         tabsize: 2,

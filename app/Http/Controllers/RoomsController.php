@@ -61,34 +61,27 @@ class RoomsController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'image' => 'required|image|max:10240',
-            'roomName' => 'nullable|string|max:255',
-            'price' => 'nullable|string|max:64',
-            'price_rwf' => 'nullable|numeric|min:0',
-            'size' => 'nullable|string|max:64',
-            'maxAdults' => 'nullable|string|max:32',
-            'maxChildren' => 'nullable|string|max:32',
-            'description' => 'nullable|string',
-            'accommodation_type' => 'nullable|in:room,apartment',
-        ]);
+        $validated = $request->validate(
+            $this->roomRules($request),
+            $this->roomMessages()
+        );
 
         $path = $request->file('image')->store('public/images/rooms');
         $fileName = basename($path);
 
-        $roomName = trim((string) $request->input('roomName', ''));
-        $slug = $this->uniqueRoomSlug($roomName !== '' ? Str::slug($roomName) : 'room');
+        $roomName = trim($validated['roomName']);
+        $slug = $this->uniqueRoomSlug(Str::slug($roomName));
 
         $room = Room::create([
             'slug' => $slug,
-            'roomName' => $roomName !== '' ? $roomName : 'Untitled room',
-            'accommodation_type' => $request->input('accommodation_type', Room::TYPE_ROOM),
-            'price' => $request->input('price'),
-            'price_rwf' => $request->filled('price_rwf') ? $request->input('price_rwf') : null,
-            'size' => $request->input('size'),
-            'maxAdults' => $request->input('maxAdults'),
-            'maxChildren' => $request->input('maxChildren'),
-            'description' => $request->input('description'),
+            'roomName' => $roomName,
+            'accommodation_type' => $validated['accommodation_type'],
+            'price' => $validated['price'] ?? null,
+            'price_rwf' => $validated['price_rwf'] ?? null,
+            'size' => $validated['size'] ?? null,
+            'maxAdults' => $validated['maxAdults'] ?? null,
+            'maxChildren' => $validated['maxChildren'] ?? null,
+            'description' => $validated['description'] ?? '',
             'image' => $fileName,
         ]);
 
@@ -113,19 +106,10 @@ class RoomsController extends Controller
     {
         $room = Room::findOrFail($id);
 
-        $imageRule = empty($room->image) ? 'required|image|max:10240' : 'nullable|image|max:10240';
-
-        $request->validate([
-            'image' => $imageRule,
-            'roomName' => 'nullable|string|max:255',
-            'price' => 'nullable|string|max:64',
-            'price_rwf' => 'nullable|numeric|min:0',
-            'size' => 'nullable|string|max:64',
-            'maxAdults' => 'nullable|string|max:32',
-            'maxChildren' => 'nullable|string|max:32',
-            'description' => 'nullable|string',
-            'accommodation_type' => 'nullable|in:room,apartment',
-        ]);
+        $validated = $request->validate(
+            $this->roomRules($request, $room),
+            $this->roomMessages()
+        );
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('public/images/rooms');
@@ -138,23 +122,18 @@ class RoomsController extends Controller
             $room->image = $fileName;
         }
 
-        $roomName = trim((string) $request->input('roomName', ''));
-        if ($roomName !== '') {
-            if ($roomName !== $room->roomName) {
-                $room->slug = $this->uniqueRoomSlug(Str::slug($roomName), $room->id);
-            }
-            $room->roomName = $roomName;
+        $roomName = trim($validated['roomName']);
+        if ($roomName !== $room->roomName) {
+            $room->slug = $this->uniqueRoomSlug(Str::slug($roomName), $room->id);
         }
-
-        if ($request->filled('accommodation_type')) {
-            $room->accommodation_type = $request->input('accommodation_type');
-        }
-        $room->price = $request->input('price');
-        $room->price_rwf = $request->filled('price_rwf') ? $request->input('price_rwf') : null;
-        $room->size = $request->input('size');
-        $room->maxAdults = $request->input('maxAdults');
-        $room->maxChildren = $request->input('maxChildren');
-        $room->description = $request->input('description');
+        $room->roomName = $roomName;
+        $room->accommodation_type = $validated['accommodation_type'];
+        $room->price = $validated['price'] ?? null;
+        $room->price_rwf = $validated['price_rwf'] ?? null;
+        $room->size = $validated['size'] ?? null;
+        $room->maxAdults = $validated['maxAdults'] ?? null;
+        $room->maxChildren = $validated['maxChildren'] ?? null;
+        $room->description = $validated['description'] ?? '';
 
         $room->save();
 
@@ -187,22 +166,25 @@ class RoomsController extends Controller
 
     public function savRoomImage(Request $request, $pid)
     {
+        Room::findOrFail($pid);
+
+        $request->validate([
+            'image' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+        ], [
+            'image.required' => 'Please select a gallery image to upload.',
+            'image.image' => 'The gallery file must be an image.',
+            'image.max' => 'The gallery image may not be larger than 10 MB.',
+        ]);
+
+        $path = $request->file('image')->store('public/images/rooms');
+        $fileName = basename($path);
+
         $data = new roomImage;
         $data->room_id = $pid;
-        if ($request->hasFile('image')) {
-            $dir = 'public/images/rooms';
-            $path = $request->file('image')->store($dir);
-            $fileName = str_replace($dir, '', $path);
-            $data->image = $fileName;
-        }
+        $data->image = $fileName;
+        $data->save();
 
-        $stored = $data->save();
-
-        if ($stored) {
-            return redirect()->back()->with('success', 'Image has been saved successfuly');
-        }
-
-        return redirect()->back()->with('error', 'Failed to add new Image');
+        return redirect()->back()->with('success', 'Image has been saved successfuly');
     }
 
     public function destroyRoomImage($id)
@@ -239,6 +221,44 @@ class RoomsController extends Controller
         $amenity->delete();
 
         return redirect()->route('getRooms')->with('success', 'Amenity option removed.');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function roomRules(Request $request, ?Room $room = null): array
+    {
+        $needsImage = $room === null || empty($room->image);
+
+        return [
+            'image' => ($needsImage ? 'required' : 'nullable').'|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+            'roomName' => 'required|string|max:255',
+            'accommodation_type' => 'required|in:'.Room::TYPE_ROOM.','.Room::TYPE_APARTMENT,
+            'price' => 'nullable|string|max:64',
+            'price_rwf' => 'nullable|numeric|min:0',
+            'size' => 'nullable|string|max:64',
+            'maxAdults' => 'nullable|string|max:32',
+            'maxChildren' => 'nullable|string|max:32',
+            'description' => 'nullable|string',
+            'amenity_options' => 'nullable|array',
+            'amenity_options.*' => 'integer|exists:hotel_amenity_options,id',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function roomMessages(): array
+    {
+        return [
+            'image.required' => 'A cover image is required.',
+            'image.image' => 'The cover file must be an image (JPEG, PNG, GIF, or WebP).',
+            'image.mimes' => 'The cover image must be JPEG, PNG, GIF, or WebP.',
+            'image.max' => 'The cover image may not be larger than 10 MB.',
+            'roomName.required' => 'Please enter a room name.',
+            'accommodation_type.required' => 'Please choose a listing type (room or apartment).',
+            'accommodation_type.in' => 'Listing type must be room or apartment.',
+        ];
     }
 
     private function uniqueRoomSlug(string $baseSlug, ?int $ignoreId = null): string

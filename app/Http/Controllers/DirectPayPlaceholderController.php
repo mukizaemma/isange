@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\SiteAnalyticsEvent;
 use Illuminate\Http\Request;
@@ -20,11 +21,17 @@ class DirectPayPlaceholderController extends Controller
             'session_id' => substr(sha1($request->session()->getId()), 0, 40),
         ]);
 
-        $room = null;
-        if ($request->filled('room')) {
+        $booking = null;
+        $bookingId = $request->query('booking') ?? session('booking_public_id');
+        if ($bookingId) {
+            $booking = GuestBookingRequest::with('room')->where('public_id', $bookingId)->first();
+        }
+
+        $room = $booking?->room;
+        if (! $room && $request->filled('room')) {
             $room = Room::where('slug', $request->query('room'))->first();
         }
 
-        return $this->spaView('frontend.pay-dpo-placeholder', compact('room'), 'Book and pay');
+        return $this->spaView('frontend.pay-dpo-placeholder', compact('room', 'booking'), 'Book and pay');
     }
 }

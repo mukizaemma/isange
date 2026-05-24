@@ -19,20 +19,22 @@
                                 <i class="fa fa-times"></i> Close
                             </button>
                         </div>
+                        @include('admin.includes.validation-alert')
+
                         <div class="card">
                             <div class="card-header">
-                                <form class="form" action="{{ route('savRoomImage',['pid' =>$room->id]) }}" method="POST"
+                                <form class="form" id="roomGalleryForm" action="{{ route('savRoomImage',['pid' =>$room->id]) }}" method="POST"
                                     enctype="multipart/form-data">
                                     @csrf
                                     <div class="form-body">
                                         <div class="row">
                                                 <div class="col-lg-6 col-sm-12">
-                                                    <label>Select an Image</label>
-                                                    <label id="projectinput7" class="file center-block">
-                                                        <input type="file" id="image" name="image"
-                                                            required="">
-                                                        <span class="file-custom"></span>
-                                                    </label>
+                                                    <label for="image">Gallery image <span class="text-danger">*</span></label>
+                                                    <input type="file" id="image" name="image" class="form-control @error('image') is-invalid @enderror"
+                                                        required accept="image/jpeg,image/png,image/gif,image/webp">
+                                                    @error('image')
+                                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                         </div>
 
@@ -104,6 +106,18 @@
 
 @section('scripts')
 <script>
+    var galleryForm = document.getElementById('roomGalleryForm');
+    if (galleryForm) {
+        galleryForm.addEventListener('submit', function (e) {
+            var imageEl = document.getElementById('image');
+            if (!imageEl || !imageEl.files || !imageEl.files.length) {
+                e.preventDefault();
+                imageEl.classList.add('is-invalid');
+                imageEl.focus();
+            }
+        });
+    }
+
     function closeGalleryWindow() {
         if (window.opener) {
             window.close();

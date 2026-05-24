@@ -34,6 +34,7 @@
                                 {{ session()->get('error') }}
                             </div>
                         @endif
+                        @include('admin.includes.validation-alert')
                     </div>
 
                     <div class="card mb-4">
@@ -99,12 +100,15 @@
 
                                     <!-- Modal body -->
                                     <div class="modal-body">
-                                        <form class="form" action="{{ route('saveRoom') }}" method="POST" enctype="multipart/form-data">
+                                        <form class="form" id="roomCreateForm" action="{{ route('saveRoom') }}" method="POST" enctype="multipart/form-data">
                                             @csrf
                                             <div class="row mt-3">
                                                 <div class="col-md-6">
-                                                    <label for="roomName">Room Name <span class="text-muted fw-normal">(optional)</span></label>
-                                                    <input type="text" id="roomName" class="form-control" placeholder="Type Room Name" name="roomName">
+                                                    <label for="roomName">Room Name <span class="text-danger">*</span></label>
+                                                    <input type="text" id="roomName" class="form-control @error('roomName') is-invalid @enderror" placeholder="Type Room Name" name="roomName" value="{{ old('roomName') }}" required maxlength="255">
+                                                    @error('roomName')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label for="singlePrice">Price (USD / night) <span class="text-muted fw-normal">(optional)</span></label>
@@ -119,11 +123,14 @@
                                             <div class="row mt-3">
                                                 <div class="col-md-3">
                                                     <label for="accommodation_type">Listing type</label>
-                                                    <select name="accommodation_type" id="accommodation_type" class="form-select">
+                                                    <select name="accommodation_type" id="accommodation_type" class="form-select @error('accommodation_type') is-invalid @enderror" required>
                                                         @foreach ($accommodationTypes as $type)
-                                                            <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                                                            <option value="{{ $type }}" @selected(old('accommodation_type', 'room') === $type)>{{ ucfirst($type) }}</option>
                                                         @endforeach
                                                     </select>
+                                                    @error('accommodation_type')
+                                                        <div class="invalid-feedback">{{ $message }}</div>
+                                                    @enderror
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label for="quantity">Room Size</label>
@@ -164,9 +171,12 @@
                                     
                                             <div class="row">
                                                 <div class="col-lg-6 col-sm-12">
-                                                    <label for="image" class="form-label">Cover Image<br> <span style="color: red">(This Image should not exceed 500X800 pixels)</span></label>
+                                                    <label for="image" class="form-label">Cover Image <span class="text-danger">*</span><br> <span class="text-muted small">JPEG, PNG, GIF, or WebP — recommended max 500×800 px</span></label>
                                                     <div class="input-group">
-                                                        <input type="file" name="image" class="form-control" id="image" required accept="image/*">
+                                                        <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" id="image" required accept="image/jpeg,image/png,image/gif,image/webp">
+                                                        @error('image')
+                                                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                                                        @enderror
                                                     </div>
                                                 </div>
                                             </div>
@@ -252,6 +262,39 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
+    @if ($errors->hasAny(['image', 'roomName', 'accommodation_type', 'price', 'price_rwf', 'size', 'maxAdults', 'maxChildren', 'description']))
+        var roomModal = document.getElementById('RoomModal');
+        if (roomModal) {
+            bootstrap.Modal.getOrCreateInstance(roomModal).show();
+        }
+    @endif
+
+    var createForm = document.getElementById('roomCreateForm');
+    if (createForm) {
+        createForm.addEventListener('submit', function (e) {
+            var nameEl = document.getElementById('roomName');
+            var imageEl = document.getElementById('image');
+            var name = nameEl ? nameEl.value.trim() : '';
+            var hasImage = imageEl && imageEl.files && imageEl.files.length > 0;
+
+            if (!name) {
+                e.preventDefault();
+                nameEl.classList.add('is-invalid');
+                nameEl.focus();
+                return;
+            }
+            nameEl.classList.remove('is-invalid');
+
+            if (!hasImage) {
+                e.preventDefault();
+                imageEl.classList.add('is-invalid');
+                imageEl.focus();
+                return;
+            }
+            imageEl.classList.remove('is-invalid');
+        });
+    }
+
     $('#roomDescription').summernote({
         placeholder: 'Room description…',
         tabsize: 2,

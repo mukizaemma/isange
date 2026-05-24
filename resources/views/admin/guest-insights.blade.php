@@ -39,6 +39,47 @@
                 </div>
 
                 <div class="card mb-4">
+                    <div class="card-header">Reservation payment preferences (all time)</div>
+                    <div class="card-body">
+                        @if ($paymentMethodTotals->isEmpty())
+                            <p class="text-muted mb-0">No payment method data yet.</p>
+                        @else
+                            <table class="table table-sm mb-0">
+                                <thead><tr><th>Method</th><th class="text-end">Bookings</th></tr></thead>
+                                <tbody>
+                                    @foreach ($paymentMethodTotals as $row)
+                                        <tr>
+                                            <td><code>{{ $row->method }}</code></td>
+                                            <td class="text-end">{{ number_format($row->total) }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">Monthly payment method report</div>
+                    <div class="card-body table-responsive">
+                        <table class="table table-sm">
+                            <thead><tr><th>Month</th><th>Payment method</th><th class="text-end">Count</th></tr></thead>
+                            <tbody>
+                                @forelse ($monthlyPaymentReport as $row)
+                                    <tr>
+                                        <td>{{ $row->month }}</td>
+                                        <td><code>{{ $row->payment_method }}</code></td>
+                                        <td class="text-end">{{ $row->total }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="text-muted">No data yet.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
                     <div class="card-header">Recent room booking requests (stored message)</div>
                     <div class="card-body table-responsive">
                         <table class="table table-hover table-sm align-middle">
@@ -47,8 +88,9 @@
                                     <th>When</th>
                                     <th>Guest</th>
                                     <th>Stay</th>
-                                    <th>Fulfillment</th>
-                                    <th>Done via</th>
+                                    <th>Payment</th>
+                                    <th>Channel</th>
+                                    <th>Cart</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,11 +99,19 @@
                                         <td class="text-nowrap">{{ $b->created_at->format('Y-m-d H:i') }}</td>
                                         <td>{{ $b->guest_name }}<br><small class="text-muted">{{ $b->guest_email }}</small></td>
                                         <td>{{ $b->check_in->format('Y-m-d') }} → {{ $b->check_out->format('Y-m-d') }}<br><small class="text-muted">{{ $b->room?->roomName ?? 'Any' }}</small></td>
-                                        <td><code>{{ $b->fulfillment_choice }}</code></td>
-                                        <td>{{ $b->completed_channel ?? '—' }}</td>
+                                        <td><code>{{ $b->payment_method ?? '—' }}</code></td>
+                                        <td><code>{{ $b->fulfillment_choice }}</code>@if($b->completed_channel)<br><small>{{ $b->completed_channel }}</small>@endif</td>
+                                        <td class="small">
+                                            @if (is_array($b->cart_items))
+                                                {{ count($b->cart_items['rooms'] ?? []) }} room(s),
+                                                {{ count($b->cart_items['experiences'] ?? []) }} exp.
+                                            @else
+                                                —
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" class="text-muted">No submissions yet.</td></tr>
+                                    <tr><td colspan="6" class="text-muted">No submissions yet.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

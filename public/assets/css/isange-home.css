@@ -229,6 +229,37 @@
   color: #fff;
 }
 
+.isange-experience-list--cart .isange-experience-list__row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.isange-experience-list--cart .isange-experience-list__row > a {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.isange-experience-list__add {
+  flex: 0 0 42px;
+  width: 42px;
+  border: 1px solid var(--eco-green, #106b38);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--eco-green, #106b38);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.isange-experience-list__add:hover,
+.isange-experience-list__add.is-added {
+  background: var(--eco-green, #106b38);
+  color: #fff;
+}
+
 .isange-cta-band {
   text-align: center;
   padding: 4.5rem 1.5rem;

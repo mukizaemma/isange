@@ -9,6 +9,7 @@ use App\Http\Controllers\DirectPayPlaceholderController;
 use App\Http\Controllers\FacilitiesController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GuestBookingController;
+use App\Http\Controllers\StayBookingController;
 use App\Http\Controllers\GuestDiningSubmissionController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\SiteContentController;
@@ -48,8 +49,12 @@ Route::post('/saveBookings', [HomeController::class, 'saveBookings'])->name('sav
 Route::get('/facilities', [HomeController::class, 'facilities'])->name('facilities');
 Route::get('/dining', [HomeController::class, 'dining'])->name('dining');
 
-Route::get('/book-room', [GuestBookingController::class, 'create'])->name('room.booking');
-Route::post('/book-room', [GuestBookingController::class, 'store'])->middleware('throttle:25,1')->name('room.booking.store');
+Route::get('/book-room', [StayBookingController::class, 'checkout'])->name('room.booking');
+Route::get('/booking/checkout', [StayBookingController::class, 'checkout'])->name('booking.checkout');
+Route::post('/booking/checkout', [StayBookingController::class, 'store'])->middleware('throttle:25,1')->name('booking.checkout.store');
+Route::post('/book-room', [StayBookingController::class, 'store'])->middleware('throttle:25,1')->name('room.booking.store');
+Route::get('/booking/catalog.json', [StayBookingController::class, 'catalog'])->name('booking.catalog');
+Route::post('/book-room/legacy', [GuestBookingController::class, 'store'])->middleware('throttle:25,1')->name('room.booking.legacy.store');
 Route::get('/book-room/confirmation/{publicId}', [GuestBookingController::class, 'confirmation'])->name('room.booking.confirmation');
 Route::get('/book-room/open-whatsapp/{publicId}', [GuestBookingController::class, 'openWhatsapp'])->name('room.booking.whatsapp');
 Route::get('/book-room/email-instructions/{publicId}', [GuestBookingController::class, 'emailInstructions'])->name('room.booking.email');

@@ -637,15 +637,18 @@
        When document is loaded, do
        ========================================================================== */
 
+    function hidePreloaderNow() {
+        $('.preloader').addClass('is-hidden').fadeOut(400);
+    }
+
+    // Don’t wait only for window “load” — a stuck image/asset can block it forever
+    $(function () {
+        setTimeout(hidePreloaderNow, 2500);
+    });
+
     $(window).on('load', function () {
 
-        // ## Preloader
-        function handlePreloader() {
-            if ($('.preloader').length) {
-                $('.preloader').delay(200).fadeOut(500);
-            }
-        }
-        handlePreloader();
+        hidePreloaderNow();
         
         
         // ## Gallery Filtering

@@ -26,14 +26,21 @@
                     <i class="fas {{ $exp['icon'] ?? 'fa-star' }}" aria-hidden="true"></i>
                     <h3>{{ $exp['title'] ?? '' }}</h3>
                     <p class="mb-3">{{ $exp['text'] ?? '' }}</p>
-                    <a href="{{ route('contact') }}" class="theme-btn style-three btn-sm">Plan this experience <i class="far fa-angle-right"></i></a>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        @include('frontend.includes.stay-add-experience-btn', [
+                            'expId' => $exp['id'] ?? '',
+                            'expTitle' => $exp['title'] ?? '',
+                            'expIcon' => $exp['icon'] ?? 'fa-star',
+                        ])
+                        <a href="{{ route('booking.checkout') }}" class="btn btn-sm btn-link">View cart</a>
+                    </div>
                 </article>
             </div>
             @endforeach
         </div>
 
         <div class="text-center mt-60 wow fadeInUp">
-            <a href="{{ route('room.booking') }}" class="theme-btn">Book your stay &amp; adventures <i class="far fa-angle-right"></i></a>
+            <a href="{{ route('booking.checkout') }}" class="theme-btn">Review cart &amp; book <i class="far fa-angle-right"></i></a>
         </div>
     </div>
 </section>
