@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
+        <meta name="upload-max-image-kb" content="700">
         <title>Images Gallery</title>
         <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
         <link href="{{asset('assets')}}/admin/css/styles.css" rel="stylesheet" />
@@ -41,6 +42,7 @@
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 
     <script src="{{asset('assets')}}/js/summernote.js"></script>
+    <script src="{{ asset('assets/js/image-upload-compress.js') }}"></script>
 
     @yield('scripts')
 

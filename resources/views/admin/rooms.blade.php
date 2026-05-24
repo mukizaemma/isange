@@ -171,7 +171,7 @@
                                     
                                             <div class="row">
                                                 <div class="col-lg-6 col-sm-12">
-                                                    <label for="image" class="form-label">Cover Image <span class="text-danger">*</span><br> <span class="text-muted small">JPEG, PNG, GIF, or WebP — recommended max 500×800 px</span></label>
+                                                    <label for="image" class="form-label">Cover Image <span class="text-danger">*</span><br> <span class="text-muted small">JPEG, PNG, or WebP — auto-compressed in your browser to under 700 KB before upload</span></label>
                                                     <div class="input-group">
                                                         <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" id="image" required accept="image/jpeg,image/png,image/gif,image/webp">
                                                         @error('image')

@@ -10,6 +10,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta name="description" content="" />
         <meta name="author" content="" />
+        <meta name="upload-max-image-kb" content="700">
         @if($data)
         <title>{{$data->company}} {{$data->company}}</title>
         @endif
@@ -97,6 +98,8 @@
     <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 
     <script src="{{ asset('assets') }}/admin/js/summernote.js"></script>
+    {{-- Must load before @yield scripts so Summernote inits get the image compress hook --}}
+    <script src="{{ asset('assets/js/image-upload-compress.js') }}"></script>
 
         @yield('scripts')
 </body>
