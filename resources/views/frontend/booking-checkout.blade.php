@@ -148,7 +148,7 @@
                         <div id="checkout-summary-lines" class="ma-stay-summary__lines"></div>
                         <p class="small text-muted px-3 py-3 mb-0 d-none" id="checkout-summary-empty">
                             Your cart is empty.
-                            <a href="{{ route('accommodation') }}">Browse rooms</a> or
+                            <a href="{{ route('rooms') }}">Browse rooms</a> or
                             <a href="{{ route('experiences') }}">add experiences</a>.
                         </p>
                     </div>
