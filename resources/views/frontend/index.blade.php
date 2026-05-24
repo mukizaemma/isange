@@ -126,15 +126,9 @@
                         </div>
                         <div class="content flex-grow-1 d-flex flex-column">
                             <h3 class="mb-15"><a href="{{ route('singleRoom', ['slug' => $room->slug]) }}">{{ $room->roomName }}</a></h3>
-                            <div class="isange-amenities-inline flex-column align-items-start gap-1 mb-2">
-                                <span><i class="fas fa-bath" aria-hidden="true"></i> Private bathroom</span>
-                                <span><i class="fas fa-wifi" aria-hidden="true"></i> Free Wi-Fi</span>
-                                <span><i class="fas fa-seedling" aria-hidden="true"></i> Garden views</span>
-                            </div>
-                            <div class="price">
-                                <b>{!! \App\Support\Currency::formatUsdOnly($room->price) !!}</b>
-                                <span class="d-block small">per night</span>
-                            </div>
+                            @if (! empty(trim(strip_tags($room->description ?? ''))))
+                                <p class="text-muted mb-3 flex-grow-1">{!! \Illuminate\Support\Str::limit(strip_tags($room->description), 140) !!}</p>
+                            @endif
                             <div class="d-flex flex-wrap gap-2 mt-auto">
                                 <a href="{{ route('singleRoom', ['slug' => $room->slug]) }}" class="theme-btn style-three home-room-card__btn flex-grow-1 d-inline-flex justify-content-center align-items-center">
                                     View Details <i class="far fa-angle-right"></i>

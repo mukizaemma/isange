@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\View\Composers\AuthLayoutComposer;
 use App\View\Composers\FrontLayoutComposer;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +30,11 @@ class AppServiceProvider extends ServiceProvider
         View::composer(
             ['layouts.frontbase', 'frontend.*'],
             FrontLayoutComposer::class
+        );
+
+        View::composer(
+            ['auth.*', 'layouts.guest', 'components.authentication-card', 'components.authentication-card-logo'],
+            AuthLayoutComposer::class
         );
     }
 }

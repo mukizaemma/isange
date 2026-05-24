@@ -63,35 +63,38 @@ class RoomsController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'image' => 'required|image|max:10240',
+            'roomName' => 'nullable|string|max:255',
+            'price' => 'nullable|string|max:64',
+            'price_rwf' => 'nullable|numeric|min:0',
+            'size' => 'nullable|string|max:64',
+            'maxAdults' => 'nullable|string|max:32',
+            'maxChildren' => 'nullable|string|max:32',
+            'description' => 'nullable|string',
+            'accommodation_type' => 'nullable|in:room,apartment',
+            'category' => 'nullable|string|max:64',
+        ]);
 
-        $fileName = '';
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
+        $path = $request->file('image')->store('public/images/rooms');
+        $fileName = basename($path);
 
-            $path = $file->store('public/images/rooms');
-            $fileName = basename($path);
-        }
+        $roomName = trim((string) $request->input('roomName', ''));
+        $slug = $this->uniqueRoomSlug($roomName !== '' ? Str::slug($roomName) : 'room');
 
-        // Generate the slug
-        $slug = Str::of($request->input('roomName'))->slug();
-
-        // Check if a blog post with the same slug already exists
-        $room = Room::firstOrCreate(
-            ['slug' => $slug],
-            [
-                'roomName' => $request->input('roomName'),
-                'category' => $request->filled('category') ? $request->input('category') : null,
-                'accommodation_type' => $request->input('accommodation_type', Room::TYPE_ROOM),
-                'price' => $request->input('price'),
-                'price_rwf' => $request->filled('price_rwf') ? $request->input('price_rwf') : null,
-                'size' => $request->input('size'),
-                'maxAdults' => $request->input('maxAdults'),
-                'maxChildren' => $request->input('maxChildren'),
-                'description' => $request->input('description'),
-                'image' => $fileName,
-                'slug' => $slug,
-            ]
-        );
+        $room = Room::create([
+            'slug' => $slug,
+            'roomName' => $roomName !== '' ? $roomName : 'Untitled room',
+            'category' => $request->filled('category') ? $request->input('category') : null,
+            'accommodation_type' => $request->input('accommodation_type', Room::TYPE_ROOM),
+            'price' => $request->input('price'),
+            'price_rwf' => $request->filled('price_rwf') ? $request->input('price_rwf') : null,
+            'size' => $request->input('size'),
+            'maxAdults' => $request->input('maxAdults'),
+            'maxChildren' => $request->input('maxChildren'),
+            'description' => $request->input('description'),
+            'image' => $fileName,
+        ]);
 
         $room->amenityOptions()->sync($request->input('amenity_options', []));
 
@@ -115,26 +118,45 @@ class RoomsController extends Controller
     {
         $room = Room::findOrFail($id);
 
-        // Update image if a new one is uploaded
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
+        $imageRule = empty($room->image) ? 'required|image|max:10240' : 'nullable|image|max:10240';
 
-            $path = $file->store('public/images/rooms');
+        $request->validate([
+            'image' => $imageRule,
+            'roomName' => 'nullable|string|max:255',
+            'price' => 'nullable|string|max:64',
+            'price_rwf' => 'nullable|numeric|min:0',
+            'size' => 'nullable|string|max:64',
+            'maxAdults' => 'nullable|string|max:32',
+            'maxChildren' => 'nullable|string|max:32',
+            'description' => 'nullable|string',
+            'accommodation_type' => 'nullable|in:room,apartment',
+            'category' => 'nullable|string|max:64',
+        ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('public/images/rooms');
             $fileName = basename($path);
 
-            // Delete the old image file
-            Storage::delete('public/images/rooms/'.$room->image);
+            if (! empty($room->image)) {
+                Storage::delete('public/images/rooms/'.$room->image);
+            }
 
             $room->image = $fileName;
         }
 
-        // Update other fields
-        $room->roomName = $request->input('roomName');
+        $roomName = trim((string) $request->input('roomName', ''));
+        if ($roomName !== '') {
+            if ($roomName !== $room->roomName) {
+                $room->slug = $this->uniqueRoomSlug(Str::slug($roomName), $room->id);
+            }
+            $room->roomName = $roomName;
+        }
+
         if ($request->filled('accommodation_type')) {
             $room->accommodation_type = $request->input('accommodation_type');
         }
-        if ($request->filled('category')) {
-            $room->category = $request->input('category');
+        if ($request->has('category')) {
+            $room->category = $request->filled('category') ? $request->input('category') : null;
         }
         $room->price = $request->input('price');
         $room->price_rwf = $request->filled('price_rwf') ? $request->input('price_rwf') : null;
@@ -142,23 +164,6 @@ class RoomsController extends Controller
         $room->maxAdults = $request->input('maxAdults');
         $room->maxChildren = $request->input('maxChildren');
         $room->description = $request->input('description');
-        // $room->status = $request->input('status');
-
-        // Update the slug if the title has changed
-        if ($room->roomName !== $request->input('roomName')) {
-            $slug = Str::of($request->input('roomName'))->slug();
-            // Check if a blog post with the same slug already exists
-            $existingpost = Room::where('slug', $slug)->first();
-            if ($existingpost && $existingpost->id !== $room->id) {
-                $suffix = 1;
-                do {
-                    $newSlug = $slug.'-'.$suffix++;
-                    $existingpost = Room::where('slug', $newSlug)->first();
-                } while ($existingpost);
-                $slug = $newSlug;
-            }
-            $room->slug = $slug;
-        }
 
         $room->save();
 
@@ -243,5 +248,21 @@ class RoomsController extends Controller
         $amenity->delete();
 
         return redirect()->route('getRooms')->with('success', 'Amenity option removed.');
+    }
+
+    private function uniqueRoomSlug(string $baseSlug, ?int $ignoreId = null): string
+    {
+        $slug = $baseSlug !== '' ? $baseSlug : 'room';
+        $candidate = $slug;
+        $suffix = 1;
+
+        while (Room::query()
+            ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->where('slug', $candidate)
+            ->exists()) {
+            $candidate = $slug.'-'.$suffix++;
+        }
+
+        return $candidate;
     }
 }

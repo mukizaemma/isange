@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <x-authentication-card :subtitle="__('Staff registration · Martin Aviator Hotel')">
+    <x-authentication-card>
         <x-slot name="logo">
             <x-authentication-card-logo />
         </x-slot>

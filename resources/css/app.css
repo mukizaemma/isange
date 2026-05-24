@@ -2,10 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    .auth-body {
+        font-family: "Nunito", system-ui, sans-serif;
+    }
+
+    .auth-shell__hero-title {
+        font-family: "DM Serif Display", Georgia, serif;
+    }
+}
+
 @layer components {
     .auth-btn-primary {
         @apply inline-flex items-center justify-center rounded-lg border border-transparent px-4 py-2.5 text-sm font-semibold text-white shadow-md transition duration-150 ease-in-out;
-        @apply bg-[#e69138] hover:bg-[#c2782f] focus:outline-none focus:ring-2 focus:ring-[#e69138] focus:ring-offset-2 active:bg-[#a86a1c];
+        @apply bg-[#106b38] hover:bg-[#0d5a30] focus:outline-none focus:ring-2 focus:ring-[#106b38] focus:ring-offset-2 active:bg-[#0a4a28];
     }
 
+    .auth-shell {
+        @apply bg-[#f8f6f1];
+    }
+
+    .auth-shell__panel {
+        @apply bg-[#f8f6f1];
+    }
+
+    .auth-shell__hero {
+        background-color: #106b38;
+        background-size: cover;
+        background-position: center top;
+        background-repeat: no-repeat;
+    }
+
+    .auth-shell__hero-mobile {
+        background-color: #106b38;
+        background-size: cover;
+        background-position: center top;
+        background-repeat: no-repeat;
+    }
+
+    .auth-shell__hero-overlay {
+        background: linear-gradient(
+            to top,
+            rgba(16, 107, 56, 0.92) 0%,
+            rgba(16, 107, 56, 0.55) 42%,
+            rgba(0, 0, 0, 0.25) 100%
+        );
+    }
+
+    .auth-shell__form-title {
+        font-family: "DM Serif Display", Georgia, serif;
+    }
+
+    .auth-input {
+        @apply rounded-lg border-neutral-200 shadow-sm transition focus:border-[#106b38] focus:ring-[#106b38];
+    }
 }

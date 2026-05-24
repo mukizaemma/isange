@@ -105,12 +105,12 @@
                                             @csrf
                                             <div class="row mt-3">
                                                 <div class="col-md-6">
-                                                    <label for="roomName">Room Name</label>
-                                                    <input type="text" id="roomName" class="form-control" placeholder="Type Room Name" name="roomName" required>
+                                                    <label for="roomName">Room Name <span class="text-muted fw-normal">(optional)</span></label>
+                                                    <input type="text" id="roomName" class="form-control" placeholder="Type Room Name" name="roomName">
                                                 </div>
                                                 <div class="col-md-3">
-                                                    <label for="singlePrice">Price (USD / night)</label>
-                                                    <input type="text" id="price" class="form-control" placeholder="Price/ Night" name="price" required>
+                                                    <label for="singlePrice">Price (USD / night) <span class="text-muted fw-normal">(optional)</span></label>
+                                                    <input type="text" id="price" class="form-control" placeholder="Price/ Night" name="price">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label for="price_rwf">Price (RWF, optional)</label>
@@ -121,7 +121,7 @@
                                             <div class="row mt-3">
                                                 <div class="col-md-3">
                                                     <label for="accommodation_type">Listing type</label>
-                                                    <select name="accommodation_type" id="accommodation_type" class="form-select" required>
+                                                    <select name="accommodation_type" id="accommodation_type" class="form-select">
                                                         @foreach ($accommodationTypes as $type)
                                                             <option value="{{ $type }}">{{ ucfirst($type) }}</option>
                                                         @endforeach
@@ -142,11 +142,11 @@
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label for="maxAdults">Max Adults</label>
-                                                    <input type="text" id="maxAdults" class="form-control" placeholder="Maximum Adults Occupation" name="maxAdults" required>
+                                                    <input type="text" id="maxAdults" class="form-control" placeholder="Maximum Adults Occupation" name="maxAdults">
                                                 </div>
                                                 <div class="col-md-3">
                                                     <label for="maxChildren">Max Children</label>
-                                                    <input type="text" id="maxChildren" class="form-control" placeholder="Maximum Children Occupation" name="maxChildren" required>
+                                                    <input type="text" id="maxChildren" class="form-control" placeholder="Maximum Children Occupation" name="maxChildren">
                                                 </div>
                                             </div>
                                     
@@ -177,7 +177,7 @@
                                                 <div class="col-lg-6 col-sm-12">
                                                     <label for="image" class="form-label">Cover Image<br> <span style="color: red">(This Image should not exceed 500X800 pixels)</span></label>
                                                     <div class="input-group">
-                                                        <input type="file" name="image" class="form-control" id="image">
+                                                        <input type="file" name="image" class="form-control" id="image" required accept="image/*">
                                                     </div>
                                                 </div>
                                             </div>

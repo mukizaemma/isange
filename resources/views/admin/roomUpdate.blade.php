@@ -63,7 +63,7 @@
                                     <div class="row mt-3">
                                         <div class="col-md-3">
                                             <label for="accommodation_type">Listing type</label>
-                                            <select name="accommodation_type" id="accommodation_type" class="form-select" required>
+                                            <select name="accommodation_type" id="accommodation_type" class="form-select">
                                                 @foreach ($accommodationTypes as $type)
                                                     <option value="{{ $type }}" @selected(($room->accommodation_type ?? 'room') === $type)>{{ ucfirst($type) }}</option>
                                                 @endforeach
@@ -85,12 +85,12 @@
                                         </div>
                                         <div class="col-md-3">
                                             <label for="children">Max Adults</label>
-                                            <input type="text" id="children" class="form-control" value="{{ $room->maxAdults }}" name="maxAdults" required="">
+                                            <input type="text" id="children" class="form-control" value="{{ $room->maxAdults }}" name="maxAdults">
 
                                         </div>
                                             <div class="col-md-3">
                                             <label for="children">Max Children</label>
-                                            <input type="text" id="children" class="form-control" value="{{ $room->maxChildren }}" name="maxChildren" required="">
+                                            <input type="text" id="children" class="form-control" value="{{ $room->maxChildren }}" name="maxChildren">
 
                                         </div>
                                     </div>

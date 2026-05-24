@@ -5,7 +5,7 @@
     $hasWidget = $embed !== '' || $youtubeUrl !== '';
     $variant = $variant ?? 'default';
 @endphp
-@if ($hasWidget)
+{{-- @if ($hasWidget)
 <section class="isange-youtube-widget isange-youtube-widget--{{ $variant }} rel z-1">
     <div class="container">
         <div class="row justify-content-center">
@@ -32,4 +32,4 @@
         </div>
     </div>
 </section>
-@endif
+@endif --}}

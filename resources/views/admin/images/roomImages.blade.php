@@ -13,7 +13,12 @@
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12">
-                        <h1>Images for <strong>{{$room->roomName}}</strong></h1>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                            <h1 class="mb-0">Images for <strong>{{ $room->roomName }}</strong></h1>
+                            <button type="button" class="btn btn-secondary" onclick="closeGalleryWindow()">
+                                <i class="fa fa-times"></i> Close
+                            </button>
+                        </div>
                         <div class="card">
                             <div class="card-header">
                                 <form class="form" action="{{ route('savRoomImage',['pid' =>$room->id]) }}" method="POST"
@@ -73,6 +78,11 @@
                                 </table>
                             </div>
                             <!-- /.card-body -->
+                            <div class="card-footer text-end">
+                                <button type="button" class="btn btn-secondary" onclick="closeGalleryWindow()">
+                                    <i class="fa fa-times"></i> Close
+                                </button>
+                            </div>
                         </div>
                         <!-- /.card -->
 
@@ -93,6 +103,14 @@
 @endsection
 
 @section('scripts')
+<script>
+    function closeGalleryWindow() {
+        if (window.opener) {
+            window.close();
+            return;
+        }
 
-
+        window.location.href = @json(route('getRooms'));
+    }
+</script>
 @endsection

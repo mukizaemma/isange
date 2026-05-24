@@ -59,7 +59,7 @@
                                 <option value="">Let the hotel suggest a room</option>
                                 @foreach ($rooms as $r)
                                     <option value="{{ $r->id }}" @selected((int) ($selectedRoomId ?? 0) === (int) $r->id)>
-                                        {{ $r->roomName }} — {{ \App\Support\Currency::formatRoomPriceLabel($r->price) }}
+                                        {{ $r->roomName }}
                                     </option>
                                 @endforeach
                             </select>
