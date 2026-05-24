@@ -11,7 +11,7 @@ use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\GuestBookingController;
 use App\Http\Controllers\GuestDiningSubmissionController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\PageHeaderController;
+use App\Http\Controllers\SiteContentController;
 use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\RoomsController;
 use App\Http\Controllers\ServicesController;
@@ -166,8 +166,9 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     // Gallery
     Route::get('/slides', [SlidesController::class, 'index'])->name('slides');
-    Route::get('/page-headers', [PageHeaderController::class, 'index'])->name('pageHeaders');
-    Route::post('/page-headers', [PageHeaderController::class, 'save'])->name('pageHeaders.save');
+    Route::get('/site-content', [SiteContentController::class, 'index'])->name('siteContent');
+    Route::post('/site-content', [SiteContentController::class, 'save'])->name('siteContent.save');
+    Route::redirect('/page-headers', '/site-content', 301);
     Route::post('/saveSlide', [SlidesController::class, 'store'])->name('saveSlide');
     Route::get('/editSlide/{id}', [SlidesController::class, 'edit'])->name('editSlide');
     Route::post('/updateSlide/{id}', [SlidesController::class, 'update'])->name('updateSlide');

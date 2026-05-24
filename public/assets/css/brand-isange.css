@@ -295,26 +295,6 @@ h6,
   color: var(--primary-color) !important;
 }
 
-/* Accommodation submenu: category (Rooms / Apartments) then listings */
-.main-header .header-upper .main-menu .navbar-collapse > ul > li > ul > li.dropdown > a {
-  font-weight: 700;
-  color: var(--header-footer-accent) !important;
-}
-
-.main-header .header-upper .main-menu .navbar-collapse > ul > li > ul > li > ul > li > a {
-  font-weight: 500;
-  font-size: 0.95rem;
-  padding-left: 0.25rem;
-}
-
-@media only screen and (min-width: 992px) {
-  .main-header .header-upper .main-menu .navbar-collapse > ul > li > ul > li > ul {
-    left: 100%;
-    top: 0;
-    min-width: 240px;
-  }
-}
-
 .main-header .header-upper .main-menu .navbar-collapse li.dropdown .dropdown-btn {
   color: var(--header-footer-accent) !important;
   transition: color 0.2s ease;

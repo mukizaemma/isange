@@ -1,8 +1,8 @@
 <section class="home-dining-choose rel z-1 py-100 rpy-70">
     <div class="home-dining-choose__inner">
         <div class="text-center mb-55 rmb-40 wow fadeInUp delay-0-1s">
-            <span class="home-dining-choose__kicker">Dine with us</span>
-            <h2 class="home-dining-choose__title">Restaurant &amp; Bar</h2>
+            {{-- <span class="home-dining-choose__kicker">Dine with us</span> --}}
+            <h2 class="home-dining-choose__title">Dine with us</h2>
             <p class="home-dining-choose__lead mx-auto">Fresh, local, delicious — meals from our ecological garden and farmers across Musanze.</p>
         </div>
 

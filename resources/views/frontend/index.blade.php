@@ -33,6 +33,11 @@
     }
     $welcomePreview = array_slice($welcomeParagraphs, 0, 2);
     $welcomeHasMore = count($welcomeParagraphs) > 2;
+
+    $home = \App\Support\PageContent::get('home', $pageHeaders ?? collect());
+    $hs = $home['sections'];
+    $whyCards = $hs['why_cards'] ?? [];
+    $eventTypes = $hs['events_types'] ?? [];
 @endphp
 
 {{-- 1. HERO (full-width slides — header & caption from admin) --}}
@@ -91,8 +96,8 @@
             </div>
             @endif
             <div class="col-lg-{{ $welcomeImage ? '7' : '12' }} wow fadeInUp delay-0-2s">
-                <span class="isange-section__eyebrow">About us</span>
-                <h2>Welcome to Isange Paradise</h2>
+                {{-- <span class="isange-section__eyebrow">{{ $hs['about_eyebrow'] ?? 'About us' }}</span> --}}
+                <h2>{{ $hs['about_title'] ?? 'Welcome to Isange Paradise' }}</h2>
                 @if (count($welcomePreview) > 0)
                     <div class="welcome-prose isange-about-excerpt mb-3">
                         @foreach ($welcomePreview as $paragraph)
@@ -116,9 +121,9 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-xl-8 col-lg-10 text-center mb-50 wow fadeInUp delay-0-2s">
-                <span class="isange-section__eyebrow">Accommodation</span>
-                <h2>Stay in Comfort, Surrounded by Nature</h2>
-                <p class="mb-0">Each room is thoughtfully designed to offer comfort, privacy, and beautiful garden views.</p>
+                {{-- <span class="isange-section__eyebrow">{{ $hs['accommodation_eyebrow'] ?? 'Accommodation' }}</span> --}}
+                <h2>{{ $hs['accommodation_title'] ?? 'Stay in Comfort, Surrounded by Nature' }}</h2>
+                <p class="mb-0">{{ $hs['accommodation_intro'] ?? 'Each room is thoughtfully designed to offer comfort, privacy, and beautiful garden views.' }}</p>
             </div>
         </div>
         <div class="row g-4 justify-content-center">
@@ -156,7 +161,7 @@
             </div>
         @endif
         <div class="text-center mt-40 wow fadeInUp">
-            <p class="small text-muted mb-0">Amenities include private bathroom, hot shower, balcony or terrace, garden access, and comfortable bedding.</p>
+            <p class="small text-muted mb-0">{{ $hs['accommodation_footnote'] ?? 'Amenities include private bathroom, hot shower, balcony or terrace, garden access, and comfortable bedding.' }}</p>
         </div>
     </div>
 </section>
@@ -166,39 +171,20 @@
     <div class="container">
         <div class="row justify-content-center mb-50">
             <div class="col-lg-8 text-center wow fadeInUp delay-0-2s">
-                <span class="isange-section__eyebrow">Why stay with us</span>
-                <h2>Why Guests Love Isange Paradise</h2>
+                <span class="isange-section__eyebrow">{{ $hs['why_eyebrow'] ?? 'Why stay with us' }}</span>
+                <h2>{{ $hs['why_title'] ?? 'Why Guests Love Isange Paradise' }}</h2>
             </div>
         </div>
         <div class="row g-4">
-            <div class="col-md-6 col-lg-3 wow fadeInUp delay-0-2s">
+            @foreach ($whyCards as $i => $card)
+            <div class="col-md-6 col-lg-3 wow fadeInUp delay-0-{{ min(2 + $i, 5) }}s">
                 <div class="isange-why-card h-100">
-                    <div class="isange-why-card__icon"><i class="fas fa-map-marker-alt" aria-hidden="true"></i></div>
-                    <h3>Prime Location</h3>
-                    <p class="mb-0">15 minutes drive from/to Volcanoes National Park office — ideal for gorilla trekking and volcano adventures.</p>
+                    <div class="isange-why-card__icon"><i class="fas {{ $card['icon'] ?? 'fa-star' }}" aria-hidden="true"></i></div>
+                    <h3>{{ $card['title'] ?? '' }}</h3>
+                    <p class="mb-0">{{ $card['text'] ?? '' }}</p>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3 wow fadeInUp delay-0-3s">
-                <div class="isange-why-card h-100">
-                    <div class="isange-why-card__icon"><i class="fas fa-leaf" aria-hidden="true"></i></div>
-                    <h3>Eco-Friendly Living</h3>
-                    <p class="mb-0">Solar energy, local sourcing, organic gardens, and sustainable operations throughout the resort.</p>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3 wow fadeInUp delay-0-4s">
-                <div class="isange-why-card h-100">
-                    <div class="isange-why-card__icon"><i class="fas fa-heart" aria-hidden="true"></i></div>
-                    <h3>Authentic Hospitality</h3>
-                    <p class="mb-0">Warm service, peaceful surroundings, and locally inspired experiences in Northern Rwanda.</p>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3 wow fadeInUp delay-0-5s">
-                <div class="isange-why-card h-100">
-                    <div class="isange-why-card__icon"><i class="fas fa-hands" aria-hidden="true"></i></div>
-                    <h3>Social Impact</h3>
-                    <p class="mb-0">100% of profits support community development through Future 4 Kids.</p>
-                </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </section>
@@ -208,9 +194,9 @@
     <div class="container">
         <div class="row g-4 align-items-start">
             <div class="col-lg-5 wow fadeInUp delay-0-2s">
-                <span class="isange-section__eyebrow">Experiences</span>
-                <h2>Explore Northern Rwanda</h2>
-                <p>From iconic gorilla trekking to cultural village visits — we can help arrange your full adventure itinerary.</p>
+                <span class="isange-section__eyebrow">{{ $hs['experiences_eyebrow'] ?? 'Experiences' }}</span>
+                <h2>{{ $hs['experiences_title'] ?? 'Explore Northern Rwanda' }}</h2>
+                <p>{{ $hs['experiences_intro'] ?? 'From iconic gorilla trekking to cultural village visits — we can help arrange your full adventure itinerary.' }}</p>
                 <a href="{{ route('experiences') }}" class="theme-btn mt-3">All experiences <i class="far fa-angle-right"></i></a>
             </div>
             <div class="col-lg-7 wow fadeInUp delay-0-3s">
@@ -238,14 +224,16 @@
     <div class="container">
         <div class="row justify-content-center text-center mb-40 wow fadeInUp">
             <div class="col-lg-8">
-                <span class="isange-section__eyebrow">Events &amp; garden</span>
-                <h2>Celebrate in Nature</h2>
-                <p class="mb-0">Our lush gardens and function hall welcome weddings, retreats, conferences, family celebrations, and community events.</p>
-                <span class="isange-events-capacity">Capacity: up to 150 guests</span>
+                {{-- <span class="isange-section__eyebrow">{{ $hs['events_eyebrow'] ?? 'Events & garden' }}</span> --}}
+                <h2>{{ $hs['events_title'] ?? 'Celebrate in Nature' }}</h2>
+                <p class="mb-0">{{ $hs['events_intro'] ?? '' }}</p>
+                @if (! empty($hs['events_capacity']))
+                <span class="isange-events-capacity">{{ $hs['events_capacity'] }}</span>
+                @endif
             </div>
         </div>
         <div class="row g-3 justify-content-center">
-            @foreach (['Weddings', 'Retreats', 'Conferences', 'Family celebrations', 'Community events'] as $eventType)
+            @foreach ($eventTypes as $eventType)
             <div class="col-6 col-md-4 col-lg wow fadeInUp delay-0-2s">
                 <div class="isange-why-card py-4">
                     <h3 class="h5 mb-0">{{ $eventType }}</h3>
@@ -264,8 +252,8 @@
 {{-- 9. FINAL CTA --}}
 <section class="isange-cta-band rel z-1 wow fadeInUp">
     <div class="container">
-        <h2>Book Your Eco Stay — 15 Minutes from Volcanoes National Park</h2>
-        <p>Experience Rwanda’s natural beauty while supporting meaningful change. Book today and stay with purpose.</p>
+        <h2>{{ $hs['cta_title'] ?? 'Book Your Eco Stay' }}</h2>
+        <p>{{ $hs['cta_text'] ?? '' }}</p>
         <a href="{{ route('room.booking') }}" class="theme-btn">Book Your Stay <i class="far fa-angle-right"></i></a>
         <a href="{{ route('contact') }}" class="theme-btn style-three ms-2 mt-2 mt-md-0">Contact us <i class="far fa-angle-right"></i></a>
     </div>

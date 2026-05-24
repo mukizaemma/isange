@@ -1,4 +1,5 @@
 @php
+    $roomsPage = \App\Support\PageContent::get('rooms', $pageHeaders ?? collect());
     $activeTab = $activeTab ?? 'rooms';
     $roomsList = $rooms->where('accommodation_type', \App\Models\Room::TYPE_ROOM);
     $apartmentsList = $rooms->where('accommodation_type', \App\Models\Room::TYPE_APARTMENT);
@@ -10,7 +11,11 @@
             <div class="col-xl-8 col-lg-10">
                 <div class="section-title text-center mb-50 rmb-40 wow fadeInUp delay-0-2s">
                     <h2>Accommodation</h2>
-                    <p class="text-muted mb-0">Thoughtfully designed rooms for comfort, privacy, and beautiful garden views near Volcanoes National Park.</p>
+                    @if (! empty($roomsPage['body_html']))
+                        <div class="text-muted mb-0 welcome-prose">{!! $roomsPage['body_html'] !!}</div>
+                    @else
+                        <p class="text-muted mb-0">Thoughtfully designed rooms for comfort, privacy, and beautiful garden views near Volcanoes National Park.</p>
+                    @endif
                 </div>
                 <ul class="nav nav-pills justify-content-center ma-accommodation-tabs mb-50" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -32,16 +37,6 @@
                     <p class="mb-0">No {{ $activeTab === 'apartments' ? 'apartments' : 'rooms' }} listed yet. Please check back soon or <a href="{{ route('contact') }}">contact us</a>.</p>
                 </div>
             @endforelse
-        </div>
-
-        <div class="row justify-content-center">
-            <div class="col-12">
-                <div class="section-title text-center mb-70 rmb-50 wow fadeInUp delay-0-2s mt-4">
-                    <p>
-                        Amenities include <strong>private bathroom</strong>, <strong>free Wi-Fi</strong>, <strong>balcony or terrace</strong>, <strong>garden access</strong>, <strong>hot shower</strong>, and <strong>comfortable bedding</strong>. Contact us for families, groups, or special requests.
-                    </p>
-                </div>
-            </div>
         </div>
     </div>
     <div class="bg-lines for-bg-white">

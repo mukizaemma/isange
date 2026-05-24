@@ -2,6 +2,17 @@
 
 @section('content')
 
+@php
+    use App\Support\PageHeaderResolver;
+    $aboutPage = \App\Support\PageContent::get('about', $pageHeaders ?? collect());
+    $as = $aboutPage['sections'];
+    $aboutHeaderRow = ($pageHeaders ?? collect())['about'] ?? null;
+    $aboutSideImage = PageHeaderResolver::resolve('about', $setting, $about, $aboutHeaderRow)['imageUrl']
+        ?? (! empty($about->aboutImage)
+            ? asset('storage/images/gallery/' . ltrim($about->aboutImage, '/'))
+            : null);
+@endphp
+
 @include('frontend.includes.page-header', ['pageKey' => 'about'])
 
 <section class="who-we-are-area pb-130 rpb-100 rel z-1 isange-section--cream">
@@ -9,15 +20,14 @@
         <div class="row justify-content-between align-items-center g-4">
             <div class="col-xl-6 col-lg-7">
                 <div class="who-we-are-content wow fadeInUp delay-0-2s">
-                    <span class="isange-section__eyebrow">Our story</span>
+                    @if (! empty($as['story_eyebrow']))
+                        <span class="isange-section__eyebrow">{{ $as['story_eyebrow'] }}</span>
+                    @endif
                     <div class="section-title mb-35">
-                        <h2>Welcome to Isange Paradise</h2>
-                        <p>
-                            Isange Paradise is more than a resort—it is a social enterprise designed to create lasting impact in Musanze, one of Rwanda’s top tourist destinations.
-                        </p>
-                        <p>
-                            Owned by <strong>Future 4 Kids</strong>, our eco-resort provides meaningful employment, supports vulnerable families, and funds education, healthcare, skills development, and women’s empowerment.
-                        </p>
+                        <h2>{{ $as['story_title'] ?? 'Welcome to Isange Paradise' }}</h2>
+                        @if (! empty($aboutPage['intro_html']))
+                            <div class="welcome-prose">{!! $aboutPage['intro_html'] !!}</div>
+                        @endif
                         @if (! empty($about->welcome))
                             <div class="welcome-prose mt-3">{!! $about->welcome !!}</div>
                         @endif
@@ -25,14 +35,6 @@
                     <a class="theme-btn" href="{{ route('future4kids') }}">Our impact mission <i class="far fa-angle-right"></i></a>
                 </div>
             </div>
-            @php
-                use App\Support\PageHeaderResolver;
-                $aboutHeaderRow = ($pageHeaders ?? collect())['about'] ?? null;
-                $aboutSideImage = PageHeaderResolver::resolve('about', $setting, $about, $aboutHeaderRow)['imageUrl']
-                    ?? (! empty($about->aboutImage)
-                        ? asset('storage/images/gallery/' . ltrim($about->aboutImage, '/'))
-                        : null);
-            @endphp
             @if (! empty($aboutSideImage))
             <div class="col-lg-5">
                 <div class="isange-about-media wow fadeInUp delay-0-4s">
@@ -48,9 +50,11 @@
     <div class="container">
         <div class="row justify-content-center text-center mb-45">
             <div class="col-lg-8 wow fadeInUp">
-                <span class="isange-section__eyebrow">Our team</span>
-                <h2>Warm Rwandan Hospitality</h2>
-                <p class="mb-0">Our team brings authentic care, local knowledge, and a commitment to sustainable tourism — so your stay is comfortable, memorable, and meaningful.</p>
+                @if (! empty($as['team_eyebrow']))
+                    <span class="isange-section__eyebrow">{{ $as['team_eyebrow'] }}</span>
+                @endif
+                <h2>{{ $as['team_title'] ?? 'Warm Rwandan Hospitality' }}</h2>
+                <p class="mb-0">{{ $as['team_intro'] ?? '' }}</p>
             </div>
         </div>
         @if (! empty($about->chooseUs))
@@ -60,8 +64,6 @@
         @endif
     </div>
 </section>
-
-@include('frontend.layouts.terms')
 
 @include('frontend.includes.youtube-stories-widget', ['variant' => 'white'])
 

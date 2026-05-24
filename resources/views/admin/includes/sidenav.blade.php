@@ -2,13 +2,17 @@
     <div class="sb-sidenav-menu">
         <div class="nav">
 
+            <a class="nav-link" href="{{ route('siteContent') }}">
+                <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
+                Website content
+            </a>
             <a class="nav-link" href="{{route('setting')}}">
                 <div class="sb-nav-link-icon"><i class="fas fa-sliders-h"></i></div>
                 Site settings
             </a>
             <a class="nav-link" href="{{route('about')}}">
-                <div class="sb-nav-link-icon"><i class="fas fa-info-circle"></i></div>
-                About content
+                <div class="sb-nav-link-icon"><i class="fas fa-edit"></i></div>
+                Welcome text
             </a>
             <a class="nav-link" href="{{route('getServices')}}">
                 <div class="sb-nav-link-icon"><i class="fas fa-concierge-bell"></i></div>
@@ -42,10 +46,6 @@
             <a class="nav-link" href="{{route('slides')}}">
                 <div class="sb-nav-link-icon"><i class="fas fa-images"></i></div>
                 Home slider
-            </a>
-            <a class="nav-link" href="{{ route('pageHeaders') }}">
-                <div class="sb-nav-link-icon"><i class="fas fa-panorama"></i></div>
-                Page banners
             </a>
             <a class="nav-link" href="{{route('getGalleries')}}">
                 <div class="sb-nav-link-icon"><i class="fas fa-photo-video"></i></div>

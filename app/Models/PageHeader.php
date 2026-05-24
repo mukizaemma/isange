@@ -12,5 +12,12 @@ class PageHeader extends Model
         'title',
         'subtitle',
         'hero_image',
+        'intro_html',
+        'body_html',
+        'sections_json',
+    ];
+
+    protected $casts = [
+        'sections_json' => 'array',
     ];
 }

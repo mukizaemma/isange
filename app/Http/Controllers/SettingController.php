@@ -138,7 +138,6 @@ class SettingController extends Controller
     public function saveAbout(Request $request)
     {
         $data = About::first();
-        $data->terms = $request->input('terms');
         $data->welcome = $request->input('welcome');
         $data->background = $request->input('background');
 

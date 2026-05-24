@@ -6,7 +6,6 @@ use App\Models\About;
 use App\Models\Facility;
 use App\Models\PageHeader;
 use App\Models\Partner;
-use App\Models\Room;
 use App\Models\Setting;
 use App\Support\FrontendPageCache;
 use Illuminate\Support\Facades\Cache;
@@ -103,31 +102,6 @@ class FrontLayoutComposer
                 ->orderBy('created_at', 'asc')
                 ->limit(12)
                 ->get()));
-        }
-
-        if (! array_key_exists('navRoomsList', $data) || ! array_key_exists('navApartmentsList', $data)) {
-            $navAccommodation = Cache::remember('front_layout.nav_accommodation', 300, function () {
-                $columns = ['roomName', 'slug', 'accommodation_type'];
-
-                return [
-                    'rooms' => Room::query()
-                        ->select($columns)
-                        ->where(function ($query) {
-                            $query->where('accommodation_type', Room::TYPE_ROOM)
-                                ->orWhereNull('accommodation_type');
-                        })
-                        ->orderBy('roomName')
-                        ->get(),
-                    'apartments' => Room::query()
-                        ->select($columns)
-                        ->where('accommodation_type', Room::TYPE_APARTMENT)
-                        ->orderBy('roomName')
-                        ->get(),
-                ];
-            });
-
-            $view->with('navRoomsList', $navAccommodation['rooms']);
-            $view->with('navApartmentsList', $navAccommodation['apartments']);
         }
 
         if (! array_key_exists('partners', $data)) {

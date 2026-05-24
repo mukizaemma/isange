@@ -45,18 +45,11 @@
                                             </div>
                                         </div>
 
-                                        <div class="row">
-                                            <div class="col-lg-12">
-                                                <label for="projectinput8">Terms and conditions</label>
-                                                <textarea id="terms" rows="5" class="form-control" name="terms" placeholder="Terms & Conditions">{!!$data->terms!!}</textarea>
-                                            </div>
-                                        </div>
-
                                         <div class="alert alert-info mt-4 mb-0">
-                                            <i class="fas fa-panorama me-1"></i>
-                                            Page hero images and captions are managed under
-                                            <a href="{{ route('pageHeaders') }}" class="alert-link fw-semibold">Page banners</a>
-                                            (Accommodation, Contact, About, and other inner pages).
+                                            <p class="mb-2">Terms &amp; conditions are edited in <a href="{{ route('setting') }}#tab-terms" class="alert-link fw-semibold">Site settings → Terms &amp; conditions</a>.</p>
+                                            <i class="fas fa-file-alt me-1"></i>
+                                            Page banners, section copy, and images are managed under
+                                            <a href="{{ route('siteContent') }}" class="alert-link fw-semibold">Website content</a>.
                                         </div>
 
                                     </div>

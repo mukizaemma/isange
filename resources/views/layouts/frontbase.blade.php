@@ -2,8 +2,8 @@
     $brandLogo = ! empty($setting->logo ?? null)
         ? asset('storage/images/' . ltrim($setting->logo, '/'))
         : asset('assets/images/isange-logo.png');
-    $navRoomsList = $navRoomsList ?? collect();
-    $navApartmentsList = $navApartmentsList ?? collect();
+    $globalContent = \App\Support\PageContent::get('global', $pageHeaders ?? collect());
+    $globalSections = $globalContent['sections'];
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -71,7 +71,7 @@
                        </div>
                        <p class="header-location-tagline">
                            <i class="fas fa-mountain" aria-hidden="true"></i>
-                           <span>Musanze, Rwanda — 15 minutes drive from/to Volcanoes National Park office</span>
+                           <span>{{ $globalSections['header_tagline'] ?? 'Musanze, Rwanda — 15 minutes drive from/to Volcanoes National Park office' }}</span>
                        </p>
                        <div class="header-social-inline">
                            @include('frontend.includes.social-links', ['style' => 'two'])
@@ -177,7 +177,7 @@
                                 <a href="{{route('home')}}"><img src="{{ $brandLogo }}" alt="{{ $setting->company ?? 'Isange Paradise Eco Resort' }}" style="height: 80px !important"></a>
                             </div>
                             <p>
-                                Your sustainable escape — 15 minutes drive from/to Volcanoes National Park office. Comfort, nature, and purpose — every stay supports community development through Future 4 Kids.
+                                {{ $globalSections['footer_blurb'] ?? 'Your sustainable escape — 15 minutes drive from/to Volcanoes National Park office. Comfort, nature, and purpose — every stay supports community development through Future 4 Kids.' }}
                             </p>
 
                             <ul class="contact-list">
@@ -191,20 +191,16 @@
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <div class="footer-widget widget_nav_menu wow fadeInUp delay-0-4s">
-                            <h4 class="footer-title">Explore</h4>
+                            <h4 class="footer-title">Quick Links</h4>
                             <ul class="list-style-one mb-3">
                                 <li><a href="{{ route('rooms') }}">Accommodation</a></li>
                                 <li><a href="{{ route('experiences') }}">Experiences</a></li>
                                 <li><a href="{{ route('dining') }}">Restaurant &amp; Bar</a></li>
                                 <li><a href="{{ route('future4kids') }}">Future 4 Kids</a></li>
                                 <li><a href="{{ route('contact') }}">Contact</a></li>
+                                <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
                             </ul>
-                            <h4 class="footer-title mt-3">Facilities</h4>
-                            <ul class="list-style-one">
-                                @foreach ($facilities as $facility )
-                                <li><a href="{{ route('facilitySingle',['slug'=>$facility->slug]) }}">{{ $facility->title }}</a></li>
-                                @endforeach
-                            </ul>
+
                         </div>
                     </div>
                     <div class="col-lg-6">
