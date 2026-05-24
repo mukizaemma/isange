@@ -2,22 +2,24 @@
 
 @section('content')
 
+@php
+    $activeTab = $activeTab ?? 'rooms';
+    $roomsPage = \App\Support\PageContent::get('rooms', $pageHeaders ?? collect());
+    $sections = $roomsPage['sections'];
+
+    if ($activeTab === 'apartments') {
+        $bannerTitle = $sections['apartments_title'] ?? 'Apartments';
+        $bannerSubtitle = $sections['apartments_intro'] ?? '';
+    } else {
+        $bannerTitle = $sections['rooms_title'] ?? 'Rooms';
+        $bannerSubtitle = $sections['rooms_intro'] ?? '';
+    }
+@endphp
+
 @include('frontend.includes.page-header', [
     'pageKey' => 'rooms',
-    'highlights' => [
-        [
-            'title' => $setting->flexible_stay_card1_title ?: 'Garden Views',
-            'text' => $setting->flexible_stay_card1_text ?: 'Peaceful rooms with balconies, terraces, and lush surroundings.',
-        ],
-        [
-            'title' => $setting->flexible_stay_card2_title ?: 'Eco Comfort',
-            'text' => $setting->flexible_stay_card2_text ?: 'Private bathrooms, hot showers, Wi-Fi, and quality bedding.',
-        ],
-        [
-            'title' => $setting->flexible_stay_card3_title ?: 'For Every Traveler',
-            'text' => $setting->flexible_stay_card3_text ?: 'From solo explorers and couples to families and adventure tents.',
-        ],
-    ],
+    'title' => $bannerTitle,
+    'subtitle' => $bannerSubtitle,
 ])
 
 @include('frontend.layouts.rooms')

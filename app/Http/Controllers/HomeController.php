@@ -180,10 +180,12 @@ class HomeController extends Controller
             $activeTab = 'rooms';
         }
 
+        $pageTitle = $activeTab === 'apartments' ? 'Apartments' : 'Rooms';
+
         return $this->spaView('frontend.rooms', [
             'rooms' => $allRooms,
             'activeTab' => $activeTab,
-        ], 'Accommodation');
+        ], $pageTitle);
     }
 
     public function singleRoom($slug)

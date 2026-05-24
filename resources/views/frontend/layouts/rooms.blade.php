@@ -1,5 +1,4 @@
 @php
-    $roomsPage = \App\Support\PageContent::get('rooms', $pageHeaders ?? collect());
     $activeTab = $activeTab ?? 'rooms';
     $roomsList = $rooms->where('accommodation_type', \App\Models\Room::TYPE_ROOM);
     $apartmentsList = $rooms->where('accommodation_type', \App\Models\Room::TYPE_APARTMENT);
@@ -9,15 +8,7 @@
     <div class="container container-1130">
         <div class="row justify-content-center">
             <div class="col-xl-8 col-lg-10">
-                <div class="section-title text-center mb-50 rmb-40 wow fadeInUp delay-0-2s">
-                    <h2>Accommodation</h2>
-                    @if (! empty($roomsPage['body_html']))
-                        <div class="text-muted mb-0 welcome-prose">{!! $roomsPage['body_html'] !!}</div>
-                    @else
-                        <p class="text-muted mb-0">Thoughtfully designed rooms for comfort, privacy, and beautiful garden views near Volcanoes National Park.</p>
-                    @endif
-                </div>
-                <ul class="nav nav-pills justify-content-center ma-accommodation-tabs mb-50" role="tablist">
+                <ul class="nav nav-pills justify-content-center ma-accommodation-tabs mb-50 rmb-40 wow fadeInUp delay-0-2s" role="tablist">
                     <li class="nav-item" role="presentation">
                         <a class="nav-link {{ $activeTab === 'rooms' ? 'active' : '' }}" href="{{ route('rooms', ['tab' => 'rooms']) }}" role="tab" @if($activeTab === 'rooms') aria-current="page" @endif>Rooms</a>
                     </li>

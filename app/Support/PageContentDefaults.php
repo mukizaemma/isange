@@ -86,8 +86,13 @@ class PageContentDefaults
             ],
             'rooms' => [
                 'intro_html' => null,
-                'body_html' => '<p>Thoughtfully designed rooms for comfort, privacy, and beautiful garden views near Volcanoes National Park.</p><p>Amenities include <strong>private bathroom</strong>, <strong>free Wi-Fi</strong>, <strong>balcony or terrace</strong>, <strong>garden access</strong>, <strong>hot shower</strong>, and <strong>comfortable bedding</strong>. Contact us for families, groups, or special requests.</p>',
-                'sections' => [],
+                'body_html' => null,
+                'sections' => [
+                    'rooms_title' => 'Rooms',
+                    'rooms_intro' => 'Comfortable garden rooms with private bathrooms, Wi-Fi, and beautiful views — ideal for couples, solo travellers, and small groups.',
+                    'apartments_title' => 'Apartments',
+                    'apartments_intro' => 'Spacious apartment-style stays with extra privacy and room to relax — perfect for families and longer visits.',
+                ],
             ],
             'experiences' => [
                 'intro_html' => '<p>Isange Paradise is your base for unforgettable adventures near Volcanoes National Park. We can help arrange your full itinerary — tell us your dates and interests when you book.</p>',

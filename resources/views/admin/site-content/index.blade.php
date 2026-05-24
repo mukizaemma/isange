@@ -179,7 +179,34 @@
                                     @endfor
                                 @endif
 
-                                @if (in_array($tabKey, ['rooms', 'facilities', 'dining', 'contact', 'booking', 'services', 'gallery', 'blogs'], true))
+                                @if ($tabKey === 'rooms')
+                                    <hr>
+                                    <h6 class="fw-semibold">Rooms tab</h6>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small">Banner heading</label>
+                                            <input type="text" class="form-control" name="pages[rooms][sections][rooms_title]" value="{{ $s['rooms_title'] ?? 'Rooms' }}">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small">Banner caption</label>
+                                            <textarea class="form-control" name="pages[rooms][sections][rooms_intro]" rows="2">{{ $s['rooms_intro'] ?? '' }}</textarea>
+                                        </div>
+                                    </div>
+                                    <h6 class="fw-semibold">Apartments tab</h6>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label small">Banner heading</label>
+                                            <input type="text" class="form-control" name="pages[rooms][sections][apartments_title]" value="{{ $s['apartments_title'] ?? 'Apartments' }}">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small">Banner caption</label>
+                                            <textarea class="form-control" name="pages[rooms][sections][apartments_intro]" rows="2">{{ $s['apartments_intro'] ?? '' }}</textarea>
+                                        </div>
+                                    </div>
+                                    <p class="small text-muted mb-0">Listings are managed under <strong>Rooms</strong> in the sidebar. The shared banner image above applies to both tabs.</p>
+                                @endif
+
+                                @if (in_array($tabKey, ['facilities', 'dining', 'contact', 'booking', 'services', 'gallery', 'blogs'], true))
                                     <div class="mb-3">
                                         <label class="form-label">Page body / extra copy</label>
                                         <textarea class="form-control js-summernote" name="pages[{{ $tabKey }}][body_html]" rows="5">{{ old("pages.{$tabKey}.body_html", $page['body_html']) }}</textarea>
