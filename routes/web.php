@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\GuestInsightsController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DiningController;
 use App\Http\Controllers\DirectPayPlaceholderController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SiteAnalyticsController;
 use App\Http\Controllers\SlidesController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -77,6 +79,11 @@ Route::get('/MyCart', [HomeController::class, 'showCart'])->name('showCart');
 Route::get('/MyCart/{id}', [HomeController::class, 'removeFood'])->name('removeFood');
 Route::post('/addCart/{id}', [HomeController::class, 'addCart'])->name('addCart');
 Route::post('confirmOrder', [HomeController::class, 'confirmOrder'])->name('confirmOrder');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/account/password', [AccountController::class, 'editPassword'])->name('account.password');
+    Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
+});
 
 Route::middleware(['auth', 'admin'])->group(function () {
 
@@ -188,5 +195,13 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/FoodOrders', [BookingController::class, 'FoodOrders'])->name('FoodOrders');
     Route::get('/Print', [BookingController::class, 'print'])->name('print');
+
+    Route::middleware('superadmin')->group(function () {
+        Route::get('/users', [UserManagementController::class, 'index'])->name('admin.users');
+        Route::post('/users/{user}/verify', [UserManagementController::class, 'verify'])->name('admin.users.verify');
+        Route::post('/users/{user}/unverify', [UserManagementController::class, 'unverify'])->name('admin.users.unverify');
+        Route::patch('/users/{user}/role', [UserManagementController::class, 'updateRole'])->name('admin.users.role');
+        Route::post('/users/{user}/reset-password', [UserManagementController::class, 'resetPassword'])->name('admin.users.reset-password');
+    });
 
 });

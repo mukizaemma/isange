@@ -6,6 +6,11 @@
 
         <x-validation-errors class="mb-4" />
 
+        <div class="mb-6">
+            <h2 class="auth-shell__form-title text-xl font-semibold text-neutral-900">{{ __('Create account') }}</h2>
+            <p class="mt-1 text-sm text-neutral-500">{{ __('Register for staff access to the dashboard.') }}</p>
+        </div>
+
         <form method="POST" action="{{ route('register') }}" class="space-y-4">
             @csrf
 

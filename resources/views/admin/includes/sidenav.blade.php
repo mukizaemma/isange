@@ -70,6 +70,18 @@
                 <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
                 Guest insights
             </a>
+            @auth
+                @if (auth()->user()->canManageUsers())
+                <a class="nav-link" href="{{ route('admin.users') }}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                    Users
+                </a>
+                @endif
+                <a class="nav-link" href="{{ route('account.password') }}">
+                    <div class="sb-nav-link-icon"><i class="fas fa-key"></i></div>
+                    Change password
+                </a>
+            @endauth
             <a class="nav-link" href="https://analytics.google.com/" target="_blank">
                 <div class="sb-nav-link-icon"><i class="fa fa-globe"></i></div>
                 Google Analytics

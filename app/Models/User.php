@@ -18,22 +18,20 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    public const ROLE_STAFF = '0';
+
+    public const ROLE_ADMIN = '1';
+
+    public const SUPER_ADMIN_EMAIL = 'admin@iremetech.com';
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'role',
+        'email_verified_at',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
@@ -41,25 +39,36 @@ class User extends Authenticatable
         'two_factor_secret',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
 
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array<int, string>
-     */
     protected $appends = [
         'profile_photo_url',
     ];
 
-    public function foodorders(){
+    public function foodorders()
+    {
         return $this->hasMany(Foodorder::class);
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return strtolower((string) $this->email) === self::SUPER_ADMIN_EMAIL;
+    }
+
+    public function isAdmin(): bool
+    {
+        return (string) $this->role === self::ROLE_ADMIN;
+    }
+
+    public function canManageUsers(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    public function roleLabel(): string
+    {
+        return $this->isAdmin() ? 'Admin' : 'Staff';
     }
 }

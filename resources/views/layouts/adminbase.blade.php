@@ -44,11 +44,36 @@
             </form>
             <!-- Navbar-->
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+                @auth
                 <li class="nav-item dropdown">
-                    <x-app-layout>
-
-                    </x-app-layout>
+                    <a class="nav-link dropdown-toggle" id="navbarAccountDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user fa-fw"></i> {{ Auth::user()->name }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarAccountDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ route('account.password') }}">
+                                <i class="fas fa-key fa-fw me-1"></i> Change password
+                            </a>
+                        </li>
+                        @if (Auth::user()->canManageUsers())
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.users') }}">
+                                <i class="fas fa-users fa-fw me-1"></i> Manage users
+                            </a>
+                        </li>
+                        @endif
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt fa-fw me-1"></i> Log out
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
                 </li>
+                @endauth
             </ul>
         </nav>
 

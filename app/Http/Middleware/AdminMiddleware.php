@@ -15,10 +15,16 @@ class AdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (auth()->check() && auth()->user()->role == '1') {
+        if (! auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $user = auth()->user();
+
+        if ($user->isAdmin() || $user->isSuperAdmin()) {
             return $next($request);
         }
-    
+
         return redirect('/')->with('error', 'Unauthorized action.');
     }
 }

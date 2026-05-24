@@ -5,10 +5,7 @@
 @layer base {
     .auth-body {
         font-family: "Nunito", system-ui, sans-serif;
-    }
-
-    .auth-shell__hero-title {
-        font-family: "DM Serif Display", Georgia, serif;
+        margin: 0;
     }
 }
 
@@ -18,42 +15,196 @@
         @apply bg-[#106b38] hover:bg-[#0d5a30] focus:outline-none focus:ring-2 focus:ring-[#106b38] focus:ring-offset-2 active:bg-[#0a4a28];
     }
 
-    .auth-shell {
-        @apply bg-[#f8f6f1];
+    .auth-input {
+        @apply rounded-lg border-neutral-200 shadow-sm transition focus:border-[#106b38] focus:ring-[#106b38];
     }
+}
 
-    .auth-shell__panel {
-        @apply bg-[#f8f6f1];
+/* Auth split layout — does not depend on Tailwind responsive utilities */
+.auth-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #f8f6f1;
+}
+
+.auth-shell__hero {
+    display: none;
+    position: relative;
+    flex: 1 1 55%;
+    min-height: 280px;
+    background-color: #106b38;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+
+.auth-shell__hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(16, 107, 56, 0.92) 0%,
+        rgba(16, 107, 56, 0.55) 42%,
+        rgba(0, 0, 0, 0.25) 100%
+    );
+}
+
+.auth-shell__hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+    padding: 2.5rem 2.75rem;
+    box-sizing: border-box;
+}
+
+.auth-shell__eyebrow {
+    margin: 0 0 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.auth-shell__hero-title {
+    margin: 0;
+    max-width: 22rem;
+    font-family: "DM Serif Display", Georgia, serif;
+    font-size: clamp(1.75rem, 3vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.2;
+    color: #fff;
+}
+
+.auth-shell__hero-text {
+    margin: 1rem 0 0;
+    max-width: 20rem;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.auth-shell__panel {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #f8f6f1;
+    padding: 2rem 1.25rem;
+}
+
+.auth-shell__panel-inner {
+    width: 100%;
+    max-width: 26rem;
+    margin: 0 auto;
+}
+
+.auth-shell__hero-mobile {
+    display: block;
+    position: relative;
+    height: 9rem;
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    border-radius: 1rem;
+    background-color: #106b38;
+    background-size: cover;
+    background-position: center top;
+    background-repeat: no-repeat;
+}
+
+.auth-shell__hero-mobile .auth-shell__hero-overlay {
+    border-radius: 1rem;
+}
+
+.auth-shell__hero-mobile-title {
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    padding: 1rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.auth-shell__brand {
+    margin-bottom: 1.75rem;
+    text-align: center;
+}
+
+.auth-shell__subtitle {
+    margin: 1rem 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #106b38;
+}
+
+.auth-shell__card {
+    padding: 2rem 1.75rem;
+    border-radius: 1rem;
+    border: 1px solid rgba(16, 107, 56, 0.12);
+    background: #fff;
+    box-shadow: 0 20px 40px rgba(16, 107, 56, 0.08);
+}
+
+.auth-shell__form-title {
+    font-family: "DM Serif Display", Georgia, serif;
+}
+
+.auth-shell__back-wrap {
+    margin: 2rem 0 0;
+    text-align: center;
+    font-size: 0.875rem;
+}
+
+.auth-shell__back {
+    font-weight: 500;
+    color: #106b38;
+    text-decoration: none;
+}
+
+.auth-shell__back:hover {
+    color: #e85e26;
+    text-decoration: underline;
+}
+
+.auth-brand-logo img,
+.auth-brand-logo__img {
+    display: block;
+    height: 5rem;
+    width: auto;
+    max-width: 280px;
+    margin: 0 auto;
+    object-fit: contain;
+}
+
+@media (min-width: 1024px) {
+    .auth-shell {
+        flex-direction: row;
     }
 
     .auth-shell__hero {
-        background-color: #106b38;
-        background-size: cover;
-        background-position: center top;
-        background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
     }
 
     .auth-shell__hero-mobile {
-        background-color: #106b38;
-        background-size: cover;
-        background-position: center top;
-        background-repeat: no-repeat;
+        display: none;
     }
 
-    .auth-shell__hero-overlay {
-        background: linear-gradient(
-            to top,
-            rgba(16, 107, 56, 0.92) 0%,
-            rgba(16, 107, 56, 0.55) 42%,
-            rgba(0, 0, 0, 0.25) 100%
-        );
-    }
-
-    .auth-shell__form-title {
-        font-family: "DM Serif Display", Georgia, serif;
-    }
-
-    .auth-input {
-        @apply rounded-lg border-neutral-200 shadow-sm transition focus:border-[#106b38] focus:ring-[#106b38];
+    .auth-shell__panel {
+        flex: 0 0 min(100%, 520px);
+        width: min(100%, 520px);
+        max-width: 520px;
+        padding: 2.5rem 3rem;
     }
 }

@@ -30,7 +30,7 @@ class AuthLayoutComposer
             ? asset('storage/images/pages/'.ltrim($setting->flexible_stay_bg_image, '/'))
             : (! empty($setting->facilities_hero_image ?? null)
                 ? asset('storage/images/pages/'.ltrim($setting->facilities_hero_image, '/'))
-                : null);
+                : asset('assets/images/isange-logo.png'));
 
         $view->with([
             'setting' => $setting,
