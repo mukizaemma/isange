@@ -57,4 +57,6 @@
         </div>
     </div>
 </section>
+
+@include('frontend.includes.stay-cart-clear-after-booking', ['booking' => $booking ?? null])
 @endsection

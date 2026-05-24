@@ -258,10 +258,11 @@
         <!-- Scroll Top Button -->
         <button class="scroll-top scroll-to-target" data-target="html"><span class="fas fa-angle-double-up"></span></button>
 
-        @include('frontend.includes.stay-cart-dock')
-
     </div>
     <!--End pagewrapper-->
+
+    {{-- Outside .page-wrapper so overflow:hidden does not clip the fixed cart bar --}}
+    @include('frontend.includes.stay-cart-dock')
    
     
     <!-- Jquery -->
@@ -290,6 +291,7 @@
     <script src="{{ asset('assets/js/script.js') }}" defer></script>
     <script src="{{ asset('assets/js/dual-currency.js') }}" defer></script>
     <script src="{{ asset('assets/js/parallax-bg.js') }}" defer></script>
+    <script src="{{ asset('assets/js/stay-booking-cart.js') }}" defer></script>
     <script>
         (function () {
             var contentSelector = '[data-spa-container]';

@@ -5,15 +5,42 @@
     'use strict';
 
     var STORAGE_KEY = 'isange_stay_cart';
+    var LEGACY_KEY = 'isange_stay_cart';
     var listeners = [];
+
+    function storage() {
+        try {
+            return window.sessionStorage;
+        } catch (e) {
+            return null;
+        }
+    }
 
     function emptyCart() {
         return { rooms: [], experiences: [], updated_at: null };
     }
 
-    function load() {
+    function migrateLegacyCart() {
+        var store = storage();
+        if (!store || store.getItem(STORAGE_KEY)) {
+            return;
+        }
         try {
-            var raw = localStorage.getItem(STORAGE_KEY);
+            var legacy = localStorage.getItem(LEGACY_KEY);
+            if (legacy) {
+                store.setItem(STORAGE_KEY, legacy);
+            }
+        } catch (e) {}
+    }
+
+    function load() {
+        migrateLegacyCart();
+        try {
+            var store = storage();
+            if (!store) {
+                return emptyCart();
+            }
+            var raw = store.getItem(STORAGE_KEY);
             if (!raw) {
                 return emptyCart();
             }
@@ -32,7 +59,10 @@
     function save(cart) {
         cart.updated_at = new Date().toISOString();
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+            var store = storage();
+            if (store) {
+                store.setItem(STORAGE_KEY, JSON.stringify(cart));
+            }
         } catch (e) {}
         notify();
     }
@@ -144,9 +174,20 @@
 
     global.IsangeStayCart = api;
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', notify);
-    } else {
+    function signalReady() {
         notify();
+        document.dispatchEvent(new CustomEvent('isange:stay-cart-ready'));
     }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', signalReady);
+    } else {
+        signalReady();
+    }
+
+    window.addEventListener('storage', function (e) {
+        if (e.key === STORAGE_KEY) {
+            notify();
+        }
+    });
 })(typeof window !== 'undefined' ? window : this);

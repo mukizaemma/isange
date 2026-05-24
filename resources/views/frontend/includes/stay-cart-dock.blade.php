@@ -59,11 +59,20 @@
 
 @include('frontend.includes.stay-add-room-modal')
 
-<script src="{{ asset('assets/js/stay-booking-cart.js') }}" defer></script>
 <script>
 (function () {
+    var dockBooted = false;
+
     function initStayCartDock() {
-        if (!window.IsangeStayCart) return;
+        if (!window.IsangeStayCart) {
+            return false;
+        }
+        if (dockBooted) {
+            if (typeof window.__stayCartDockRender === 'function') {
+                window.__stayCartDockRender();
+            }
+            return true;
+        }
 
         var dock = document.getElementById('stay-cart-dock');
         var toggle = document.getElementById('stay-cart-toggle');
@@ -80,7 +89,11 @@
         var expIcon = document.getElementById('stay-cart-exp-icon');
         var clearAllBtn = document.getElementById('stay-cart-clear-all');
 
-        if (!dock) return;
+        if (!dock) {
+            return false;
+        }
+
+        dockBooted = true;
 
         var summaryModal = summaryModalEl && window.bootstrap
             ? bootstrap.Modal.getOrCreateInstance(summaryModalEl)
@@ -327,6 +340,8 @@
             });
         }
 
+        window.__stayCartDockRender = render;
+
         IsangeStayCart.onChange(function () {
             render();
             syncAddedButtons();
@@ -340,9 +355,29 @@
                 alert('Add a room or experience to continue.');
             }
         });
+
+        return true;
     }
 
-    document.addEventListener('DOMContentLoaded', initStayCartDock);
-    document.addEventListener('ma:spa-content', initStayCartDock);
+    function bootStayCartDock() {
+        if (initStayCartDock()) {
+            return;
+        }
+        var attempts = 0;
+        var timer = setInterval(function () {
+            attempts += 1;
+            if (initStayCartDock() || attempts > 40) {
+                clearInterval(timer);
+            }
+        }, 100);
+    }
+
+    document.addEventListener('DOMContentLoaded', bootStayCartDock);
+    document.addEventListener('isange:stay-cart-ready', bootStayCartDock);
+    document.addEventListener('ma:spa-content', bootStayCartDock);
+
+    if (document.readyState !== 'loading') {
+        bootStayCartDock();
+    }
 })();
 </script>

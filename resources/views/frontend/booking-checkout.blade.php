@@ -194,13 +194,9 @@
     function initCheckout() {
         if (!window.IsangeStayCart) return;
 
-        @if (session('clear_stay_cart'))
-            IsangeStayCart.clear();
-        @endif
-
         @if (old('cart_json'))
         try {
-            localStorage.setItem('isange_stay_cart', @json(old('cart_json')));
+            sessionStorage.setItem('isange_stay_cart', @json(old('cart_json')));
         } catch (e) {}
         @endif
 

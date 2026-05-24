@@ -168,8 +168,6 @@ class StayBookingController extends Controller
             'session_id' => substr(sha1($request->session()->getId()), 0, 40),
         ]);
 
-        $request->session()->flash('clear_stay_cart', true);
-
         return match ($fulfillment) {
             'direct_pay' => redirect()->route('pay.dpo', array_filter([
                 'booking' => $record->public_id,
