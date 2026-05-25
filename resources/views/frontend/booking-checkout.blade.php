@@ -315,16 +315,27 @@
                     <div class="card-body p-0">
                         <div id="checkout-summary-meta" class="ma-checkout-summary__meta px-3 pt-3 d-none"></div>
                         <div id="checkout-summary-lines" class="ma-stay-summary__lines"></div>
-                        <p class="small text-muted px-3 py-3 mb-0 d-none" id="checkout-summary-empty">
-                            Your cart is empty.
-                            <a href="{{ route('rooms') }}">Browse rooms</a> or add one above.
-                        </p>
+                        <div id="checkout-summary-picks" class="ma-checkout-summary__picks px-3 py-3">
+                            <div class="ma-checkout-summary__pick-actions" id="checkout-summary-pick-actions">
+                                <button type="button" class="ma-checkout-summary__pick-btn" id="checkout-summary-add-room">
+                                    <i class="fas fa-bed" aria-hidden="true"></i>
+                                    <span>Add room</span>
+                                </button>
+                                <button type="button" class="ma-checkout-summary__pick-btn ma-checkout-summary__pick-btn--exp" id="checkout-summary-add-exp">
+                                    <i class="fas fa-hiking" aria-hidden="true"></i>
+                                    <span>Add experience</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-footer ma-checkout-summary__foot border-0">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
                             <span class="text-muted small" id="checkout-pay-label">Estimated total</span>
                             <strong class="ma-checkout-summary__total" id="checkout-summary-total">$0.00</strong>
                         </div>
+                        <button type="button" class="theme-btn w-100 ma-checkout-summary__continue" id="checkout-summary-continue">
+                            Continue <i class="fas fa-arrow-right ms-1"></i>
+                        </button>
                     </div>
                 </div>
             </aside>
@@ -368,7 +379,10 @@
         var cartInput = document.getElementById('stay-checkout-cart-json');
         var linesEl = document.getElementById('checkout-summary-lines');
         var summaryMeta = document.getElementById('checkout-summary-meta');
-        var emptyEl = document.getElementById('checkout-summary-empty');
+        var summaryPicks = document.getElementById('checkout-summary-picks');
+        var summaryAddRoom = document.getElementById('checkout-summary-add-room');
+        var summaryAddExp = document.getElementById('checkout-summary-add-exp');
+        var summaryContinueBtn = document.getElementById('checkout-summary-continue');
         var step1CartItems = document.getElementById('checkout-step1-cart-items');
         var step1EmptyEl = document.getElementById('checkout-step1-empty');
         var openRoomModalBtn = document.getElementById('checkout-open-room-modal');
@@ -804,10 +818,18 @@
             if (!linesEl) return;
 
             linesEl.innerHTML = '';
-            var hasItems = cart.rooms.length + cart.experiences.length > 0;
+            var hasRooms = cart.rooms.length > 0;
+            var hasExperiences = cart.experiences.length > 0;
+            var hasItems = hasRooms || hasExperiences;
 
-            if (emptyEl) {
-                emptyEl.classList.toggle('d-none', hasItems);
+            if (summaryAddRoom) {
+                summaryAddRoom.classList.toggle('d-none', hasRooms);
+            }
+            if (summaryAddExp) {
+                summaryAddExp.classList.toggle('d-none', hasExperiences);
+            }
+            if (summaryPicks) {
+                summaryPicks.classList.toggle('d-none', hasRooms && hasExperiences);
             }
 
             cart.rooms.forEach(function (room, idx) {
@@ -987,6 +1009,21 @@
         if (openExpModalBtn) {
             openExpModalBtn.addEventListener('click', function () {
                 openCheckoutModal('checkoutPickExperienceModal');
+            });
+        }
+        if (summaryAddRoom) {
+            summaryAddRoom.addEventListener('click', function () {
+                openCheckoutModal('checkoutPickRoomModal');
+            });
+        }
+        if (summaryAddExp) {
+            summaryAddExp.addEventListener('click', function () {
+                openCheckoutModal('checkoutPickExperienceModal');
+            });
+        }
+        if (summaryContinueBtn && stepNextBtn) {
+            summaryContinueBtn.addEventListener('click', function () {
+                stepNextBtn.click();
             });
         }
 
