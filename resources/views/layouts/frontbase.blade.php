@@ -242,6 +242,9 @@
     </div>
     <!--End pagewrapper-->
 
+    {{-- Modals outside .page-wrapper — avoids overflow:hidden clipping and backdrop stacking issues --}}
+    @stack('body-modals')
+
     {{-- Outside .page-wrapper so overflow:hidden does not clip the fixed cart bar --}}
     @include('frontend.includes.stay-cart-dock')
    

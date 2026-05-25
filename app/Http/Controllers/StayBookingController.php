@@ -59,11 +59,11 @@ class StayBookingController extends Controller
 
         $validated = Validator::make($request->all(), [
             'cart_json' => 'required|json|max:65535',
-            'guest_first_name' => 'required|string|max:120',
-            'guest_last_name' => 'required|string|max:120',
-            'guest_phone' => 'required|string|max:64',
-            'guest_email' => 'required|email|max:255',
-            'guest_country' => 'required|string|max:120',
+            'guest_first_name' => 'nullable|string|max:120',
+            'guest_last_name' => 'nullable|string|max:120',
+            'guest_phone' => 'nullable|string|max:64',
+            'guest_email' => 'nullable|email|max:255',
+            'guest_country' => 'nullable|string|max:120',
             'payment_method' => 'required|in:pay_now,pay_at_hotel',
             'pay_at_hotel_channel' => 'nullable|in:whatsapp,email',
             'airport_pickup' => 'sometimes|boolean',
@@ -92,12 +92,6 @@ class StayBookingController extends Controller
         }
 
         if ($validated['payment_method'] === 'pay_at_hotel') {
-            if (! self::guestWhatsappReady($validated['guest_phone'])) {
-                return back()->withErrors(['guest_phone' => 'Enter a valid mobile number with WhatsApp so we can reach you.'])->withInput();
-            }
-            if (! filter_var($validated['guest_email'], FILTER_VALIDATE_EMAIL)) {
-                return back()->withErrors(['guest_email' => 'Enter a valid email address.'])->withInput();
-            }
             $channel = $validated['pay_at_hotel_channel'] ?? '';
             if ($channel === 'whatsapp' && ! $hotelWhatsappReady) {
                 return back()->withErrors(['pay_at_hotel_channel' => 'WhatsApp booking is temporarily unavailable. Please use email or pay online.'])->withInput();
@@ -107,6 +101,12 @@ class StayBookingController extends Controller
             }
             if (! in_array($channel, ['whatsapp', 'email'], true)) {
                 return back()->withErrors(['pay_at_hotel_channel' => 'Choose WhatsApp or email to send your reservation request.'])->withInput();
+            }
+            if ($channel === 'whatsapp' && ! self::guestWhatsappReady($validated['guest_phone'] ?? '')) {
+                return back()->withErrors(['guest_phone' => 'Enter a valid mobile number with WhatsApp so we can reach you.'])->withInput();
+            }
+            if ($channel === 'email' && ! filter_var($validated['guest_email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+                return back()->withErrors(['guest_email' => 'Enter a valid email address so we can send your reservation.'])->withInput();
             }
             $fulfillment = $channel;
         } else {
@@ -126,16 +126,23 @@ class StayBookingController extends Controller
             }
         }
 
-        $guestName = trim($validated['guest_first_name'].' '.$validated['guest_last_name']);
+        $guestName = trim(($validated['guest_first_name'] ?? '').' '.($validated['guest_last_name'] ?? ''));
+        if ($guestName === '') {
+            $guestName = $validated['guest_email'] ?? $validated['guest_phone'] ?? 'Guest';
+        }
         $stay = StayBookingMessageBuilder::primaryStayFromCart($cart);
         $totalUsd = StayBookingMessageBuilder::estimateTotalUsd($cart);
         $firstRoom = $cart['rooms'][0] ?? null;
 
+        $guestPhone = trim((string) ($validated['guest_phone'] ?? ''));
+        $guestEmail = trim((string) ($validated['guest_email'] ?? ''));
+        $guestCountry = trim((string) ($validated['guest_country'] ?? ''));
+
         $guestPayload = [
             'guest_name' => $guestName,
-            'guest_phone' => $validated['guest_phone'],
-            'guest_email' => $validated['guest_email'],
-            'guest_country' => $validated['guest_country'],
+            'guest_phone' => $guestPhone,
+            'guest_email' => $guestEmail,
+            'guest_country' => $guestCountry,
             'airport_pickup' => $request->boolean('airport_pickup'),
             'airport_dropoff' => $request->boolean('airport_dropoff'),
             'additional_requests' => $validated['additional_requests'] ?? null,
@@ -159,9 +166,9 @@ class StayBookingController extends Controller
             'airport_dropoff' => $guestPayload['airport_dropoff'],
             'additional_requests' => $guestPayload['additional_requests'],
             'guest_name' => $guestName,
-            'guest_phone' => $validated['guest_phone'],
-            'guest_email' => $validated['guest_email'],
-            'guest_country' => $validated['guest_country'],
+            'guest_phone' => $guestPhone,
+            'guest_email' => $guestEmail,
+            'guest_country' => $guestCountry,
             'payment_method' => $validated['payment_method'],
             'total_usd' => $totalUsd > 0 ? $totalUsd : null,
             'adults' => isset($firstRoom['adults']) ? (int) $firstRoom['adults'] : null,

@@ -67,7 +67,7 @@
                         <span class="ma-checkout-card__icon" aria-hidden="true"><i class="fas fa-calendar-check"></i></span>
                         <div>
                             <h2 class="ma-checkout-card__title">Your stay</h2>
-                            <p class="ma-checkout-card__lead">Set dates and guests — your room carries over from the site.</p>
+                            <p class="ma-checkout-card__lead">Set dates and guests — add or change rooms and experiences below.</p>
                         </div>
                     </div>
                     <div class="ma-checkout-card__body">
@@ -99,42 +99,20 @@
                             <span id="stay-nights-text">0 nights</span>
                         </div>
 
-                        <div class="ma-checkout-stay-row mt-3" id="checkout-room-picker-empty">
-                            @if ($rooms->isNotEmpty())
-                                <label class="form-label fw-semibold mb-1" for="checkout-quick-room">Room type</label>
-                                <div class="d-flex flex-wrap gap-2">
-                                    <select class="form-select ma-checkout-input flex-grow-1" id="checkout-quick-room">
-                                        <option value="">Choose a room type…</option>
-                                        @foreach ($rooms as $r)
-                                            <option value="{{ $r->id }}"
-                                                data-slug="{{ $r->slug }}"
-                                                data-name="{{ $r->roomName }}"
-                                                data-price="{{ $r->price }}"
-                                                data-image="{{ $r->image ? asset('storage/images/rooms/'.$r->image) : '' }}"
-                                                @selected($prefillRoom && (int) $prefillRoom->id === (int) $r->id)>
-                                                {{ $r->roomName }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <button type="button" class="theme-btn ma-checkout-add-room-btn" id="checkout-quick-add-room">Add room</button>
-                                </div>
-                                <p class="small text-muted mt-2 mb-0">Choose a room once — then set your dates above.</p>
-                            @else
-                                <p class="small text-muted mb-0">Browse <a href="{{ route('rooms') }}">accommodation</a> to add a room.</p>
-                            @endif
-                        </div>
-
-                        <div class="ma-checkout-selected-room mt-3 d-none" id="checkout-room-picker-selected" aria-live="polite">
-                            <span class="ma-checkout-selected-room__label">Selected room</span>
-                            <div class="ma-checkout-selected-room__card">
-                                <span class="ma-checkout-selected-room__icon" aria-hidden="true"><i class="fas fa-bed"></i></span>
-                                <span class="ma-checkout-selected-room__info">
-                                    <strong id="checkout-selected-room-name">—</strong>
-                                    <span class="small text-muted d-block" id="checkout-selected-room-meta"></span>
-                                </span>
-                                <button type="button" class="btn btn-link btn-sm text-danger ma-checkout-selected-room__change" id="checkout-change-room">Change room</button>
+                        <div class="ma-checkout-cart-block mt-3">
+                            <div id="checkout-step1-cart-items" class="ma-checkout-cart-items" aria-live="polite">
+                                <p class="small text-muted mb-0" id="checkout-step1-empty">No rooms or experiences yet — add below.</p>
                             </div>
-                            <p class="small text-muted mt-2 mb-0">Your room is saved — just set check-in, check-out, and guests above.</p>
+                            <div class="ma-checkout-add-actions mt-2">
+                                <button type="button" class="ma-checkout-add-action" id="checkout-open-room-modal">
+                                    <i class="fas fa-bed" aria-hidden="true"></i>
+                                    <span>Add room</span>
+                                </button>
+                                <button type="button" class="ma-checkout-add-action ma-checkout-add-action--exp" id="checkout-open-exp-modal">
+                                    <i class="fas fa-hiking" aria-hidden="true"></i>
+                                    <span>Add experience</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,24 +131,24 @@
                     <div class="ma-checkout-card__body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label" for="guest_first_name">First name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_first_name" name="guest_first_name" value="{{ old('guest_first_name') }}" required maxlength="120">
+                                <label class="form-label" for="guest_first_name">First name</label>
+                                <input type="text" class="form-control ma-checkout-input" id="guest_first_name" name="guest_first_name" value="{{ old('guest_first_name') }}" maxlength="120">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="guest_last_name">Last name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_last_name" name="guest_last_name" value="{{ old('guest_last_name') }}" required maxlength="120">
+                                <label class="form-label" for="guest_last_name">Last name</label>
+                                <input type="text" class="form-control ma-checkout-input" id="guest_last_name" name="guest_last_name" value="{{ old('guest_last_name') }}" maxlength="120">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="guest_phone">Mobile (WhatsApp) <span class="text-danger">*</span></label>
-                                <input type="tel" class="form-control ma-checkout-input" id="guest_phone" name="guest_phone" value="{{ old('guest_phone') }}" required maxlength="64" placeholder="+250 7XX XXX XXX" autocomplete="tel">
+                                <label class="form-label" for="guest_phone">Mobile (WhatsApp) <span class="text-danger" id="guest_phone-required">*</span></label>
+                                <input type="tel" class="form-control ma-checkout-input" id="guest_phone" name="guest_phone" value="{{ old('guest_phone') }}" maxlength="64" placeholder="+250 7XX XXX XXX" autocomplete="tel">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="guest_email">Email <span class="text-danger">*</span></label>
-                                <input type="email" class="form-control ma-checkout-input" id="guest_email" name="guest_email" value="{{ old('guest_email') }}" required maxlength="255" autocomplete="email">
+                                <label class="form-label" for="guest_email">Email <span class="text-danger" id="guest_email-required">*</span></label>
+                                <input type="email" class="form-control ma-checkout-input" id="guest_email" name="guest_email" value="{{ old('guest_email') }}" maxlength="255" autocomplete="email">
                             </div>
                             <div class="col-12">
-                                <label class="form-label" for="guest_country">Country / region <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_country" name="guest_country" value="{{ old('guest_country') }}" required maxlength="120">
+                                <label class="form-label" for="guest_country">Country / region</label>
+                                <input type="text" class="form-control ma-checkout-input" id="guest_country" name="guest_country" value="{{ old('guest_country') }}" maxlength="120">
                             </div>
                         </div>
 
@@ -285,7 +263,7 @@
                                     </label>
                                 @endif
                             </div>
-                            <p class="small text-muted mt-3 mb-0">We will contact you using the mobile number and email above to confirm your pay-at-hotel reservation.</p>
+                            <p class="small text-muted mt-3 mb-0" id="pay-at-hotel-channel-hint">Choose WhatsApp or email — we will use the matching contact detail from step 2.</p>
                         </div>
                         </div>{{-- .ma-pay-panels --}}
                     </div>
@@ -356,6 +334,10 @@
 
 @endsection
 
+@push('body-modals')
+@include('frontend.includes.checkout-catalog-modals')
+@endpush
+
 @section('scripts')
 <script>
 (function () {
@@ -382,29 +364,15 @@
         } catch (e) {}
         @endif
 
-        @if ($prefillRoom)
-        (function prefillOnce() {
-            var key = 'isange_prefill_room_{{ $prefillRoom->id }}';
-            if (sessionStorage.getItem(key)) return;
-            var sel = document.getElementById('checkout-quick-room');
-            if (sel) {
-                sel.value = '{{ $prefillRoom->id }}';
-                document.getElementById('checkout-quick-add-room')?.click();
-            }
-            sessionStorage.setItem(key, '1');
-        })();
-        @endif
-
         var form = document.getElementById('stay-checkout-form');
         var cartInput = document.getElementById('stay-checkout-cart-json');
         var linesEl = document.getElementById('checkout-summary-lines');
         var summaryMeta = document.getElementById('checkout-summary-meta');
         var emptyEl = document.getElementById('checkout-summary-empty');
-        var roomPickerEmpty = document.getElementById('checkout-room-picker-empty');
-        var roomPickerSelected = document.getElementById('checkout-room-picker-selected');
-        var selectedRoomName = document.getElementById('checkout-selected-room-name');
-        var selectedRoomMeta = document.getElementById('checkout-selected-room-meta');
-        var changeRoomBtn = document.getElementById('checkout-change-room');
+        var step1CartItems = document.getElementById('checkout-step1-cart-items');
+        var step1EmptyEl = document.getElementById('checkout-step1-empty');
+        var openRoomModalBtn = document.getElementById('checkout-open-room-modal');
+        var openExpModalBtn = document.getElementById('checkout-open-exp-modal');
         var totalEl = document.getElementById('checkout-summary-total');
         var payLabel = document.getElementById('checkout-pay-label');
         var payAtHotel = document.getElementById('pay-at-hotel-channels');
@@ -482,15 +450,6 @@
                 return true;
             }
             if (step === 2) {
-                var required = ['guest_first_name', 'guest_last_name', 'guest_phone', 'guest_email', 'guest_country'];
-                for (var i = 0; i < required.length; i++) {
-                    var el = form.querySelector('[name="' + required[i] + '"]');
-                    if (!el || !String(el.value || '').trim()) {
-                        alert('Please complete all guest details.');
-                        if (el) el.focus();
-                        return false;
-                    }
-                }
                 return true;
             }
             if (step === 3) {
@@ -502,6 +461,9 @@
                 if (payMethod.value === 'pay_at_hotel') {
                     if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
                         alert('Choose WhatsApp or email for pay-at-hotel.');
+                        return false;
+                    }
+                    if (!validateGuestContactForPayment(payMethod)) {
                         return false;
                     }
                 }
@@ -617,6 +579,71 @@
             }
         }
 
+        function getPayAtHotelChannel() {
+            var ch = form.querySelector('input[name="pay_at_hotel_channel"]:checked');
+            return ch ? ch.value : '';
+        }
+
+        function syncGuestContactRequired() {
+            var payMethod = form.querySelector('input[name="payment_method"]:checked');
+            var phoneEl = form.querySelector('[name="guest_phone"]');
+            var emailEl = form.querySelector('[name="guest_email"]');
+            var phoneReq = document.getElementById('guest_phone-required');
+            var emailReq = document.getElementById('guest_email-required');
+            var hintEl = document.getElementById('pay-at-hotel-channel-hint');
+            var needPhone = false;
+            var needEmail = false;
+
+            if (payMethod && payMethod.value === 'pay_at_hotel') {
+                var channel = getPayAtHotelChannel();
+                needPhone = channel === 'whatsapp';
+                needEmail = channel === 'email';
+                if (hintEl) {
+                    if (channel === 'whatsapp') {
+                        hintEl.textContent = 'We will send your reservation confirmation to your WhatsApp number above.';
+                    } else if (channel === 'email') {
+                        hintEl.textContent = 'We will send your reservation confirmation to your email above.';
+                    } else {
+                        hintEl.textContent = 'Choose WhatsApp or email — only that contact detail is required to submit.';
+                    }
+                }
+            } else if (hintEl) {
+                hintEl.textContent = 'Choose WhatsApp or email — only that contact detail is required to submit.';
+            }
+
+            if (phoneEl) phoneEl.required = needPhone;
+            if (emailEl) emailEl.required = needEmail;
+            if (phoneReq) phoneReq.classList.toggle('d-none', !needPhone);
+            if (emailReq) emailReq.classList.toggle('d-none', !needEmail);
+        }
+
+        function validateGuestContactForPayment(payMethod) {
+            payMethod = payMethod || form.querySelector('input[name="payment_method"]:checked');
+            if (!payMethod || payMethod.value !== 'pay_at_hotel') {
+                return true;
+            }
+            var channel = getPayAtHotelChannel();
+            var phone = (form.querySelector('[name="guest_phone"]') || {}).value || '';
+            var email = (form.querySelector('[name="guest_email"]') || {}).value || '';
+            if (channel === 'whatsapp') {
+                if (phone.replace(/\D/g, '').length < 8) {
+                    alert('Enter a valid WhatsApp mobile number to submit via WhatsApp.');
+                    form.querySelector('[name="guest_phone"]')?.focus();
+                    return false;
+                }
+                return true;
+            }
+            if (channel === 'email') {
+                if (!email || email.indexOf('@') < 1) {
+                    alert('Enter a valid email address to submit via email.');
+                    form.querySelector('[name="guest_email"]')?.focus();
+                    return false;
+                }
+                return true;
+            }
+            return true;
+        }
+
         function syncPaymentPanels() {
             var payMethod = form.querySelector('input[name="payment_method"]:checked');
             var isPayNow = payMethod && payMethod.value === 'pay_now';
@@ -658,34 +685,91 @@
                 var input = label.querySelector('.ma-channel-choice__input');
                 label.classList.toggle('ma-channel-choice--selected', input && input.checked && isPayAtHotel);
             });
+            syncGuestContactRequired();
         }
 
-        function updateRoomPicker(cart) {
-            var hasRooms = cart.rooms.length > 0;
-            if (roomPickerEmpty) {
-                roomPickerEmpty.classList.toggle('d-none', hasRooms);
+        function openCheckoutModal(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            if (el.parentElement !== document.body) {
+                document.body.appendChild(el);
             }
-            if (roomPickerSelected) {
-                roomPickerSelected.classList.toggle('d-none', !hasRooms);
+            if (window.bootstrap && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(el).show();
             }
-            if (hasRooms) {
-                var primary = cart.rooms[0];
-                if (selectedRoomName) {
-                    selectedRoomName.textContent = primary.name || 'Room';
-                }
-                if (selectedRoomMeta) {
-                    var count = cart.rooms.length;
-                    selectedRoomMeta.textContent = count > 1
-                        ? count + ' rooms of this type'
-                        : '1 room';
-                }
-                if (stayRoomsCount && parseInt(stayRoomsCount.value, 10) !== cart.rooms.length) {
-                    stayRoomsCount.value = cart.rooms.length;
-                }
-                var sel = document.getElementById('checkout-quick-room');
-                if (sel && primary.room_id) {
-                    sel.value = String(primary.room_id);
-                }
+        }
+
+        function syncPickModals(cart) {
+            var roomIds = cart.rooms.map(function (r) { return r.room_id; });
+            var expIds = cart.experiences.map(function (e) { return e.id; });
+            document.querySelectorAll('[data-checkout-add-room]').forEach(function (btn) {
+                var rid = parseInt(btn.getAttribute('data-room-id'), 10);
+                var added = roomIds.indexOf(rid) >= 0;
+                btn.classList.toggle('is-added', added);
+                btn.disabled = added;
+                btn.textContent = added ? 'Added' : 'Add';
+            });
+            document.querySelectorAll('[data-checkout-add-experience]').forEach(function (btn) {
+                var id = btn.getAttribute('data-exp-id');
+                var added = expIds.indexOf(id) >= 0;
+                btn.classList.toggle('is-added', added);
+                btn.disabled = added;
+                btn.textContent = added ? 'Added' : 'Add';
+            });
+        }
+
+        function renderStep1CartItems(cart) {
+            if (!step1CartItems) return;
+            var hasItems = cart.rooms.length + cart.experiences.length > 0;
+            if (step1EmptyEl) {
+                step1EmptyEl.classList.toggle('d-none', hasItems);
+            }
+            step1CartItems.querySelectorAll('.ma-checkout-step1-item').forEach(function (el) {
+                el.remove();
+            });
+            if (!hasItems) return;
+
+            cart.rooms.forEach(function (room, idx) {
+                var row = document.createElement('div');
+                row.className = 'ma-checkout-step1-item';
+                row.innerHTML =
+                    '<span class="ma-checkout-step1-item__icon" aria-hidden="true"><i class="fas fa-bed"></i></span>' +
+                    '<span class="ma-checkout-step1-item__body">' +
+                    '<strong class="ma-checkout-step1-item__name">' + escapeHtml(room.name || 'Room') + '</strong>' +
+                    (room.check_in && room.check_out
+                        ? '<span class="ma-checkout-step1-item__meta">' + escapeHtml(room.check_in) + ' → ' + escapeHtml(room.check_out) + '</span>'
+                        : '<span class="ma-checkout-step1-item__meta">Dates set above</span>') +
+                    '</span>' +
+                    '<button type="button" class="ma-checkout-step1-item__remove" data-step1-rm-room="' + idx + '" aria-label="Remove room">Remove</button>';
+                step1CartItems.appendChild(row);
+            });
+
+            cart.experiences.forEach(function (exp) {
+                var row = document.createElement('div');
+                row.className = 'ma-checkout-step1-item ma-checkout-step1-item--exp';
+                row.innerHTML =
+                    '<span class="ma-checkout-step1-item__icon" aria-hidden="true"><i class="fas ' + escapeHtml(exp.icon || 'fa-star') + '"></i></span>' +
+                    '<span class="ma-checkout-step1-item__body">' +
+                    '<strong class="ma-checkout-step1-item__name">' + escapeHtml(exp.title || '') + '</strong>' +
+                    '<span class="ma-checkout-step1-item__meta">Experience</span>' +
+                    '</span>' +
+                    '<button type="button" class="ma-checkout-step1-item__remove" data-step1-rm-exp="' + escapeHtml(exp.id) + '" aria-label="Remove experience">Remove</button>';
+                step1CartItems.appendChild(row);
+            });
+
+            step1CartItems.querySelectorAll('[data-step1-rm-room]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    IsangeStayCart.removeRoom(parseInt(btn.getAttribute('data-step1-rm-room'), 10));
+                });
+            });
+            step1CartItems.querySelectorAll('[data-step1-rm-exp]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    IsangeStayCart.removeExperience(btn.getAttribute('data-step1-rm-exp'));
+                });
+            });
+
+            if (stayRoomsCount && cart.rooms.length > 0) {
+                stayRoomsCount.value = cart.rooms.length;
             }
         }
 
@@ -698,7 +782,8 @@
                 cartInput.value = IsangeStayCart.toJson();
             }
 
-            updateRoomPicker(cart);
+            renderStep1CartItems(cart);
+            syncPickModals(cart);
 
             if (summaryMeta) {
                 if (stay.check_in && stay.check_out) {
@@ -868,22 +953,13 @@
 
             var payMethod = form.querySelector('input[name="payment_method"]:checked');
             if (payMethod && payMethod.value === 'pay_at_hotel') {
-                var channel = form.querySelector('input[name="pay_at_hotel_channel"]:checked');
-                if (!channel) {
+                if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
                     e.preventDefault();
                     alert('Choose WhatsApp or email to send your pay-at-hotel reservation.');
                     return;
                 }
-                var phone = (form.querySelector('[name="guest_phone"]') || {}).value || '';
-                var email = (form.querySelector('[name="guest_email"]') || {}).value || '';
-                if (phone.replace(/\D/g, '').length < 8) {
+                if (!validateGuestContactForPayment(payMethod)) {
                     e.preventDefault();
-                    alert('Enter a valid WhatsApp mobile number.');
-                    return;
-                }
-                if (!email || email.indexOf('@') < 1) {
-                    e.preventDefault();
-                    alert('Enter a valid email address.');
                     return;
                 }
             }
@@ -903,41 +979,72 @@
             }
         });
 
-        if (changeRoomBtn) {
-            changeRoomBtn.addEventListener('click', function () {
-                var cart = IsangeStayCart.get();
-                while (cart.rooms.length > 0) {
-                    IsangeStayCart.removeRoom(0);
-                    cart = IsangeStayCart.get();
-                }
-                if (stayRoomsCount) stayRoomsCount.value = 1;
+        if (openRoomModalBtn) {
+            openRoomModalBtn.addEventListener('click', function () {
+                openCheckoutModal('checkoutPickRoomModal');
+            });
+        }
+        if (openExpModalBtn) {
+            openExpModalBtn.addEventListener('click', function () {
+                openCheckoutModal('checkoutPickExperienceModal');
             });
         }
 
-        var quickAdd = document.getElementById('checkout-quick-add-room');
-        if (quickAdd) {
-            quickAdd.addEventListener('click', function () {
-                var sel = document.getElementById('checkout-quick-room');
-                var opt = sel && sel.options[sel.selectedIndex];
-                if (!opt || !opt.value) {
-                    alert('Choose a room type first.');
-                    return;
-                }
+        document.querySelectorAll('[data-checkout-add-room]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (btn.disabled) return;
                 pushStayToCart();
-                var fake = document.createElement('button');
-                fake.setAttribute('data-add-room', '1');
-                fake.setAttribute('data-room-id', opt.value);
-                fake.setAttribute('data-room-slug', opt.getAttribute('data-slug') || '');
-                fake.setAttribute('data-room-name', opt.getAttribute('data-name') || '');
-                fake.setAttribute('data-room-price', opt.getAttribute('data-price') || '');
-                fake.setAttribute('data-room-image', opt.getAttribute('data-image') || '');
-                document.body.appendChild(fake);
-                fake.click();
-                fake.remove();
-                var partial = readStayFields();
-                IsangeStayCart.setRoomsCount(partial.rooms_count);
+                var added = IsangeStayCart.addRoom({
+                    room_id: parseInt(btn.getAttribute('data-room-id'), 10),
+                    slug: btn.getAttribute('data-room-slug') || '',
+                    name: btn.getAttribute('data-room-name') || 'Room',
+                    image: btn.getAttribute('data-room-image') || '',
+                    price: btn.getAttribute('data-room-price') || '',
+                    check_in: null,
+                    check_out: null,
+                    adults: stayAdults ? stayAdults.value : 2,
+                    children: stayChildren ? stayChildren.value : 0,
+                });
+                if (added) {
+                    var partial = readStayFields();
+                    IsangeStayCart.setRoomsCount(partial.rooms_count);
+                }
             });
-        }
+        });
+
+        document.querySelectorAll('[data-checkout-add-experience]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                if (btn.disabled) return;
+                IsangeStayCart.addExperience({
+                    id: btn.getAttribute('data-exp-id'),
+                    title: btn.getAttribute('data-exp-title') || '',
+                    icon: btn.getAttribute('data-exp-icon') || 'fa-star',
+                });
+            });
+        });
+
+        @if ($prefillRoom)
+        (function prefillOnce() {
+            var key = 'isange_prefill_room_{{ $prefillRoom->id }}';
+            if (sessionStorage.getItem(key)) return;
+            var cart = IsangeStayCart.get();
+            if (!cart.rooms.some(function (r) { return r.room_id === {{ $prefillRoom->id }}; })) {
+                pushStayToCart();
+                IsangeStayCart.addRoom({
+                    room_id: {{ $prefillRoom->id }},
+                    slug: @json($prefillRoom->slug),
+                    name: @json($prefillRoom->roomName),
+                    image: @json($prefillRoom->image ? asset('storage/images/rooms/'.$prefillRoom->image) : ''),
+                    price: @json($prefillRoom->price ?? ''),
+                    check_in: null,
+                    check_out: null,
+                    adults: stayAdults ? stayAdults.value : 2,
+                    children: stayChildren ? stayChildren.value : 0,
+                });
+            }
+            sessionStorage.setItem(key, '1');
+        })();
+        @endif
     }
 
     document.addEventListener('DOMContentLoaded', initCheckout);
