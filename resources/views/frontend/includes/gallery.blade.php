@@ -35,13 +35,11 @@
 </section>
 
 <!-- Modal Structure -->
-<div id="imageModal" class="modal" style="display: none;">
-    <span class="close" onclick="closeModal()">&times;</span>
-    <img class="modal-content" id="modalImg">
-    
-    <!-- Navigation Controls -->
-    <span class="prev" onclick="changeImage(-1)">&#10094;</span>
-    <span class="next" onclick="changeImage(1)">&#10095;</span>
+<div id="imageModal" class="gallery-lightbox" aria-hidden="true">
+    <span class="gallery-lightbox__close" onclick="closeModal()">&times;</span>
+    <img class="gallery-lightbox__img" id="modalImg" alt="">
+    <span class="gallery-lightbox__prev" onclick="changeImage(-1)">&#10094;</span>
+    <span class="gallery-lightbox__next" onclick="changeImage(1)">&#10095;</span>
 </div>
 
 <!-- JavaScript -->
@@ -58,12 +56,15 @@
         currentIndex = index;
         let modal = document.getElementById("imageModal");
         let modalImg = document.getElementById("modalImg");
-        modal.style.display = "flex";
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
         modalImg.src = images[currentIndex];
     }
 
     function closeModal() {
-        document.getElementById("imageModal").style.display = "none";
+        var modal = document.getElementById("imageModal");
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
     }
 
     function changeImage(step) {
@@ -80,7 +81,7 @@
 
     // Keyboard Navigation
     document.addEventListener("keydown", function (event) {
-        if (document.getElementById("imageModal").style.display === "flex") {
+        if (document.getElementById("imageModal").classList.contains('is-open')) {
             if (event.key === "ArrowRight") changeImage(1);
             if (event.key === "ArrowLeft") changeImage(-1);
             if (event.key === "Escape") closeModal();

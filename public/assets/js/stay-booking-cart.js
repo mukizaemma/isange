@@ -1,5 +1,5 @@
 /**
- * Unified stay cart: rooms + experiences (localStorage).
+ * Unified stay cart: rooms + experiences (sessionStorage, mirrored to localStorage).
  */
 (function (global) {
     'use strict';
@@ -16,8 +16,43 @@
         }
     }
 
+    function defaultStay() {
+        return {
+            check_in: null,
+            check_out: null,
+            adults: 2,
+            children: 0,
+            rooms_count: 1,
+        };
+    }
+
     function emptyCart() {
-        return { rooms: [], experiences: [], updated_at: null };
+        return { rooms: [], experiences: [], stay: defaultStay(), updated_at: null };
+    }
+
+    function normalizeStay(cart) {
+        if (!cart.stay || typeof cart.stay !== 'object') {
+            cart.stay = defaultStay();
+        }
+        cart.stay.adults = Math.max(1, Math.min(20, parseInt(cart.stay.adults, 10) || 2));
+        cart.stay.children = Math.max(0, Math.min(20, parseInt(cart.stay.children, 10) || 0));
+        cart.stay.rooms_count = Math.max(1, Math.min(10, parseInt(cart.stay.rooms_count, 10) || 1));
+        return cart.stay;
+    }
+
+    function applyStayToRooms(cart) {
+        var stay = normalizeStay(cart);
+        cart.rooms.forEach(function (room) {
+            if (stay.check_in) {
+                room.check_in = stay.check_in;
+            }
+            if (stay.check_out) {
+                room.check_out = stay.check_out;
+            }
+            room.adults = stay.adults;
+            room.children = stay.children;
+            room.nights = nightsBetween(room.check_in, room.check_out);
+        });
     }
 
     function migrateLegacyCart() {
@@ -50,6 +85,7 @@
             }
             data.rooms = Array.isArray(data.rooms) ? data.rooms : [];
             data.experiences = Array.isArray(data.experiences) ? data.experiences : [];
+            normalizeStay(data);
             return data;
         } catch (e) {
             return emptyCart();
@@ -58,11 +94,13 @@
 
     function save(cart) {
         cart.updated_at = new Date().toISOString();
+        var json = JSON.stringify(cart);
         try {
             var store = storage();
             if (store) {
-                store.setItem(STORAGE_KEY, JSON.stringify(cart));
+                store.setItem(STORAGE_KEY, json);
             }
+            localStorage.setItem(STORAGE_KEY, json);
         } catch (e) {}
         notify();
     }
@@ -155,8 +193,24 @@
                 return false;
             }
             var cart = load();
+            var stay = normalizeStay(cart);
+            if (!room.check_in && stay.check_in) {
+                room.check_in = stay.check_in;
+            }
+            if (!room.check_out && stay.check_out) {
+                room.check_out = stay.check_out;
+            }
+            if (!room.adults) {
+                room.adults = stay.adults;
+            }
+            if (room.children === undefined || room.children === null) {
+                room.children = stay.children;
+            }
             room.nights = nightsBetween(room.check_in, room.check_out);
             cart.rooms.push(room);
+            if (cart.rooms.length > stay.rooms_count) {
+                stay.rooms_count = cart.rooms.length;
+            }
             save(cart);
             return true;
         },
@@ -165,6 +219,97 @@
             var cart = load();
             cart.rooms.splice(index, 1);
             save(cart);
+        },
+
+        updateRoom: function (index, updates) {
+            var cart = load();
+            if (!cart.rooms[index] || !updates) {
+                return false;
+            }
+            var room = cart.rooms[index];
+            if (updates.check_in !== undefined) {
+                room.check_in = updates.check_in || null;
+            }
+            if (updates.check_out !== undefined) {
+                room.check_out = updates.check_out || null;
+            }
+            if (updates.adults !== undefined) {
+                room.adults = Math.max(1, Math.min(20, parseInt(updates.adults, 10) || 1));
+            }
+            if (updates.children !== undefined) {
+                room.children = Math.max(0, Math.min(20, parseInt(updates.children, 10) || 0));
+            }
+            room.nights = nightsBetween(room.check_in, room.check_out);
+            save(cart);
+            return true;
+        },
+
+        getStay: function () {
+            return normalizeStay(load());
+        },
+
+        setStay: function (partial) {
+            var cart = load();
+            var stay = normalizeStay(cart);
+            if (partial.check_in !== undefined) {
+                stay.check_in = partial.check_in || null;
+            }
+            if (partial.check_out !== undefined) {
+                stay.check_out = partial.check_out || null;
+            }
+            if (partial.adults !== undefined) {
+                stay.adults = Math.max(1, Math.min(20, parseInt(partial.adults, 10) || 2));
+            }
+            if (partial.children !== undefined) {
+                stay.children = Math.max(0, Math.min(20, parseInt(partial.children, 10) || 0));
+            }
+            if (partial.rooms_count !== undefined) {
+                stay.rooms_count = Math.max(1, Math.min(10, parseInt(partial.rooms_count, 10) || 1));
+            }
+            applyStayToRooms(cart);
+            save(cart);
+        },
+
+        setRoomsCount: function (count) {
+            var cart = load();
+            var stay = normalizeStay(cart);
+            stay.rooms_count = Math.max(1, Math.min(10, parseInt(count, 10) || 1));
+            if (cart.rooms.length > 0) {
+                var template = cart.rooms[0];
+                while (cart.rooms.length < stay.rooms_count) {
+                    cart.rooms.push({
+                        room_id: template.room_id,
+                        slug: template.slug,
+                        name: template.name,
+                        image: template.image,
+                        price: template.price,
+                        check_in: stay.check_in,
+                        check_out: stay.check_out,
+                        adults: stay.adults,
+                        children: stay.children,
+                        nights: nightsBetween(stay.check_in, stay.check_out),
+                    });
+                }
+                while (cart.rooms.length > stay.rooms_count) {
+                    cart.rooms.pop();
+                }
+                applyStayToRooms(cart);
+            }
+            save(cart);
+        },
+
+        roomsNeedDates: function () {
+            var cart = load();
+            if (cart.rooms.length === 0) {
+                return false;
+            }
+            var stay = normalizeStay(cart);
+            if (!stay.check_in || !stay.check_out) {
+                return true;
+            }
+            return cart.rooms.some(function (room) {
+                return !room.check_in || !room.check_out;
+            });
         },
 
         toJson: function () {

@@ -57,11 +57,21 @@
     </div>
 </div>
 
-@include('frontend.includes.stay-add-room-modal')
-
 <script>
 (function () {
     var dockBooted = false;
+
+    function purgeOrphanModalLayers() {
+        if (document.querySelectorAll('.modal.show').length > 0) {
+            return;
+        }
+        document.querySelectorAll('.modal-backdrop').forEach(function (el) {
+            el.remove();
+        });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    }
 
     function initStayCartDock() {
         if (!window.IsangeStayCart) {
@@ -201,9 +211,11 @@
                         '<button type="button" class="stay-cart-modal__remove" data-remove-room="' + idx + '" aria-label="Remove room"><i class="fas fa-trash-alt"></i></button>' +
                         '</div>' +
                         '<h6 class="stay-cart-modal__card-title">' + escapeHtml(room.name || 'Room') + '</h6>' +
-                        '<p class="stay-cart-modal__card-meta small mb-1">' +
-                        escapeHtml(room.check_in || '') + ' → ' + escapeHtml(room.check_out || '') +
-                        '</p>' +
+                        (room.check_in && room.check_out
+                            ? '<p class="stay-cart-modal__card-meta small mb-1">' +
+                              escapeHtml(room.check_in) + ' → ' + escapeHtml(room.check_out) +
+                              '</p>'
+                            : '<p class="stay-cart-modal__card-meta small mb-1 text-warning">Dates — add on confirm booking page</p>') +
                         '<p class="stay-cart-modal__card-meta small mb-0">' +
                         (room.adults || 1) + ' Adult' + ((room.adults || 1) !== 1 ? 's' : '') +
                         ', ' + (room.children || 0) + ' Child' + ((room.children || 0) !== 1 ? 'ren' : '') +
@@ -253,6 +265,7 @@
         if (summaryModalEl) {
             summaryModalEl.addEventListener('hidden.bs.modal', function () {
                 if (toggle) toggle.setAttribute('aria-expanded', 'false');
+                purgeOrphanModalLayers();
             });
             summaryModalEl.addEventListener('shown.bs.modal', function () {
                 if (toggle) toggle.setAttribute('aria-expanded', 'true');
@@ -280,63 +293,52 @@
             var addRoom = e.target.closest('[data-add-room]');
             if (addRoom) {
                 e.preventDefault();
-                var modal = document.getElementById('stayAddRoomModal');
-                if (modal && window.bootstrap) {
-                    modal.querySelector('[name="room_id"]').value = addRoom.getAttribute('data-room-id') || '';
-                    modal.querySelector('[name="room_name"]').value = addRoom.getAttribute('data-room-name') || '';
-                    modal.querySelector('[name="room_slug"]').value = addRoom.getAttribute('data-room-slug') || '';
-                    modal.querySelector('[name="room_price"]').value = addRoom.getAttribute('data-room-price') || '';
-                    modal.querySelector('[name="room_image"]').value = addRoom.getAttribute('data-room-image') || '';
-                    var nameLabel = document.getElementById('stay-add-room-name-label');
-                    if (nameLabel) {
-                        nameLabel.textContent = 'Dates and guests for: ' + (addRoom.getAttribute('data-room-name') || 'room');
+                var roomId = parseInt(addRoom.getAttribute('data-room-id'), 10);
+                if (!roomId) {
+                    return;
+                }
+                var added = IsangeStayCart.addRoom({
+                    room_id: roomId,
+                    slug: addRoom.getAttribute('data-room-slug') || '',
+                    name: addRoom.getAttribute('data-room-name') || 'Room',
+                    image: addRoom.getAttribute('data-room-image') || '',
+                    price: addRoom.getAttribute('data-room-price') || '',
+                    check_in: null,
+                    check_out: null,
+                    adults: 2,
+                    children: 0,
+                });
+                if (added) {
+                    addRoom.classList.add('is-added');
+                    addRoom.setAttribute('aria-pressed', 'true');
+                    var roomLabel = addRoom.querySelector('[data-add-room-label]');
+                    if (roomLabel) {
+                        roomLabel.textContent = 'Added';
+                    } else if (!addRoom.querySelector('i')) {
+                        addRoom.textContent = 'Added to cart';
                     }
-                    bootstrap.Modal.getOrCreateInstance(modal).show();
                 }
             }
         });
 
-        var roomForm = document.getElementById('stay-add-room-form');
-        if (roomForm) {
-            roomForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                var fd = new FormData(roomForm);
-                var checkIn = fd.get('check_in');
-                var checkOut = fd.get('check_out');
-                if (!checkIn || !checkOut || checkOut <= checkIn) {
-                    alert('Please choose valid check-in and check-out dates.');
-                    return;
-                }
-                IsangeStayCart.addRoom({
-                    room_id: parseInt(fd.get('room_id'), 10),
-                    slug: fd.get('room_slug'),
-                    name: fd.get('room_name'),
-                    image: fd.get('room_image'),
-                    price: fd.get('room_price'),
-                    check_in: checkIn,
-                    check_out: checkOut,
-                    adults: parseInt(fd.get('adults'), 10) || 1,
-                    children: parseInt(fd.get('children'), 10) || 0,
-                });
-                var modal = document.getElementById('stayAddRoomModal');
-                if (modal && window.bootstrap) {
-                    bootstrap.Modal.getInstance(modal)?.hide();
-                }
-                roomForm.reset();
-            });
-        }
-
         function syncAddedButtons() {
-            var ids = IsangeStayCart.get().experiences.map(function (e) { return e.id; });
+            var cart = IsangeStayCart.get();
+            var expIds = cart.experiences.map(function (e) { return e.id; });
             document.querySelectorAll('[data-add-experience]').forEach(function (btn) {
                 var id = btn.getAttribute('data-add-experience');
-                var added = ids.indexOf(id) >= 0;
+                var added = expIds.indexOf(id) >= 0;
                 btn.classList.toggle('is-added', added);
                 btn.setAttribute('aria-pressed', added ? 'true' : 'false');
                 var label = btn.querySelector('[data-add-label]');
                 if (label && !btn.classList.contains('isange-experience-list__add')) {
                     label.textContent = added ? 'Added to cart' : 'Add to itinerary';
                 }
+            });
+            document.querySelectorAll('[data-add-room]').forEach(function (btn) {
+                var rid = parseInt(btn.getAttribute('data-room-id'), 10);
+                var added = cart.rooms.some(function (r) { return r.room_id === rid; });
+                btn.classList.toggle('is-added', added);
+                btn.setAttribute('aria-pressed', added ? 'true' : 'false');
             });
         }
 
@@ -379,5 +381,9 @@
     if (document.readyState !== 'loading') {
         bootStayCartDock();
     }
+
+    document.addEventListener('hidden.bs.modal', purgeOrphanModalLayers);
+    window.addEventListener('pageshow', purgeOrphanModalLayers);
+    setInterval(purgeOrphanModalLayers, 15000);
 })();
 </script>

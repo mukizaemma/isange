@@ -58,7 +58,7 @@ class StayBookingController extends Controller
         $hotelEmailReady = self::hotelEmailReady($setting);
 
         $validated = Validator::make($request->all(), [
-            'cart_json' => 'required|json',
+            'cart_json' => 'required|json|max:65535',
             'guest_first_name' => 'required|string|max:120',
             'guest_last_name' => 'required|string|max:120',
             'guest_phone' => 'required|string|max:64',
@@ -80,7 +80,16 @@ class StayBookingController extends Controller
             return back()->withErrors(['cart_json' => 'Add at least one room or experience to your cart.'])->withInput();
         }
 
+        $rawItemCount = count($cart['rooms'] ?? []) + count($cart['experiences'] ?? []);
         $cart = self::sanitizeCart($cart);
+
+        if (! self::cartHasItems($cart)) {
+            return back()->withErrors([
+                'cart_json' => $rawItemCount > 0
+                    ? 'Some cart items could not be validated. Please remove and re-add them, then try again.'
+                    : 'Add at least one room or experience to your cart.',
+            ])->withInput();
+        }
 
         if ($validated['payment_method'] === 'pay_at_hotel') {
             if (! self::guestWhatsappReady($validated['guest_phone'])) {
@@ -106,7 +115,11 @@ class StayBookingController extends Controller
 
         foreach ($cart['rooms'] ?? [] as $roomLine) {
             if (empty($roomLine['check_in']) || empty($roomLine['check_out'])) {
-                return back()->withErrors(['cart_json' => 'Each room needs check-in and check-out dates.'])->withInput();
+                return back()->withErrors(['cart_json' => 'Each room needs check-in and check-out dates on the confirm booking page.'])->withInput();
+            }
+            if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $roomLine['check_in'])
+                || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', (string) $roomLine['check_out'])) {
+                return back()->withErrors(['cart_json' => 'Use valid dates for each room.'])->withInput();
             }
             if ($roomLine['check_out'] <= $roomLine['check_in']) {
                 return back()->withErrors(['cart_json' => 'Check-out must be after check-in for all rooms.'])->withInput();
@@ -226,15 +239,26 @@ class StayBookingController extends Controller
             if ($roomId && ! Room::whereKey($roomId)->exists()) {
                 continue;
             }
+            $checkIn = $line['check_in'] ?? null;
+            $checkOut = $line['check_out'] ?? null;
+            $nights = 1;
+            if ($checkIn && $checkOut) {
+                $inTs = strtotime((string) $checkIn);
+                $outTs = strtotime((string) $checkOut);
+                if ($inTs && $outTs && $outTs > $inTs) {
+                    $nights = max(1, (int) round(($outTs - $inTs) / 86400));
+                }
+            }
+
             $rooms[] = [
                 'room_id' => $roomId,
                 'slug' => $line['slug'] ?? null,
                 'name' => substr((string) ($line['name'] ?? 'Room'), 0, 255),
                 'image' => $line['image'] ?? null,
                 'price' => $line['price'] ?? null,
-                'check_in' => $line['check_in'] ?? null,
-                'check_out' => $line['check_out'] ?? null,
-                'nights' => (int) ($line['nights'] ?? 1),
+                'check_in' => $checkIn,
+                'check_out' => $checkOut,
+                'nights' => $nights,
                 'adults' => max(1, min(20, (int) ($line['adults'] ?? 1))),
                 'children' => max(0, min(20, (int) ($line['children'] ?? 0))),
             ];

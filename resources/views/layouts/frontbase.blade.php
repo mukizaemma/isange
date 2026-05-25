@@ -49,22 +49,6 @@
 <body class="home-one">
     <div class="page-wrapper">
 
-        <!-- Preloader (hidden by script even if window “load” is delayed) -->
-        <div class="preloader" id="site-preloader" aria-hidden="true"></div>
-        <script>
-            (function () {
-                function hideSitePreloader() {
-                    var el = document.getElementById('site-preloader');
-                    if (!el || el.classList.contains('is-hidden')) return;
-                    el.classList.add('is-hidden');
-                }
-                document.addEventListener('DOMContentLoaded', function () {
-                    setTimeout(hideSitePreloader, 2800);
-                });
-                window.addEventListener('load', hideSitePreloader);
-            })();
-        </script>
-
         <!-- main header -->
         <header class="main-header">
            <div class="header-top-wrap bgc-primary">
@@ -169,9 +153,6 @@
         </header>
        
        
-        <!--Form Back Drop-->
-        <div class="form-back-drop"></div>
-
     <div class="container-fluid" id="spa-content" data-spa-container>
         @fragment('spa-main')
         @yield('content')
@@ -292,183 +273,30 @@
     <script src="{{ asset('assets/js/dual-currency.js') }}" defer></script>
     <script src="{{ asset('assets/js/parallax-bg.js') }}" defer></script>
     <script src="{{ asset('assets/js/stay-booking-cart.js') }}" defer></script>
+    {{-- SPA navigation disabled: normal link clicks for reliable navigation and cart/scripts on each page --}}
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.body.classList.remove('spa-loading');
+            window.dispatchEvent(new Event('ma:spa-content'));
+        });
         (function () {
-            var contentSelector = '[data-spa-container]';
-            var content = document.querySelector(contentSelector);
-            if (!content || !window.fetch || !window.history || !window.history.pushState) {
-                return;
-            }
-
-            var spaFetchHeaders = {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-SPA-Partial': '1',
-                'Accept': 'text/html'
-            };
-
-            var prefetchCache = new Map();
-            var inFlightController = null;
-
-            function shouldHandleLink(link) {
-                if (!link || !link.href) return false;
-                if (link.target && link.target !== '_self') return false;
-                if (link.hasAttribute('download')) return false;
-                if ((link.getAttribute('rel') || '').includes('external')) return false;
-                var url = new URL(link.href, window.location.origin);
-                if (url.origin !== window.location.origin) return false;
-                if (url.hash && url.pathname === window.location.pathname) return false;
-                if (url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/login') || url.pathname.startsWith('/register')) return false;
-                return true;
-            }
-
-            function extractDocumentParts(htmlText) {
-                var doc = new DOMParser().parseFromString(htmlText, 'text/html');
-                var nextContent = doc.querySelector(contentSelector);
-                if (!nextContent) return null;
-                return {
-                    title: doc.title || document.title,
-                    bodyClass: doc.body ? doc.body.className : document.body.className,
-                    contentHtml: nextContent.innerHTML
-                };
-            }
-
-            function showLoadingState(isLoading) {
-                document.body.classList.toggle('spa-loading', isLoading);
-            }
-
-            function reinitSpaContent() {
-                window.dispatchEvent(new Event('ma:spa-content'));
-            }
-
-            function applySpaTitle(spaTitleHeader) {
-                if (!spaTitleHeader) return;
-                var siteNameEl = document.querySelector('meta[name="spa-site-name"]');
-                var siteName = siteNameEl ? siteNameEl.getAttribute('content') : '';
-                document.title = siteName ? spaTitleHeader + ' | ' + siteName : spaTitleHeader;
-            }
-
-            function finalizeNavigation(parsed, requestUrl, pushState) {
-                if (window.jQuery && typeof window.maDestroySlickIn === 'function') {
-                    window.maDestroySlickIn(content);
+            function purgeStuckOverlays() {
+                if (document.querySelectorAll('.modal.show').length > 0) {
+                    return;
                 }
-                content.innerHTML = parsed.contentHtml;
-                if (parsed.title) {
-                    document.title = parsed.title;
-                }
-                if (parsed.bodyClass !== undefined) {
-                    var hadSpaLoading = document.body.classList.contains('spa-loading');
-                    document.body.className = parsed.bodyClass;
-                    if (hadSpaLoading) {
-                        document.body.classList.add('spa-loading');
-                    }
-                }
-                window.scrollTo(0, 0);
-
-                if (pushState) {
-                    window.history.pushState({ spa: true, url: requestUrl }, '', requestUrl);
-                }
-
-                reinitSpaContent();
-                if (typeof window.initParallaxBackgrounds === 'function') {
-                    window.initParallaxBackgrounds();
-                }
-            }
-
-            function loadPage(url, pushState) {
-                if (inFlightController) {
-                    inFlightController.abort();
-                }
-
-                inFlightController = new AbortController();
-                var requestUrl = url.toString();
-                showLoadingState(true);
-
-                var navigationTimedOut = false;
-                var timeoutId = setTimeout(function () {
-                    navigationTimedOut = true;
-                    if (inFlightController) {
-                        inFlightController.abort();
-                    }
-                    window.location.href = requestUrl;
-                }, 12000);
-
-                var fetchPromise = prefetchCache.get(requestUrl) || fetch(requestUrl, {
-                    signal: inFlightController.signal,
-                    headers: spaFetchHeaders,
-                    credentials: 'same-origin'
-                }).then(function (response) {
-                    if (!response.ok) throw new Error('Navigation failed');
-                    var spaTitle = response.headers.get('X-SPA-Title');
-                    return response.text().then(function (htmlText) {
-                        return { spaTitle: spaTitle, htmlText: htmlText };
-                    });
+                document.querySelectorAll('.modal-backdrop').forEach(function (el) {
+                    el.remove();
                 });
-
-                return fetchPromise.then(function (payload) {
-                    if (payload.spaTitle) {
-                        applySpaTitle(payload.spaTitle);
-                        finalizeNavigation({ contentHtml: payload.htmlText, title: null, bodyClass: undefined }, requestUrl, pushState);
-                        return;
-                    }
-
-                    var parsed = extractDocumentParts(payload.htmlText);
-                    if (!parsed) {
-                        window.location.href = requestUrl;
-                        return;
-                    }
-
-                    finalizeNavigation(parsed, requestUrl, pushState);
-                }).catch(function (error) {
-                    if (error.name === 'AbortError') {
-                        if (!navigationTimedOut) {
-                            showLoadingState(false);
-                        }
-                        return;
-                    }
-                    window.location.href = requestUrl;
-                }).finally(function () {
-                    clearTimeout(timeoutId);
-                    if (!navigationTimedOut) {
-                        showLoadingState(false);
-                    }
-                });
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
             }
-
-            document.addEventListener('mouseover', function (event) {
-                var link = event.target.closest('a[href]');
-                if (!shouldHandleLink(link)) return;
-
-                var href = new URL(link.href, window.location.origin).toString();
-                if (prefetchCache.has(href)) return;
-
-                prefetchCache.set(href, fetch(href, {
-                    headers: spaFetchHeaders,
-                    credentials: 'same-origin'
-                }).then(function (response) {
-                    if (!response.ok) throw new Error('Prefetch failed');
-                    return response.text().then(function (htmlText) {
-                        return { spaTitle: response.headers.get('X-SPA-Title'), htmlText: htmlText };
-                    });
-                }).catch(function () {
-                    prefetchCache.delete(href);
-                }));
-            });
-
-            document.addEventListener('click', function (event) {
-                if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                var link = event.target.closest('a[href]');
-                if (!shouldHandleLink(link)) return;
-
-                event.preventDefault();
-                var url = new URL(link.href, window.location.origin);
-                loadPage(url, true);
-            });
-
-            window.addEventListener('popstate', function () {
-                loadPage(new URL(window.location.href), false);
-            });
+            document.addEventListener('hidden.bs.modal', purgeStuckOverlays);
+            window.addEventListener('pageshow', purgeStuckOverlays);
         })();
     </script>
+
+    @yield('scripts')
 
 </body>
 </html>

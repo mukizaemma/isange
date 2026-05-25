@@ -21,7 +21,7 @@
                 data-room-name="{{ $room->roomName }}"
                 data-room-price="{{ $room->price }}"
                 data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
-                Add to cart
+                Add to stay
             </button>
         </div>
     </div>

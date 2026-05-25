@@ -6791,8 +6791,9 @@ blockquote {
           .gallery-item.style-two .over-content h2 {
             font-size: 35px; } }
 
-            .modal {
-              display: flex;
+            /* Scoped to gallery lightbox only — do not use bare .modal (breaks Bootstrap) */
+            #imageModal.gallery-lightbox {
+              display: none;
               position: fixed;
               z-index: 1000;
               left: 0;
@@ -6804,8 +6805,12 @@ blockquote {
               justify-content: center;
               transition: 0.3s ease-in-out;
           }
+
+            #imageModal.gallery-lightbox.is-open {
+              display: flex;
+          }
           
-          .modal-content {
+            #imageModal.gallery-lightbox .gallery-lightbox__img {
             width: auto;
             max-height: 90vh;
             object-fit: contain;
@@ -6813,8 +6818,7 @@ blockquote {
             transition: transform 0.3s ease-in-out;
           }
           
-          /* 🔺 Close Button */
-          .close {
+            #imageModal.gallery-lightbox .gallery-lightbox__close {
               position: absolute;
               top: 15px;
               right: 30px;
@@ -6825,12 +6829,12 @@ blockquote {
               transition: 0.3s;
           }
           
-          .close:hover {
+            #imageModal.gallery-lightbox .gallery-lightbox__close:hover {
               color: #ff5757;
           }
           
-          /* ⏭️ Next & Prev Buttons */
-          .prev, .next {
+            #imageModal.gallery-lightbox .gallery-lightbox__prev,
+            #imageModal.gallery-lightbox .gallery-lightbox__next {
               position: absolute;
               top: 50%;
               transform: translateY(-50%);
@@ -6844,15 +6848,16 @@ blockquote {
               border-radius: 50%;
           }
           
-          .prev {
+            #imageModal.gallery-lightbox .gallery-lightbox__prev {
               left: 20px;
           }
           
-          .next {
+            #imageModal.gallery-lightbox .gallery-lightbox__next {
               right: 20px;
           }
           
-          .prev:hover, .next:hover {
+            #imageModal.gallery-lightbox .gallery-lightbox__prev:hover,
+            #imageModal.gallery-lightbox .gallery-lightbox__next:hover {
               background: rgba(255, 255, 255, 0.6);
               color: black;
           }

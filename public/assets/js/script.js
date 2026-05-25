@@ -88,10 +88,7 @@
                 $(this).prev('.megamenu').slideToggle(800);
             });
             
-            //Disable dropdown parent link
-            $('.navigation li.dropdown > a').on('click', function (e) {
-                e.preventDefault();
-            });
+            /* Parent links (Accommodation, About, …) stay clickable — use .dropdown-btn to open submenus on mobile */
         }
         
         // Submenu Dropdown Toggle
@@ -638,13 +635,10 @@
        ========================================================================== */
 
     function hidePreloaderNow() {
-        $('.preloader').addClass('is-hidden').fadeOut(400);
+        $('.preloader').remove();
     }
 
-    // Don’t wait only for window “load” — a stuck image/asset can block it forever
-    $(function () {
-        setTimeout(hidePreloaderNow, 2500);
-    });
+    hidePreloaderNow();
 
     $(window).on('load', function () {
 
