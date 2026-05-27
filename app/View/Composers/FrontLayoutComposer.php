@@ -61,6 +61,7 @@ class FrontLayoutComposer
                 'flexible_stay_card3_text' => '',
                 'flexible_stay_card3_icon' => '',
                 'url_booking' => '',
+                'booking_engine_url' => '',
                 'url_expedia' => '',
                 'url_emerging_travel' => '',
                 'url_tripadvisor' => '',
@@ -106,6 +107,8 @@ class FrontLayoutComposer
 
         if (! array_key_exists('partners', $data)) {
             $view->with('partners', Cache::remember('front_layout.partners', 300, fn () => Partner::query()
+                ->whereNotNull('image')
+                ->where('image', '!=', '')
                 ->orderBy('created_at', 'asc')
                 ->get()));
         }

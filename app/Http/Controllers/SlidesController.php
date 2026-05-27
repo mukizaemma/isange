@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Slide;
 
@@ -20,16 +18,19 @@ class SlidesController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'heading' => 'nullable|string|max:500',
+            'subheading' => 'nullable|string|max:500',
+            'image' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+        ]);
+
         $data = new Slide();
         $data->heading = $request->heading;
         $data->subheading = $request->subheading;
 
-        // Uploading image
         if ($request->hasFile('image')) {
-            $dir = 'public/images/slides';
-            $path = $request->file('image')->store($dir);
-            $fileName = str_replace($dir, '', $path);
-            $data->image = $fileName;
+            $path = $request->file('image')->store('public/images/slides');
+            $data->image = '/'.basename($path);
         }
 
         $stored = $data->save();
@@ -50,36 +51,44 @@ class SlidesController extends Controller
     public function update(Request $request, $id)
     {
         $data = Slide::find($id);
+
+        if (! $data) {
+            return back()->with('Error', 'Image Not Found');
+        }
+
+        $request->validate([
+            'heading' => 'nullable|string|max:500',
+            'subheading' => 'nullable|string|max:500',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
+        ]);
+
         $data->heading = $request->input('heading');
         $data->subheading = $request->input('subheading');
 
-        if(!$data){
-            return back()->with('Error','Image Not Found');
-        }
-
-        if ($request->hasFile('image') && request('image') != '') {
-            $dir = 'public/images/slides';
-
-            if (File::exists($dir)) {
-                unlink($dir);
+        if ($request->hasFile('image')) {
+            $oldPath = 'public/images/slides/'.ltrim((string) $data->image, '/');
+            if ($data->image && Storage::exists($oldPath)) {
+                Storage::delete($oldPath);
             }
-            $path = $request->file('image')->store($dir);
-            $fileName = str_replace($dir, '', $path);
 
-            $data->image = $fileName;
+            $path = $request->file('image')->store('public/images/slides');
+            $data->image = '/'.basename($path);
         }
 
-        $data->update();
+        $data->save();
 
         return redirect('slides')->with('success','Image has been updated');
     }
 
     public function destroy($id)
     {
-        $image = Slide::findOrFail($id);
-        // delete the image file
-        Storage::delete('public/images/gallery/'.$image);
-        $image->delete();
+        $slide = Slide::findOrFail($id);
+        $filePath = 'public/images/slides/'.ltrim((string) $slide->image, '/');
+        if ($slide->image && Storage::exists($filePath)) {
+            Storage::delete($filePath);
+        }
+        $slide->delete();
+
         return redirect()->back()->with('warning', 'Item has been deleted');
     }
 }

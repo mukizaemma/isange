@@ -250,6 +250,11 @@
                                             <p class="text-muted small mb-4"><strong>Book on OTA</strong> uses Booking.com, Expedia, and Emerging Travel Group. <strong>Reviews</strong> use TripAdvisor and Google Business Profile. Use full URLs (including <code>https://</code>).</p>
                                             <div class="row g-3">
                                                 <div class="col-12">
+                                                    <label class="form-label" for="booking_engine_url">Direct booking engine (pay online)</label>
+                                                    <input type="url" class="form-control" id="booking_engine_url" name="booking_engine_url" value="{{ old('booking_engine_url', $data->booking_engine_url ?? '') }}" placeholder="https://your-booking-engine.example/...">
+                                                    <p class="form-text">Opens in a new tab from <strong>Book Your Stay</strong> in the header, <strong>Book and pay now</strong>, and <strong>Direct</strong> in the footer booking block.</p>
+                                                </div>
+                                                <div class="col-12">
                                                     <label class="form-label" for="url_booking">Booking.com (book on OTA)</label>
                                                     <input type="url" class="form-control" id="url_booking" name="url_booking" value="{{ old('url_booking', $data->url_booking ?? '') }}" placeholder="https://www.booking.com/hotel/...">
                                                 </div>

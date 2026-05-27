@@ -6,7 +6,9 @@
 
 @php
     $termsUrl = route('terms');
-    $defaultPayment = old('payment_method', 'pay_now');
+    $payAtHotelOnly = $payAtHotelOnly ?? request('mode') === 'pay_at_hotel';
+    $bookingEngineUrl = $bookingEngineUrl ?? \App\Support\BookingEngine::url($setting ?? null);
+    $prefillPayAtHotelChannel = $prefillPayAtHotelChannel ?? (in_array(request('channel'), ['whatsapp', 'email'], true) ? request('channel') : null);
 @endphp
 
 <section class="ma-stay-checkout py-80 rpy-60 rel z-1">
@@ -14,6 +16,15 @@
         <div class="ma-stay-checkout__top d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
             <a href="{{ route('home') }}" class="text-muted small"><i class="fas fa-arrow-left me-1"></i> Back to home</a>
         </div>
+
+        @if (! $payAtHotelOnly)
+            @include('frontend.includes.booking-mode-choice', [
+                'bookingEngineUrl' => $bookingEngineUrl,
+                'setting' => $setting,
+            ])
+        @endif
+
+        <div id="checkout-flow" class="{{ $payAtHotelOnly ? '' : 'd-none' }}">
 
         <nav class="ma-checkout-wizard mb-4" id="checkout-wizard" aria-label="Booking steps">
             <ol class="ma-checkout-wizard__list">
@@ -32,7 +43,7 @@
                 <li class="ma-checkout-wizard__item" data-wizard-step="3">
                     <button type="button" class="ma-checkout-wizard__btn" data-goto-step="3">
                         <span class="ma-checkout-wizard__num">3</span>
-                        <span class="ma-checkout-wizard__label">Payment</span>
+                        <span class="ma-checkout-wizard__label">Submit</span>
                     </button>
                 </li>
                 <li class="ma-checkout-wizard__item" data-wizard-step="4">
@@ -57,6 +68,7 @@
         <form method="post" action="{{ route('booking.checkout.store') }}" id="stay-checkout-form" class="ma-stay-checkout__grid" novalidate>
             @csrf
             <input type="hidden" name="cart_json" id="stay-checkout-cart-json" value="{{ old('cart_json') }}">
+            <input type="hidden" name="payment_method" value="pay_at_hotel">
 
             <div class="ma-stay-checkout__main">
 
@@ -178,94 +190,48 @@
                 </div>
                 </div>{{-- step 2 --}}
 
-                {{-- Step 3: Payment --}}
+                {{-- Step 3: Submit (pay at hotel — WhatsApp or email only) --}}
                 <div class="ma-checkout-step" data-checkout-step="3" id="checkout-step-3">
                 <div class="ma-checkout-card mb-0">
                     <div class="ma-checkout-card__head">
-                        <span class="ma-checkout-card__icon" aria-hidden="true"><i class="fas fa-credit-card"></i></span>
+                        <span class="ma-checkout-card__icon" aria-hidden="true"><i class="fas fa-comments"></i></span>
                         <div>
-                            <h2 class="ma-checkout-card__title">Payment</h2>
-                            <p class="ma-checkout-card__lead">Choose how you would like to complete your booking.</p>
+                            <h2 class="ma-checkout-card__title">Confirm your reservation</h2>
+                            <p class="ma-checkout-card__lead">You will pay when you arrive. Choose how we should send your booking request.</p>
                         </div>
                     </div>
                     <div class="ma-checkout-card__body">
-                        <div class="ma-pay-panels" id="ma-pay-panels">
-                        <div class="ma-pay-choices row g-3" role="radiogroup" aria-label="Payment method">
-                            <div class="col-md-6">
-                                <label class="ma-pay-choice">
-                                    <input type="radio" name="payment_method" value="pay_now" class="ma-pay-choice__input" @checked($defaultPayment === 'pay_now') required>
-                                    <span class="ma-pay-choice__surface">
-                                        <span class="ma-pay-choice__indicator" aria-hidden="true"></span>
-                                        <span class="ma-pay-choice__text">
-                                            <strong>Pay direct</strong>
-                                            <small>Secure card payment — instant confirmation</small>
-                                        </span>
-                                    </span>
-                                </label>
+                        @if (! $hotelWhatsappReady && ! $hotelEmailReady)
+                            <div class="alert alert-warning mb-0">
+                                Reservation by WhatsApp or email is not available right now. Please contact the hotel directly.
                             </div>
-                            <div class="col-md-6">
-                                <label class="ma-pay-choice {{ (!$hotelWhatsappReady && !$hotelEmailReady) ? 'ma-pay-choice--disabled' : '' }}">
-                                    <input type="radio" name="payment_method" value="pay_at_hotel" class="ma-pay-choice__input" @checked($defaultPayment === 'pay_at_hotel') @disabled(!$hotelWhatsappReady && !$hotelEmailReady)>
-                                    <span class="ma-pay-choice__surface">
-                                        <span class="ma-pay-choice__indicator" aria-hidden="true"></span>
-                                        <span class="ma-pay-choice__text">
-                                            <strong>Pay at hotel</strong>
-                                            <small>Reserve now, pay on arrival via WhatsApp or email</small>
-                                        </span>
-                                    </span>
-                                </label>
+                        @else
+                            <div id="pay-at-hotel-channels" class="ma-stay-pay-panel ma-stay-pay-panel--hotel">
+                                <div class="ma-channel-choices d-flex flex-wrap gap-3" role="radiogroup" aria-label="Reservation channel">
+                                    @if ($hotelWhatsappReady)
+                                        <label class="ma-channel-choice">
+                                            <input type="radio" name="pay_at_hotel_channel" value="whatsapp" class="ma-channel-choice__input" required @checked(old('pay_at_hotel_channel', $prefillPayAtHotelChannel ?? ($hotelWhatsappReady ? 'whatsapp' : null)) === 'whatsapp')>
+                                            <span class="ma-channel-choice__surface">
+                                                <span class="ma-channel-choice__indicator" aria-hidden="true"></span>
+                                                <i class="fab fa-whatsapp"></i>
+                                                <span>WhatsApp</span>
+                                            </span>
+                                        </label>
+                                    @endif
+                                    @if ($hotelEmailReady)
+                                        <label class="ma-channel-choice">
+                                            <input type="radio" name="pay_at_hotel_channel" value="email" class="ma-channel-choice__input" required @checked(old('pay_at_hotel_channel', $prefillPayAtHotelChannel) === 'email')>
+                                            <span class="ma-channel-choice__surface">
+                                                <span class="ma-channel-choice__indicator" aria-hidden="true"></span>
+                                                <i class="fas fa-envelope"></i>
+                                                <span>Email</span>
+                                            </span>
+                                        </label>
+                                    @endif
+                                </div>
+                                <p class="small text-muted mt-3 mb-0" id="pay-at-hotel-channel-hint">Choose WhatsApp or email — we will use the matching contact detail from step 2.</p>
                             </div>
-                        </div>
-
-                        <div id="pay-now-details" class="ma-stay-pay-panel ma-stay-pay-panel--card ma-stay-pay-panel--pay-now mt-4" @if($defaultPayment !== 'pay_now') hidden @endif>
-                            <h3 class="ma-stay-pay-panel__title"><i class="fas fa-lock text-success me-2"></i>Card details</h3>
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="card_holder_name">Cardholder name</label>
-                                    <input type="text" class="form-control ma-checkout-input" id="card_holder_name" name="card_holder_name" value="{{ old('card_holder_name') }}" maxlength="120" autocomplete="cc-name" placeholder="As shown on card">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="card_number">Card number</label>
-                                    <input type="text" class="form-control ma-checkout-input" id="card_number" name="card_number" value="{{ old('card_number') }}" maxlength="24" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="card_expiry">Expiry (MM/YY)</label>
-                                    <input type="text" class="form-control ma-checkout-input" id="card_expiry" name="card_expiry" value="{{ old('card_expiry') }}" maxlength="7" autocomplete="cc-exp" placeholder="MM/YY">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="card_cvc">CVC</label>
-                                    <input type="text" class="form-control ma-checkout-input" id="card_cvc" name="card_cvc" value="{{ old('card_cvc') }}" maxlength="4" inputmode="numeric" autocomplete="cc-csc" placeholder="123">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div id="pay-at-hotel-channels" class="ma-stay-pay-panel ma-stay-pay-panel--hotel ma-stay-pay-panel--pay-hotel mt-4" @if($defaultPayment !== 'pay_at_hotel') hidden @endif>
-                            <h3 class="ma-stay-pay-panel__title">Send your reservation via</h3>
-                            <div class="ma-channel-choices d-flex flex-wrap gap-3" role="radiogroup" aria-label="Reservation channel">
-                                @if ($hotelWhatsappReady)
-                                    <label class="ma-channel-choice">
-                                        <input type="radio" name="pay_at_hotel_channel" value="whatsapp" class="ma-channel-choice__input" @checked(old('pay_at_hotel_channel', $hotelWhatsappReady ? 'whatsapp' : null) === 'whatsapp')>
-                                        <span class="ma-channel-choice__surface">
-                                            <span class="ma-channel-choice__indicator" aria-hidden="true"></span>
-                                            <i class="fab fa-whatsapp"></i>
-                                            <span>WhatsApp</span>
-                                        </span>
-                                    </label>
-                                @endif
-                                @if ($hotelEmailReady)
-                                    <label class="ma-channel-choice">
-                                        <input type="radio" name="pay_at_hotel_channel" value="email" class="ma-channel-choice__input" @checked(old('pay_at_hotel_channel') === 'email')>
-                                        <span class="ma-channel-choice__surface">
-                                            <span class="ma-channel-choice__indicator" aria-hidden="true"></span>
-                                            <i class="fas fa-envelope"></i>
-                                            <span>Email</span>
-                                        </span>
-                                    </label>
-                                @endif
-                            </div>
-                            <p class="small text-muted mt-3 mb-0" id="pay-at-hotel-channel-hint">Choose WhatsApp or email — we will use the matching contact detail from step 2.</p>
-                        </div>
-                        </div>{{-- .ma-pay-panels --}}
+                        @endif
                     </div>
                 </div>
                 </div>{{-- step 3 --}}
@@ -340,6 +306,8 @@
                 </div>
             </aside>
         </form>
+
+        </div>{{-- #checkout-flow --}}
     </div>
 </section>
 
@@ -390,8 +358,11 @@
         var totalEl = document.getElementById('checkout-summary-total');
         var payLabel = document.getElementById('checkout-pay-label');
         var payAtHotel = document.getElementById('pay-at-hotel-channels');
-        var payNowDetails = document.getElementById('pay-now-details');
         var submitBtn = document.getElementById('stay-checkout-submit');
+        var checkoutFlow = document.getElementById('checkout-flow');
+        var bookingModeChoice = document.getElementById('booking-mode-choice');
+        var payAtHotelModeBtn = document.getElementById('booking-mode-pay-at-hotel');
+        var payAtHotelOnly = @json($payAtHotelOnly);
         var nightsBadge = document.getElementById('stay-nights-badge');
         var nightsText = document.getElementById('stay-nights-text');
         var stepBackBtn = document.getElementById('checkout-step-back');
@@ -467,27 +438,12 @@
                 return true;
             }
             if (step === 3) {
-                var payMethod = form.querySelector('input[name="payment_method"]:checked');
-                if (!payMethod) {
-                    alert('Please select a payment method.');
+                if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
+                    alert('Choose WhatsApp or email to send your reservation.');
                     return false;
                 }
-                if (payMethod.value === 'pay_at_hotel') {
-                    if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
-                        alert('Choose WhatsApp or email for pay-at-hotel.');
-                        return false;
-                    }
-                    if (!validateGuestContactForPayment(payMethod)) {
-                        return false;
-                    }
-                }
-                if (payMethod.value === 'pay_now') {
-                    var holder = (form.querySelector('[name="card_holder_name"]') || {}).value || '';
-                    var cardNum = (form.querySelector('[name="card_number"]') || {}).value || '';
-                    if (!holder.trim() || cardNum.replace(/\D/g, '').length < 12) {
-                        alert('Enter cardholder name and a valid card number.');
-                        return false;
-                    }
+                if (!validateGuestContactForPayment()) {
+                    return false;
                 }
                 return true;
             }
@@ -498,12 +454,9 @@
             if (!reviewEl) return;
             var stay = readStayFields();
             var cart = IsangeStayCart.get();
-            var payMethod = form.querySelector('input[name="payment_method"]:checked');
-            var payLabelText = payMethod && payMethod.value === 'pay_now' ? 'Pay direct (card)' : 'Pay at hotel';
-            if (payMethod && payMethod.value === 'pay_at_hotel') {
-                var ch = form.querySelector('input[name="pay_at_hotel_channel"]:checked');
-                if (ch) payLabelText += ' · ' + (ch.value === 'whatsapp' ? 'WhatsApp' : 'Email');
-            }
+            var payLabelText = 'Pay at hotel';
+            var ch = form.querySelector('input[name="pay_at_hotel_channel"]:checked');
+            if (ch) payLabelText += ' · ' + (ch.value === 'whatsapp' ? 'WhatsApp' : 'Email');
             var guestName = ((form.querySelector('[name="guest_first_name"]') || {}).value || '') + ' ' +
                 ((form.querySelector('[name="guest_last_name"]') || {}).value || '');
             var html = '';
@@ -599,30 +552,23 @@
         }
 
         function syncGuestContactRequired() {
-            var payMethod = form.querySelector('input[name="payment_method"]:checked');
             var phoneEl = form.querySelector('[name="guest_phone"]');
             var emailEl = form.querySelector('[name="guest_email"]');
             var phoneReq = document.getElementById('guest_phone-required');
             var emailReq = document.getElementById('guest_email-required');
             var hintEl = document.getElementById('pay-at-hotel-channel-hint');
-            var needPhone = false;
-            var needEmail = false;
+            var channel = getPayAtHotelChannel();
+            var needPhone = channel === 'whatsapp';
+            var needEmail = channel === 'email';
 
-            if (payMethod && payMethod.value === 'pay_at_hotel') {
-                var channel = getPayAtHotelChannel();
-                needPhone = channel === 'whatsapp';
-                needEmail = channel === 'email';
-                if (hintEl) {
-                    if (channel === 'whatsapp') {
-                        hintEl.textContent = 'We will send your reservation confirmation to your WhatsApp number above.';
-                    } else if (channel === 'email') {
-                        hintEl.textContent = 'We will send your reservation confirmation to your email above.';
-                    } else {
-                        hintEl.textContent = 'Choose WhatsApp or email — only that contact detail is required to submit.';
-                    }
+            if (hintEl) {
+                if (channel === 'whatsapp') {
+                    hintEl.textContent = 'We will send your reservation confirmation to your WhatsApp number above.';
+                } else if (channel === 'email') {
+                    hintEl.textContent = 'We will send your reservation confirmation to your email above.';
+                } else {
+                    hintEl.textContent = 'Choose WhatsApp or email — only that contact detail is required to submit.';
                 }
-            } else if (hintEl) {
-                hintEl.textContent = 'Choose WhatsApp or email — only that contact detail is required to submit.';
             }
 
             if (phoneEl) phoneEl.required = needPhone;
@@ -631,11 +577,7 @@
             if (emailReq) emailReq.classList.toggle('d-none', !needEmail);
         }
 
-        function validateGuestContactForPayment(payMethod) {
-            payMethod = payMethod || form.querySelector('input[name="payment_method"]:checked');
-            if (!payMethod || payMethod.value !== 'pay_at_hotel') {
-                return true;
-            }
+        function validateGuestContactForPayment() {
             var channel = getPayAtHotelChannel();
             var phone = (form.querySelector('[name="guest_phone"]') || {}).value || '';
             var email = (form.querySelector('[name="guest_email"]') || {}).value || '';
@@ -659,47 +601,44 @@
         }
 
         function syncPaymentPanels() {
-            var payMethod = form.querySelector('input[name="payment_method"]:checked');
-            var isPayNow = payMethod && payMethod.value === 'pay_now';
-            var isPayAtHotel = payMethod && payMethod.value === 'pay_at_hotel';
-
-            document.querySelectorAll('.ma-pay-choice').forEach(function (label) {
-                var input = label.querySelector('.ma-pay-choice__input');
-                label.classList.toggle('ma-pay-choice--selected', input && input.checked);
-            });
-
-            if (payNowDetails) {
-                payNowDetails.hidden = !isPayNow;
-                payNowDetails.classList.toggle('d-none', !isPayNow);
-                payNowDetails.setAttribute('aria-hidden', isPayNow ? 'false' : 'true');
-            }
-            if (payAtHotel) {
-                payAtHotel.hidden = !isPayAtHotel;
-                payAtHotel.classList.toggle('d-none', !isPayAtHotel);
-                payAtHotel.setAttribute('aria-hidden', isPayAtHotel ? 'false' : 'true');
-            }
-
             if (payLabel) {
-                payLabel.textContent = isPayNow ? 'Pay now' : 'Estimated total';
+                payLabel.textContent = 'Estimated total';
             }
             if (submitBtn) {
-                submitBtn.textContent = isPayNow ? 'Confirm & pay now' : 'Confirm booking';
+                submitBtn.textContent = 'Confirm booking';
             }
 
-            document.querySelectorAll('#pay-now-details input').forEach(function (inp) {
-                inp.required = isPayNow;
-                inp.disabled = !isPayNow;
-            });
             document.querySelectorAll('#pay-at-hotel-channels input[name="pay_at_hotel_channel"]').forEach(function (inp) {
-                inp.required = isPayAtHotel;
-                inp.disabled = !isPayAtHotel;
+                inp.required = true;
+                inp.disabled = false;
             });
 
             document.querySelectorAll('.ma-channel-choice').forEach(function (label) {
                 var input = label.querySelector('.ma-channel-choice__input');
-                label.classList.toggle('ma-channel-choice--selected', input && input.checked && isPayAtHotel);
+                label.classList.toggle('ma-channel-choice--selected', input && input.checked);
             });
             syncGuestContactRequired();
+        }
+
+        function showCheckoutFlow() {
+            if (bookingModeChoice) {
+                bookingModeChoice.classList.add('d-none');
+            }
+            if (checkoutFlow) {
+                checkoutFlow.classList.remove('d-none');
+            }
+            try {
+                var u = new URL(window.location.href);
+                u.searchParams.set('mode', 'pay_at_hotel');
+                window.history.replaceState({}, '', u);
+            } catch (e) {}
+        }
+
+        if (payAtHotelModeBtn) {
+            payAtHotelModeBtn.addEventListener('click', showCheckoutFlow);
+        }
+        if (payAtHotelOnly && checkoutFlow) {
+            showCheckoutFlow();
         }
 
         function openCheckoutModal(id) {
@@ -888,21 +827,8 @@
             });
         });
 
-        function onPaymentMethodChange() {
-            syncPaymentPanels();
-        }
-
-        form.querySelectorAll('input[name="payment_method"]').forEach(function (radio) {
-            radio.addEventListener('change', onPaymentMethodChange);
-            radio.addEventListener('click', onPaymentMethodChange);
-        });
         form.querySelectorAll('input[name="pay_at_hotel_channel"]').forEach(function (radio) {
             radio.addEventListener('change', syncPaymentPanels);
-        });
-        document.querySelectorAll('.ma-pay-choice').forEach(function (label) {
-            label.addEventListener('click', function () {
-                setTimeout(onPaymentMethodChange, 0);
-            });
         });
 
         IsangeStayCart.onChange(renderSummary);
@@ -973,26 +899,14 @@
 
             cartInput.value = IsangeStayCart.toJson();
 
-            var payMethod = form.querySelector('input[name="payment_method"]:checked');
-            if (payMethod && payMethod.value === 'pay_at_hotel') {
-                if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
-                    e.preventDefault();
-                    alert('Choose WhatsApp or email to send your pay-at-hotel reservation.');
-                    return;
-                }
-                if (!validateGuestContactForPayment(payMethod)) {
-                    e.preventDefault();
-                    return;
-                }
+            if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
+                e.preventDefault();
+                alert('Choose WhatsApp or email to send your reservation.');
+                return;
             }
-            if (payMethod && payMethod.value === 'pay_now') {
-                var holder = (form.querySelector('[name="card_holder_name"]') || {}).value || '';
-                var cardNum = (form.querySelector('[name="card_number"]') || {}).value || '';
-                if (!holder.trim() || cardNum.replace(/\D/g, '').length < 12) {
-                    e.preventDefault();
-                    alert('Enter cardholder name and a valid card number for pay direct.');
-                    return;
-                }
+            if (!validateGuestContactForPayment()) {
+                e.preventDefault();
+                return;
             }
             if (!form.querySelector('#terms_accepted:checked')) {
                 e.preventDefault();

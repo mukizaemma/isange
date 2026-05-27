@@ -1,5 +1,8 @@
 {{-- Booking channels — footer & book page (uses $setting) --}}
 @php
+    use App\Support\BookingEngine;
+
+    $bookingEngineUrl = BookingEngine::url($setting ?? null);
     $waDigits = preg_replace('/\D+/', '', $setting->phone ?? '');
     $compact = $compact ?? false;
     $context = $context ?? 'default';
@@ -19,17 +22,21 @@
                 <p class="ma-book-channels__group-title fw-semibold mb-3">Book on discounted prices</p>
                 <div class="d-grid gap-2">
                     @if ($waDigits !== '' && strlen($waDigits) >= 8)
-                        <a class="theme-btn style-three w-100 text-center d-block py-2" href="{{ route('room.booking', ['channel' => 'whatsapp']) }}">
+                        <a class="theme-btn style-three w-100 text-center d-block py-2" href="{{ route('booking.checkout', ['mode' => 'pay_at_hotel', 'channel' => 'whatsapp']) }}">
                             <i class="fab fa-whatsapp me-1"></i> WhatsApp
                         </a>
                     @endif
                     @if (! empty(trim((string) ($setting->email ?? ''))))
-                        <a class="theme-btn style-three w-100 text-center d-block py-2" href="{{ route('room.booking', ['channel' => 'email']) }}">
+                        <a class="theme-btn style-three w-100 text-center d-block py-2" href="{{ route('booking.checkout', ['mode' => 'pay_at_hotel', 'channel' => 'email']) }}">
                             <i class="far fa-envelope me-1"></i> Email
                         </a>
                     @endif
-                    <a class="theme-btn w-100 text-center d-block py-2" href="{{ route('room.booking', ['channel' => 'direct_pay']) }}">
-                        <i class="far fa-credit-card me-1"></i> Direct
+                    <a
+                        class="theme-btn w-100 text-center d-block py-2{{ $bookingEngineUrl ? '' : ' disabled pe-none opacity-50' }}"
+                        href="{{ $bookingEngineUrl ?: '#' }}"
+                        @if ($bookingEngineUrl) target="_blank" rel="noopener noreferrer" @endif
+                    >
+                        Book and Pay at the hotel
                     </a>
                 </div>
             </div>

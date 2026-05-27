@@ -53,7 +53,7 @@
                                 <tr>
                                     <td>{{ $rs->heading }}</td>
                                     <td>{{ $rs->subheading }}</td>
-                                    <td><img src="{{asset('storage/images/slides').$rs->image}}" alt="" width="150px"></td>
+                                    <td><img src="{{ $rs->imageUrl() }}" alt="" width="150px"></td>
                                     <td>                                                <div class="btn-btn-group ">
                                         <a type="button" href="{{ route('editSlide', $rs->id) }}"
                                             class="btn btn-primary text-black">Edit</a>
@@ -88,10 +88,12 @@
                                                 <div class="row mb-4">
 
                                                     <div class="col-lg-6 col-sm-12">
-                                                            <label>Photo <br><span style="color: red"></label>
+                                                            <label>Photo <span class="text-danger">*</span><br>
+                                                                <span class="text-muted small">JPEG, PNG, or WebP — auto-compressed in your browser to under 700 KB before upload</span>
+                                                            </label>
                                                             <label id="projectinput7" class="file center-block">
                                                                 <input type="file" id="image" name="image"
-                                                                    required="">
+                                                                    required accept="image/jpeg,image/png,image/gif,image/webp">
                                                                 <span class="file-custom"></span>
                                                             </label>
                                                     </div>

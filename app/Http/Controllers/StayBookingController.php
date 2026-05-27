@@ -6,6 +6,7 @@ use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
+use App\Support\BookingEngine;
 use App\Support\ExperienceCatalog;
 use App\Support\StayBookingMessageBuilder;
 use Illuminate\Http\JsonResponse;
@@ -40,6 +41,11 @@ class StayBookingController extends Controller
 
         $hotelWhatsappReady = self::hotelWhatsappReady($setting);
         $hotelEmailReady = self::hotelEmailReady($setting);
+        $bookingEngineUrl = BookingEngine::url($setting);
+        $payAtHotelOnly = $request->query('mode') === 'pay_at_hotel';
+        $prefillPayAtHotelChannel = in_array($request->query('channel'), ['whatsapp', 'email'], true)
+            ? $request->query('channel')
+            : null;
 
         return $this->spaView('frontend.booking-checkout', compact(
             'rooms',
@@ -48,6 +54,9 @@ class StayBookingController extends Controller
             'setting',
             'hotelWhatsappReady',
             'hotelEmailReady',
+            'bookingEngineUrl',
+            'payAtHotelOnly',
+            'prefillPayAtHotelChannel',
         ), 'Confirm booking');
     }
 
@@ -64,7 +73,7 @@ class StayBookingController extends Controller
             'guest_phone' => 'nullable|string|max:64',
             'guest_email' => 'nullable|email|max:255',
             'guest_country' => 'nullable|string|max:120',
-            'payment_method' => 'required|in:pay_now,pay_at_hotel',
+            'payment_method' => 'required|in:pay_at_hotel',
             'pay_at_hotel_channel' => 'nullable|in:whatsapp,email',
             'airport_pickup' => 'sometimes|boolean',
             'airport_dropoff' => 'sometimes|boolean',
@@ -91,27 +100,23 @@ class StayBookingController extends Controller
             ])->withInput();
         }
 
-        if ($validated['payment_method'] === 'pay_at_hotel') {
-            $channel = $validated['pay_at_hotel_channel'] ?? '';
-            if ($channel === 'whatsapp' && ! $hotelWhatsappReady) {
-                return back()->withErrors(['pay_at_hotel_channel' => 'WhatsApp booking is temporarily unavailable. Please use email or pay online.'])->withInput();
-            }
-            if ($channel === 'email' && ! $hotelEmailReady) {
-                return back()->withErrors(['pay_at_hotel_channel' => 'Email booking is temporarily unavailable. Please use WhatsApp or pay online.'])->withInput();
-            }
-            if (! in_array($channel, ['whatsapp', 'email'], true)) {
-                return back()->withErrors(['pay_at_hotel_channel' => 'Choose WhatsApp or email to send your reservation request.'])->withInput();
-            }
-            if ($channel === 'whatsapp' && ! self::guestWhatsappReady($validated['guest_phone'] ?? '')) {
-                return back()->withErrors(['guest_phone' => 'Enter a valid mobile number with WhatsApp so we can reach you.'])->withInput();
-            }
-            if ($channel === 'email' && ! filter_var($validated['guest_email'] ?? '', FILTER_VALIDATE_EMAIL)) {
-                return back()->withErrors(['guest_email' => 'Enter a valid email address so we can send your reservation.'])->withInput();
-            }
-            $fulfillment = $channel;
-        } else {
-            $fulfillment = 'direct_pay';
+        $channel = $validated['pay_at_hotel_channel'] ?? '';
+        if ($channel === 'whatsapp' && ! $hotelWhatsappReady) {
+            return back()->withErrors(['pay_at_hotel_channel' => 'WhatsApp booking is temporarily unavailable. Please use email.'])->withInput();
         }
+        if ($channel === 'email' && ! $hotelEmailReady) {
+            return back()->withErrors(['pay_at_hotel_channel' => 'Email booking is temporarily unavailable. Please use WhatsApp.'])->withInput();
+        }
+        if (! in_array($channel, ['whatsapp', 'email'], true)) {
+            return back()->withErrors(['pay_at_hotel_channel' => 'Choose WhatsApp or email to send your reservation request.'])->withInput();
+        }
+        if ($channel === 'whatsapp' && ! self::guestWhatsappReady($validated['guest_phone'] ?? '')) {
+            return back()->withErrors(['guest_phone' => 'Enter a valid mobile number with WhatsApp so we can reach you.'])->withInput();
+        }
+        if ($channel === 'email' && ! filter_var($validated['guest_email'] ?? '', FILTER_VALIDATE_EMAIL)) {
+            return back()->withErrors(['guest_email' => 'Enter a valid email address so we can send your reservation.'])->withInput();
+        }
+        $fulfillment = $channel;
 
         foreach ($cart['rooms'] ?? [] as $roomLine) {
             if (empty($roomLine['check_in']) || empty($roomLine['check_out'])) {
@@ -189,11 +194,9 @@ class StayBookingController extends Controller
         ]);
 
         return match ($fulfillment) {
-            'direct_pay' => redirect()->route('pay.dpo', array_filter([
-                'booking' => $record->public_id,
-            ]))->with('booking_public_id', $record->public_id),
             'whatsapp' => redirect()->route('room.booking.whatsapp', $record->public_id),
             'email' => redirect()->route('room.booking.email', $record->public_id),
+            default => redirect()->route('room.booking.confirmation', $record->public_id),
         };
     }
 

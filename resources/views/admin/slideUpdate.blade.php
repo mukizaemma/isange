@@ -52,13 +52,15 @@
                                 <div class="col-lg-4 col-sm-12">
                                         <label>Featured Image<br></label>
                                         <label id="projectinput7" class="file center-block">
-                                            <img src="{{asset('storage/images/slides').$data->image}}" alt="" width="120px">
+                                            <img src="{{ $data->imageUrl() }}" alt="" width="120px">
                                         </label>
                                 </div>
                                 <div class="col-lg-4 col-sm-12">
-                                        <label>Change Image <br><span style="color: red">(This image should be resized to 694x1894 pixels)</span></label>
+                                        <label>Change Image<br>
+                                            <span class="text-muted small">JPEG, PNG, or WebP — auto-compressed in your browser to under 700 KB before upload</span>
+                                        </label>
                                         <label id="projectinput7" class="file center-block">
-                                            <input type="file" id="image" name="image">
+                                            <input type="file" id="image" name="image" accept="image/jpeg,image/png,image/gif,image/webp">
                                             <span class="file-custom"></span>
                                         </label>
                                 </div>

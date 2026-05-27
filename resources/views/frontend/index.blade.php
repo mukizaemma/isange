@@ -43,29 +43,66 @@
 {{-- 1. HERO (full-width slides — header & caption from admin) --}}
 <section class="isange-hero isange-hero--full rel z-1">
     @if ($slides->isNotEmpty())
-        <div class="slider-two-active isange-hero-slider">
-            @foreach ($slides as $slide)
-                <div
-                    class="slider-item-two isange-hero-slide parallax-bg"
-                    style="background-image: url('{{ asset('storage/images/slides') . $slide->image }}');"
-                >
-                    <div class="isange-hero__overlay" aria-hidden="true"></div>
-                    <div class="isange-hero__content-wrap">
-                        <div class="isange-hero__content wow fadeInUp delay-0-2s">
-                            @if (! empty($slide->heading))
-                                <h1 class="isange-hero__title">{{ $slide->heading }}</h1>
+        <div
+            id="isangeHeroCarousel"
+            class="carousel slide carousel-fade isange-hero-carousel"
+            data-bs-ride="carousel"
+            data-bs-interval="5000"
+            data-bs-pause="false"
+        >
+            <div class="carousel-inner">
+                @foreach ($slides as $index => $slide)
+                    <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                        <div class="isange-hero-slide">
+                            @if ($slide->imageUrl())
+                                <img
+                                    src="{{ $slide->imageUrl() }}"
+                                    class="isange-hero-slide__img"
+                                    alt="{{ $slide->heading ?: 'Isange Paradise Resort' }}"
+                                    width="1920"
+                                    height="1080"
+                                    {!! $index === 0 ? 'fetchpriority="high"' : 'loading="lazy"' !!}
+                                >
                             @endif
-                            @if (! empty($slide->subheading))
-                                <p class="isange-hero__caption">{{ $slide->subheading }}</p>
-                            @endif
-                            <div class="isange-hero__actions">
-                                <a href="{{ route('room.booking') }}" class="theme-btn">Book Your Stay <i class="far fa-angle-right"></i></a>
-                                <a href="https://www.future4kids.at/" class="theme-btn style-three" target="_blank" rel="noopener noreferrer">Future 4 Kids <i class="fas fa-external-link-alt"></i></a>
+                            <div class="isange-hero__overlay" aria-hidden="true"></div>
+                            <div class="isange-hero__content-wrap">
+                                <div class="isange-hero__content wow fadeInUp delay-0-2s">
+                                    @if (! empty($slide->heading))
+                                        <h1 class="isange-hero__title">{{ $slide->heading }}</h1>
+                                    @endif
+                                    @if (! empty($slide->subheading))
+                                        <p class="isange-hero__caption">{{ $slide->subheading }}</p>
+                                    @endif
+                                    <div class="isange-hero__actions">
+                                        <a href="{{ route('room.booking') }}" class="theme-btn">Book Your Stay <i class="far fa-angle-right"></i></a>
+                                        <a href="https://www.future4kids.at/" class="theme-btn style-three" target="_blank" rel="noopener noreferrer">Future 4 Kids <i class="fas fa-external-link-alt"></i></a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
+            @if ($slides->count() > 1)
+                <button
+                    class="carousel-control-prev isange-hero-carousel__control"
+                    type="button"
+                    data-bs-target="#isangeHeroCarousel"
+                    data-bs-slide="prev"
+                >
+                    <span class="isange-hero-carousel__arrow" aria-hidden="true"><i class="fas fa-angle-left"></i></span>
+                    <span class="visually-hidden">Previous slide</span>
+                </button>
+                <button
+                    class="carousel-control-next isange-hero-carousel__control"
+                    type="button"
+                    data-bs-target="#isangeHeroCarousel"
+                    data-bs-slide="next"
+                >
+                    <span class="isange-hero-carousel__arrow" aria-hidden="true"><i class="fas fa-angle-right"></i></span>
+                    <span class="visually-hidden">Next slide</span>
+                </button>
+            @endif
         </div>
     @else
         <div class="isange-hero-slide isange-hero-slide--fallback">

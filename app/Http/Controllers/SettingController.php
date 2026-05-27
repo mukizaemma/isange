@@ -53,6 +53,7 @@ class SettingController extends Controller
             $data->youtube = $request->input('youtube');
             $data->tiktok = $request->input('tiktok');
 
+            $data->booking_engine_url = $request->input('booking_engine_url');
             $data->url_booking = $request->input('url_booking');
             $data->url_tripadvisor = $request->input('url_tripadvisor');
             $data->url_google_business = $request->input('url_google_business');

@@ -1,15 +1,12 @@
 @extends('layouts.adminbase')
 
-@section('title', 'Speakers')
+@section('title', 'Partners')
 
 @section('sidebar')
-
     @parent
-
 @endsection
 
 @section('content')
-
     <div id="layoutSidenav">
         <div id="layoutSidenav_nav">
             @include('admin.includes.sidenav')
@@ -17,147 +14,118 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    {{-- <h1 class="mt-4">Dashboard</h1> --}}
                     <ol class="breadcrumb mb-4">
                         <li class="breadcrumb-item active">Partners</li>
                     </ol>
-                    <div class="row">
-                        @if (session()->has('success'))
-                            <div class="arlert alert-success">
-                                <button class="close" type="button" data-dismiss="alert">X</button>
-                                {{ session()->get('success') }}
-                            </div>
-                        @endif
-                        @if (session()->has('error'))
-                            <div class="arlert alert-danger">
-                                <button class="close" type="button" data-dismiss="alert">X</button>
-                                {{ session()->get('error') }}
-                            </div>
-                        @endif
-                    </div>
+
+                    @if (session()->has('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+                    @if ($errors->any())
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <ul class="mb-0">
+                                @foreach ($errors->all() as $err)
+                                    <li>{{ $err }}</li>
+                                @endforeach
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
 
                     <div class="card mb-4">
-                        <div class="card-header">
-                            <button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#myModal"><i
-                                    class="fa fa-plus"></i> Add New</button>
-
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Partner logos (footer)</span>
+                            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#partnerAddModal">
+                                <i class="fa fa-plus"></i> Add partner
+                            </button>
                         </div>
                         <div class="card-body">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Panter Names</th>
-                                        <th>Image/ Logo</th>
-                                        <th>Description</th>
-                                        <th>Website Link</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    @foreach ($partners as $rs)
-                                        <tr>
-                                            <td>{{ $rs->title }}</td>
-                                            <td><img src="{{ asset('storage/images/partners/' . $rs->image) }}" alt="" width="150px"></td>
-
-                                            <td>{!! $rs->description !!}</td>
-                                            <td>{{$rs->website}}</td>
-                                            <td>
-                                                <div class="btn-btn-group ">
-                                                    <a type="button" href="{{ route('editPartner', $rs->id) }}" class="btn btn-primary text-black">Modifier</a>
-                                                    <a type="button" href="{{ route('destroyPartner', $rs->id) }}"class="btn btn-danger text-black"
-                                                        onclick="return confirm('Are you sure to delete this item?')">Supprimer</a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                            @if ($partners->isEmpty())
+                                <p class="text-muted mb-0">No partners yet. Add a logo to display it above the site footer.</p>
+                            @else
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>Logo</th>
+                                                <th>Name</th>
+                                                <th>Website</th>
+                                                <th class="text-end">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($partners as $partner)
+                                                <tr>
+                                                    <td>
+                                                        <img src="{{ asset('storage/images/partners/' . $partner->image) }}"
+                                                            alt="{{ $partner->title ?? 'Partner' }}"
+                                                            style="height: 48px; width: auto; max-width: 140px; object-fit: contain;">
+                                                    </td>
+                                                    <td>{{ $partner->title ?: '—' }}</td>
+                                                    <td>
+                                                        @if ($partner->website)
+                                                            <a href="{{ $partner->website }}" target="_blank" rel="noopener">{{ $partner->website }}</a>
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-end text-nowrap">
+                                                        <a href="{{ route('editPartner', $partner->id) }}" class="btn btn-sm btn-primary">Edit</a>
+                                                        <a href="{{ route('destroyPartner', $partner->id) }}" class="btn btn-sm btn-danger"
+                                                            onclick="return confirm('Delete this partner?')">Delete</a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
                     </div>
-                    <!-- The Modal for adding new Event -->
-                    <div class="modal fade" id="myModal">
+
+                    <div class="modal fade" id="partnerAddModal" tabindex="-1" aria-labelledby="partnerAddModalLabel" aria-hidden="true">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
-
-                                <!-- Modal Header -->
                                 <div class="modal-header">
-                                    <h4 class="modal-title">Add New Partner</h4>
-                                    <button type="button" class="btn-close text-black" data-bs-dismiss="modal">X</button>
+                                    <h4 class="modal-title" id="partnerAddModalLabel">Add partner</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
-
-                                <!-- Modal body -->
-                                <div class="modal-body">
-                                    <form class="form" action="{{ route('savePartner') }}" method="POST"
-                                        enctype="multipart/form-data">
-                                        @csrf
-                                        <div class="modal-body">
-
-                                            <div class="row mb-3">
-                                                <div class="col-lg-12">
-                                                    <label for="title" class="form-label">Names of the partner</label>
-                                                    <input type="text" name="title_fr" class="form-control"
-                                                        id="title" placeholder="Names/ Company">
-                                                </div>
-                                                <div class="col-lg-12">
-                                                    <label for="title" class="form-label">Site web of the partner</label>
-                                                    <input type="text" name="website" class="form-control"
-                                                        id="title" placeholder="Website if any">
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-lg-12">
-                                                    <label for="summernote" class="form-label">Description</label>
-                                                    {{-- <textarea class="form-control" id="blogBody" rows="5" name="body"></textarea> --}}
-                                                    <textarea id="partnerDescription" rows="5" class="form-control" name="description_fr"></textarea>
-                                                </div>
-                                            </div>
-
-                                            <div class="row">
-                                                <div class="col-lg-6 col-sm-12">
-                                                    <label for="image" class="form-label">Image/ Logo<br> <span
-                                                            style="color: red">(Cette image doit être redimensionnée à 300X300
-                                                            pixels)</span></label>
-                                                    <div class="input-group">
-
-                                                        <input type="file" name="image" class="form-control"
-                                                            id="image">
-
-                                                    </div>
-                                                </div>
-
-                                            </div>
+                                <form action="{{ route('savePartner') }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label for="partner_logo" class="form-label">Logo <span class="text-danger">*</span></label>
+                                            <input type="file" name="image" id="partner_logo" class="form-control" accept="image/*" required>
+                                            <div class="form-text">PNG or SVG with transparent background works best. Logos display at a fixed height on the site.</div>
                                         </div>
-
-                                        <div class="form-actions">
-                                            <button type="submit" class="btn btn-primary text-black">
-                                                <i class="fa fa-save"></i> Add
-                                                {{-- <i class="fa fa-save"></i> Ajouter --}}
-                                            </button>
-
+                                        <div class="mb-3">
+                                            <label for="partner_title" class="form-label">Name <span class="text-muted">(optional)</span></label>
+                                            <input type="text" name="title" id="partner_title" class="form-control" maxlength="120" placeholder="Partner or organisation name">
                                         </div>
-                                    </form>
-                                </div>
-
-                                <!-- Modal footer -->
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-danger text-black"
-                                        data-bs-dismiss="modal">Close</button>
-                                </div>
-
+                                        <div class="mb-3">
+                                            <label for="partner_website" class="form-label">Website URL <span class="text-muted">(optional)</span></label>
+                                            <input type="url" name="website" id="partner_website" class="form-control" maxlength="500" placeholder="https://example.com">
+                                            <div class="form-text">Opens in a new tab when visitors click the logo.</div>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label for="partner_description" class="form-label">Notes <span class="text-muted">(optional, admin only)</span></label>
+                                            <textarea name="description" id="partner_description" class="form-control" rows="3" maxlength="5000"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary">Save partner</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
-
                 </div>
             </main>
             @include('admin.includes.footer')
         </div>
     </div>
-
-@section('scripts')
-
-
-
 @endsection

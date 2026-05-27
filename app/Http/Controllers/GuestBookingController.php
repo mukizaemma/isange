@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
+use App\Support\BookingEngine;
 use App\Models\SiteAnalyticsEvent;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,6 +39,20 @@ class GuestBookingController extends Controller
         $allowedChannels = ['whatsapp', 'email', 'booking_com', 'expedia', 'emerging_travel', 'direct_pay'];
         $channel = $request->query('channel');
         $selectedChannel = in_array($channel, $allowedChannels, true) ? $channel : '';
+
+        if ($selectedChannel === 'direct_pay') {
+            $engineUrl = BookingEngine::url(Setting::first());
+            if ($engineUrl) {
+                return redirect()->away($engineUrl);
+            }
+        }
+
+        if (in_array($selectedChannel, ['whatsapp', 'email'], true)) {
+            return redirect()->route('booking.checkout', [
+                'mode' => 'pay_at_hotel',
+                'channel' => $selectedChannel,
+            ]);
+        }
 
         return $this->spaView('frontend.room-booking', compact('rooms', 'selectedRoomId', 'selectedChannel'), 'Book a room');
     }

@@ -4,10 +4,20 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Partner extends Model
 {
     use HasFactory;
+    use SoftDeletes;
+
     protected $table = 'partners';
-    protected $fillable = ['title','title','description','website','image','slug'];
+
+    protected $fillable = [
+        'title',
+        'description',
+        'website',
+        'image',
+        'slug',
+    ];
 }

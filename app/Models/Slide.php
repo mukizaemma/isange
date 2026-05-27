@@ -12,7 +12,16 @@ class Slide extends Model
 
     protected $table = 'slides';
 
-    protected $fillable = ['image', 'category', 'heading'];
+    protected $fillable = ['image', 'category', 'heading', 'subheading'];
+
+    public function imageUrl(): ?string
+    {
+        if (empty($this->image)) {
+            return null;
+        }
+
+        return asset('storage/images/slides/'.ltrim($this->image, '/'));
+    }
 
     protected static function booted(): void
     {

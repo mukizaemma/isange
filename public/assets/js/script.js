@@ -163,7 +163,7 @@
         }
           
         
-        // ## Main Slider Two
+        // ## Main Slider Two (not used on Isange home hero — that uses Bootstrap carousel)
         if ($('.slider-two-active').length) {
             $('.slider-two-active').slick({
                 infinite: true,

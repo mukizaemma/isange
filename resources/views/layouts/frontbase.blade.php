@@ -137,7 +137,12 @@
                         
                         <!-- Menu Button -->
                         <div class="menu-btns">
-                           <a href="{{ route('room.booking') }}" class="theme-btn style-three">Book Your Stay <i class="far fa-angle-right"></i></a>
+                           @php($headerBookingUrl = \App\Support\BookingEngine::url($setting) ?? route('booking.checkout'))
+                           <a
+                               href="{{ $headerBookingUrl }}"
+                               class="theme-btn style-three"
+                               @if (\App\Support\BookingEngine::isConfigured($setting)) target="_blank" rel="noopener noreferrer" @endif
+                           >Book Your Stay <i class="far fa-angle-right"></i></a>
                            
                             <!-- menu sidbar -->
                             {{-- <div class="menu-sidebar">
@@ -160,6 +165,8 @@
     </div>
 
         @include('frontend.includes.amenities-band')
+
+        @include('frontend.includes.footer-partners')
        
         <!-- footer area start -->
         <footer class="main-footer bgc-black pt-100 rel z-1 ma-footer-gold">
@@ -205,7 +212,6 @@
                         </div>
                     </div>
                 </div>
-                @include('frontend.includes.footer-partners')
             </div>
             <div class="footer-bottom bgd-dark mt-40 pt-20 pb-5 rpt-25">
                 <div class="container">
