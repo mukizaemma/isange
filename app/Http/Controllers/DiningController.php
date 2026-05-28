@@ -200,6 +200,7 @@ class DiningController extends Controller
             'image' => $imageName,
             'sort_order' => $maxSort + 1,
             'menu_category_id' => $request->input('menu_category_id'),
+            'is_today_menu' => $request->boolean('is_today_menu'),
         ]);
 
         return redirect()->route('diningMenu.manage')->with('success', 'Menu item added.');
@@ -223,6 +224,7 @@ class DiningController extends Controller
         $item->price_rwf = $request->filled('price_rwf') ? $request->input('price_rwf') : null;
         $item->prep_minutes = $request->filled('prep_minutes') ? $request->input('prep_minutes') : null;
         $item->menu_category_id = $request->input('menu_category_id');
+        $item->is_today_menu = $request->boolean('is_today_menu');
 
         if ($request->hasFile('image')) {
             if ($item->image) {

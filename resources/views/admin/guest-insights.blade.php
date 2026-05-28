@@ -125,8 +125,9 @@
                             <thead>
                                 <tr>
                                     <th>When</th>
+                                    <th>Guest</th>
                                     <th>Channel</th>
-                                    <th>Total USD</th>
+                                    <th>Total</th>
                                     <th>Lines</th>
                                 </tr>
                             </thead>
@@ -134,12 +135,21 @@
                                 @forelse ($diningSubmissions as $d)
                                     <tr>
                                         <td class="text-nowrap">{{ $d->created_at->format('Y-m-d H:i') }}</td>
+                                        <td>
+                                            {{ $d->guest_name ?: '—' }}
+                                            @if ($d->guest_phone)<br><small class="text-muted">{{ $d->guest_phone }}</small>@endif
+                                            @if ($d->guest_email)<br><small class="text-muted">{{ $d->guest_email }}</small>@endif
+                                            @if ($d->special_requests)<br><small class="text-muted" title="{{ $d->special_requests }}">Note: {{ \Illuminate\Support\Str::limit($d->special_requests, 40) }}</small>@endif
+                                        </td>
                                         <td>{{ $d->channel }}</td>
-                                        <td>{{ $d->grand_total_usd ?? '—' }}</td>
+                                        <td class="text-nowrap">
+                                            ${{ $d->grand_total_usd ?? '—' }}
+                                            @if ($d->grand_total_rwf)<br><small class="text-muted">{{ number_format((int) $d->grand_total_rwf) }} RWF</small>@endif
+                                        </td>
                                         <td>{{ is_array($d->items_json) ? count($d->items_json) : 0 }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="4" class="text-muted">No dining sends logged yet.</td></tr>
+                                    <tr><td colspan="5" class="text-muted">No dining sends logged yet.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

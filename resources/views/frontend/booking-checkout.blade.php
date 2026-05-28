@@ -24,6 +24,8 @@
             ])
         @endif
 
+        @include('frontend.includes.booking-benefits')
+
         <div id="checkout-flow" class="{{ $payAtHotelOnly ? '' : 'd-none' }}">
 
         <nav class="ma-checkout-wizard mb-4" id="checkout-wizard" aria-label="Booking steps">

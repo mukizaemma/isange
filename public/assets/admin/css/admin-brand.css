@@ -58,6 +58,91 @@ body.sb-nav-fixed .sb-topnav.navbar-dark {
     color: #0a0a0a;
 }
 
+/* Readable buttons on all admin pages (forms, modals, tables) */
+body.sb-nav-fixed .btn-primary,
+body.sb-nav-fixed .btn-primary:hover,
+body.sb-nav-fixed .btn-primary:focus,
+body.sb-nav-fixed .btn-primary:active,
+body.sb-nav-fixed .btn-primary.active {
+    color: #0a0a0a !important;
+    background-color: #e69138 !important;
+    border-color: #c2782f !important;
+}
+
+body.sb-nav-fixed .btn-secondary,
+body.sb-nav-fixed .btn-secondary:hover,
+body.sb-nav-fixed .btn-secondary:focus,
+body.sb-nav-fixed .btn-secondary:active {
+    color: #212529 !important;
+    background-color: #e9ecef !important;
+    border-color: #adb5bd !important;
+}
+
+body.sb-nav-fixed .btn-success,
+body.sb-nav-fixed .btn-success:hover,
+body.sb-nav-fixed .btn-success:focus,
+body.sb-nav-fixed .btn-success:active {
+    color: #fff !important;
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+body.sb-nav-fixed .btn-danger,
+body.sb-nav-fixed .btn-danger:hover,
+body.sb-nav-fixed .btn-danger:focus,
+body.sb-nav-fixed .btn-danger:active {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+body.sb-nav-fixed .btn-outline-primary {
+    color: #0a58ca !important;
+    background-color: #fff !important;
+    border-color: #0d6efd !important;
+}
+
+body.sb-nav-fixed .btn-outline-primary:hover,
+body.sb-nav-fixed .btn-outline-primary:focus,
+body.sb-nav-fixed .btn-outline-primary:active {
+    color: #fff !important;
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+body.sb-nav-fixed .btn-outline-secondary {
+    color: #495057 !important;
+    background-color: #fff !important;
+    border-color: #6c757d !important;
+}
+
+body.sb-nav-fixed .btn-outline-secondary:hover,
+body.sb-nav-fixed .btn-outline-secondary:focus,
+body.sb-nav-fixed .btn-outline-secondary:active {
+    color: #fff !important;
+    background-color: #6c757d !important;
+    border-color: #6c757d !important;
+}
+
+body.sb-nav-fixed .btn-outline-danger {
+    color: #b02a37 !important;
+    background-color: #fff !important;
+    border-color: #dc3545 !important;
+}
+
+body.sb-nav-fixed .btn-outline-danger:hover,
+body.sb-nav-fixed .btn-outline-danger:focus,
+body.sb-nav-fixed .btn-outline-danger:active {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+body.sb-nav-fixed .modal-footer .btn,
+body.sb-nav-fixed .card-header .btn {
+    min-height: 2.25rem;
+}
+
 .note-editor.note-frame {
     border-color: rgba(230, 145, 56, 0.35) !important;
 }

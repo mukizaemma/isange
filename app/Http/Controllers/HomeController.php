@@ -13,7 +13,7 @@ use App\Models\Message;
 use App\Models\Room;
 use App\Models\Service;
 use App\Models\Slide;
-use App\Support\Currency;
+use App\Support\DiningMenuPresenter;
 use App\Support\FrontendPageCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -36,7 +36,7 @@ class HomeController extends Controller
             return [
                 'slides' => $slides,
                 'rooms' => $rooms,
-                'homeDiningTwoColumns' => $this->buildHomeDiningTwoColumns(),
+                'homeTodaysMenu' => DiningMenuPresenter::todaysMenuItems(),
             ];
         });
 
@@ -84,11 +84,13 @@ class HomeController extends Controller
     public function dining()
     {
         $diningMenuColumns = Cache::remember(FrontendPageCache::DINING_MENU_COLUMNS, 180, function () {
-            return $this->buildDiningMenuColumns();
+            return DiningMenuPresenter::fullMenuColumns();
         });
+        $todaysMenu = DiningMenuPresenter::todaysMenuItems();
 
         return $this->spaView('frontend.dining', compact(
-            'diningMenuColumns'
+            'diningMenuColumns',
+            'todaysMenu',
         ), 'Bar & Restaurant');
     }
 
@@ -145,20 +147,39 @@ class HomeController extends Controller
 
     public function blogs()
     {
-        $blogs = Blog::latest()->paginate(9);
-        $gallery = Image::latest()->take(12)->get();
+        $blogs = Blog::query()
+            ->published()
+            ->latest('published_at')
+            ->latest('id')
+            ->paginate(9);
 
         return $this->spaView('frontend.blogs', [
             'blogs' => $blogs,
-            'gallery' => $gallery,
         ], 'Updates');
     }
 
     public function blog(string $slug)
     {
-        $post = Blog::where('slug', $slug)->firstOrFail();
+        $post = Blog::query()
+            ->published()
+            ->where('slug', $slug)
+            ->firstOrFail();
 
-        return $this->spaView('frontend.blog', compact('post'), $post->title ?? 'Blog');
+        $post->increment('views');
+
+        $post->load(['comments']);
+
+        $related = Blog::query()
+            ->published()
+            ->where('id', '!=', $post->id)
+            ->latest('published_at')
+            ->take(3)
+            ->get();
+
+        return $this->spaView('frontend.blog', [
+            'post' => $post,
+            'related' => $related,
+        ], $post->title ?? 'Update');
     }
 
     public function reservationPage()

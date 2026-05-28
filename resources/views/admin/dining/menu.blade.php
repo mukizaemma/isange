@@ -47,11 +47,17 @@
                             <div class="col-md-2"><label class="form-label">Image</label><input type="file" name="image" class="form-control" accept="image/*"></div>
                             <div class="col-md-1 d-flex align-items-end"><button type="submit" class="btn btn-success w-100">Add</button></div>
                             <div class="col-12"><label class="form-label">Description</label><textarea name="description" class="form-control" rows="2" placeholder="Ingredients, dietary notes…"></textarea></div>
+                            <div class="col-12">
+                                <label class="form-check">
+                                    <input type="checkbox" class="form-check-input" name="is_today_menu" value="1">
+                                    <span class="form-check-label">Show on today&rsquo;s menu (home page &amp; dining page highlight)</span>
+                                </label>
+                            </div>
                         </form>
 
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                <thead><tr><th></th><th>Title / description</th><th></th></tr></thead>
+                                <thead><tr><th></th><th>Title / description</th><th class="text-nowrap">Today</th><th></th></tr></thead>
                                 <tbody>
                                     @foreach ($items as $item)
                                         <tr>
@@ -78,7 +84,18 @@
                                                         <button type="submit" class="btn btn-sm btn-outline-primary">Update</button>
                                                     </div>
                                                     <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="Description">{{ old('description_'.$item->id, $item->description) }}</textarea>
+                                                    <label class="form-check form-check-inline mt-2">
+                                                        <input type="checkbox" class="form-check-input" name="is_today_menu" value="1" @checked($item->is_today_menu)>
+                                                        <span class="form-check-label small">Today&rsquo;s menu</span>
+                                                    </label>
                                                 </form>
+                                            </td>
+                                            <td class="text-center align-top">
+                                                @if ($item->is_today_menu)
+                                                    <span class="badge bg-success">Yes</span>
+                                                @else
+                                                    <span class="text-muted small">—</span>
+                                                @endif
                                             </td>
                                             <td class="text-end">
                                                 <form action="{{ route('diningMenu.items.destroy', $item) }}" method="POST" onsubmit="return confirm('Remove this item?');">

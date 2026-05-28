@@ -169,9 +169,10 @@
                                                     <label class="form-label" for="email">Email</label>
                                                     <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $data->email) }}">
                                                 </div>
-                                                <div class="col-md-4">
+                                                <div class="col-12">
                                                     <label class="form-label" for="keywords">Meta keywords <span class="text-muted fw-normal">(SEO)</span></label>
-                                                    <input type="text" class="form-control" id="keywords" name="keywords" value="{{ old('keywords', $data->keywords) }}" placeholder="Optional">
+                                                    <textarea class="form-control" id="keywords" name="keywords" rows="3" placeholder="Comma-separated phrases, e.g. eco resort Musanze, volcano hiking Rwanda">{{ old('keywords', $data->keywords) }}</textarea>
+                                                    <div class="form-text">Long keyword lists are supported. Also used as the site meta description on public pages.</div>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <label class="form-label" for="usd_to_rwf_rate">USD → RWF rate</label>

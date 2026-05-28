@@ -3,6 +3,8 @@
 use App\Http\Controllers\Admin\GuestInsightsController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BlogCommentController;
+use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\DiningController;
 use App\Http\Controllers\DirectPayPlaceholderController;
@@ -69,6 +71,7 @@ Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
 Route::redirect('/Gallery', '/gallery', 301);
 Route::get('/blogs', [HomeController::class, 'blogs'])->name('blogs');
 Route::get('/blogs/{slug}', [HomeController::class, 'blog'])->name('blog');
+Route::post('/blogs/{blog}/comments', [BlogCommentController::class, 'store'])->middleware('throttle:15,1')->name('blog.comments.store');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 Route::redirect('/Contact', '/contact', 301);
 Route::get('/terms', [HomeController::class, 'terms'])->name('terms');
@@ -95,6 +98,14 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
     Route::get('/guest-insights', [GuestInsightsController::class, 'index'])->name('guestInsights');
+
+    Route::get('/updates', [BlogController::class, 'index'])->name('admin.blogs.index');
+    Route::get('/updates/create', [BlogController::class, 'create'])->name('admin.blogs.create');
+    Route::post('/updates', [BlogController::class, 'store'])->name('admin.blogs.store');
+    Route::get('/updates/{blog}/edit', [BlogController::class, 'edit'])->name('admin.blogs.edit');
+    Route::put('/updates/{blog}', [BlogController::class, 'update'])->name('admin.blogs.update');
+    Route::delete('/updates/{blog}', [BlogController::class, 'destroy'])->name('admin.blogs.destroy');
+    Route::delete('/updates/{blog}/comments/{comment}', [BlogController::class, 'destroyComment'])->name('admin.blogs.comments.destroy');
 
     Route::get('/setting', [SettingController::class, 'setting'])->name('setting');
     Route::post('/saveSetting', [SettingController::class, 'saveSetting'])->name('saveSetting');

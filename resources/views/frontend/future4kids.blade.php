@@ -11,30 +11,29 @@
 
 @include('frontend.includes.page-header', ['pageKey' => 'future4kids'])
 
-<section class="isange-section isange-section--cream rel z-1">
+<section class="isange-section isange-section--cream isange-f4k-mission rel z-1">
     <div class="container">
-        <div class="row g-5 align-items-center">
+        <div class="row g-4 g-lg-5 align-items-start">
             <div class="col-lg-7 wow fadeInUp delay-0-2s">
                 @if (! empty($s['mission_eyebrow']))
                     <span class="isange-section__eyebrow">{{ $s['mission_eyebrow'] }}</span>
                 @endif
-                @if (! empty($s['mission_title']))
-                    <h2>{{ $s['mission_title'] }}</h2>
-                @endif
-                @if (! empty($s['mission_lead']))
-                    <p class="lead mb-4">{{ $s['mission_lead'] }}</p>
-                @endif
-                @if (! empty($s['mission_text']))
-                    <p>{!! $s['mission_text'] !!}</p>
-                @endif
+                <div class="isange-f4k-mission__intro">
+                    @if (! empty($s['mission_lead']))
+                        <p class="isange-f4k-mission__lead mb-0">{{ $s['mission_lead'] }}</p>
+                    @endif
+                    @if (! empty($s['mission_text']))
+                        <p class="isange-f4k-mission__text mb-0">{!! $s['mission_text'] !!}</p>
+                    @endif
+                </div>
                 @if (count($bullets) > 0)
-                <ul class="isange-purpose-list isange-purpose-list--compact">
+                <ul class="isange-purpose-list isange-purpose-list--compact isange-f4k-mission__bullets">
                     @foreach ($bullets as $i => $bullet)
                         <li><i class="fas {{ $bulletIcons[$i] ?? 'fa-check' }}" aria-hidden="true"></i> {{ $bullet }}</li>
                     @endforeach
                 </ul>
                 @endif
-                <div class="d-flex flex-wrap gap-3 mt-4">
+                <div class="isange-f4k-mission__actions d-flex flex-wrap gap-3">
                     <a href="https://www.future4kids.at/" class="theme-btn" target="_blank" rel="noopener noreferrer">
                         Visit Future 4 Kids website <i class="fas fa-external-link-alt"></i>
                     </a>
@@ -42,10 +41,18 @@
                 </div>
             </div>
             <div class="col-lg-5 wow fadeInUp delay-0-3s">
-                <div class="isange-impact-card isange-impact-card--clean p-4 p-md-5">
-                    <h3>{{ $s['impact_title'] ?? 'Travel that gives back' }}</h3>
-                    <p class="mb-0">{{ $s['impact_text'] ?? '' }}</p>
-                </div>
+                <aside class="isange-f4k-mission__aside" aria-label="Mission highlight">
+                    <div class="isange-impact-card isange-impact-card--clean isange-f4k-mission__impact p-4 p-md-5">
+                        <span class="isange-f4k-mission__impact-icon" aria-hidden="true"><i class="fas fa-hand-holding-heart"></i></span>
+                        <h3>{{ $s['impact_title'] ?? 'Travel that gives back' }}</h3>
+                        <p class="mb-0">{{ $s['impact_text'] ?? '' }}</p>
+                    </div>
+                    @if (! empty($s['mission_title']))
+                        <blockquote class="isange-f4k-mission__headline">
+                            <p class="isange-f4k-mission__headline-text mb-0">{{ $s['mission_title'] }}</p>
+                        </blockquote>
+                    @endif
+                </aside>
             </div>
         </div>
     </div>

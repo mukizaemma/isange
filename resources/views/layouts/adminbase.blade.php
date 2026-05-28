@@ -19,15 +19,9 @@
         <link href="{{ asset('assets/admin/css/admin-brand.css') }}" rel="stylesheet" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
 
-        {{-- summernote --}}
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" >
+        {{-- summernote (Bootstrap comes from styles.css; do not load Tailwind/vite here — it strips .btn backgrounds) --}}
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css">
-
-
         <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-
 
     </head>
     <body class="sb-nav-fixed">

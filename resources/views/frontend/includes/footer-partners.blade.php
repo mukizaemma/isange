@@ -3,8 +3,8 @@
 <section class="ma-partners-strip" aria-labelledby="ma-partners-strip-heading">
     <div class="container">
         <div class="ma-partners-strip__head text-center wow fadeInUp">
-            <p class="ma-partners-strip__eyebrow mb-2">In partnership with</p>
-            <h2 id="ma-partners-strip-heading" class="ma-partners-strip__title">Our partners</h2>
+            {{-- <p class="ma-partners-strip__eyebrow mb-2">In partnership with</p> --}}
+            <h2 id="ma-partners-strip-heading" class="ma-partners-strip__title">In partnership with</h2>
         </div>
         <ul class="ma-partners-strip__row list-unstyled mb-0 wow fadeInUp delay-0-2s"
             style="--partner-count: {{ $partners->count() }};">

@@ -192,7 +192,19 @@ class PageContentDefaults
             'booking' => [
                 'intro_html' => null,
                 'body_html' => null,
-                'sections' => [],
+                'sections' => [
+                    'benefits_heading' => 'Benefits of booking with us',
+                    'benefits_lines' => [
+                        ['text' => 'Best Price Guaranteed', 'type' => 'bullet'],
+                        ['text' => 'Direct customer support', 'type' => 'bullet'],
+                        ['text' => 'Late check out (1 pm)', 'type' => 'bullet'],
+                        ['text' => 'Early check-in (10 am)', 'type' => 'bullet'],
+                        ['text' => 'Subject to availability', 'type' => 'note'],
+                        ['text' => 'Free Bird Watching', 'type' => 'bullet'],
+                        ['text' => 'Support community projects', 'type' => 'bullet'],
+                        ['text' => 'Exclusive Offers', 'type' => 'bullet'],
+                    ],
+                ],
             ],
         ];
     }

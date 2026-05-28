@@ -32,7 +32,10 @@
                             <div class="welcome-prose mt-3">{!! $about->welcome !!}</div>
                         @endif
                     </div>
-                    <a class="theme-btn" href="{{ route('future4kids') }}">Our impact mission <i class="far fa-angle-right"></i></a>
+                    <div class="isange-about-actions d-flex flex-wrap gap-3">
+                        <a class="theme-btn" href="{{ route('future4kids') }}">Our impact mission <i class="far fa-angle-right"></i></a>
+                        <a class="theme-btn style-three" href="{{ route('room.booking') }}">Book now <i class="far fa-angle-right"></i></a>
+                    </div>
                 </div>
             </div>
             @if (! empty($aboutSideImage))

@@ -15,8 +15,16 @@
                 </div>
             @endif
 
+            @include('frontend.includes.dining-todays-menu-card', [
+                'items' => $todaysMenu ?? [],
+                'mode' => 'order',
+                'showViewFullLink' => false,
+            ])
+
+            <h2 class="h4 mb-3 wow fadeInUp">Full menu</h2>
+
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 wow fadeInUp">
-                <p class="text-muted small mb-0">Prices shown in your chosen currency. Add dishes, set when you need them, and send the full order on WhatsApp.</p>
+                <p class="text-muted small mb-0">Add dishes to your order, review the summary, then send via WhatsApp or email.</p>
                 <div class="dining-currency-picker d-flex align-items-center gap-2">
                     <span class="small fw-semibold">Prices in</span>
                     <div class="btn-group btn-group-sm" role="group" aria-label="Menu currency">
@@ -50,8 +58,8 @@
             </div>
             <div class="d-flex flex-wrap gap-2 align-items-end">
                 <div>
-                    <label class="form-label small mb-1" for="dining-global-time">Time required <span class="text-danger">*</span></label>
-                    <input type="time" class="form-control form-control-sm" id="dining-global-time" style="max-width:9rem" required aria-required="true">
+                    <label class="form-label small mb-1" for="dining-global-time">Time needed</label>
+                    <input type="time" class="form-control form-control-sm" id="dining-global-time" style="max-width:9rem">
                 </div>
                 <div>
                     <label class="form-label small mb-1" for="dining-global-party">Party size</label>
@@ -80,16 +88,31 @@
                                 <tfoot class="table-group-divider" id="dining-order-table-foot"></tfoot>
                             </table>
                         </div>
-                        <label class="form-label small fw-semibold mt-3 mb-1" for="dining-order-additional">Additional requests</label>
+                        <h3 class="h6 fw-semibold mt-4 mb-2">Your details</h3>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1" for="dining-guest-name">Name</label>
+                                <input type="text" class="form-control form-control-sm" id="dining-guest-name" maxlength="255" autocomplete="name">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small mb-1" for="dining-guest-phone">Phone / WhatsApp</label>
+                                <input type="tel" class="form-control form-control-sm" id="dining-guest-phone" maxlength="64" autocomplete="tel">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small mb-1" for="dining-guest-email">Email</label>
+                                <input type="email" class="form-control form-control-sm" id="dining-guest-email" maxlength="255" autocomplete="email">
+                            </div>
+                        </div>
+                        <label class="form-label small fw-semibold mt-3 mb-1" for="dining-order-additional">Special requests (optional)</label>
                         <textarea class="form-control form-control-sm dining-order-summary-card__textarea" id="dining-order-additional" rows="2" placeholder="Allergies, room number, delivery preference, occasion…"></textarea>
-                        <p class="text-muted small mb-0 mt-2" id="dining-order-channel-hint"></p>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4">
-                <p class="dining-order-dock__sub small mb-3 mb-lg-2">Review your order, set the time you need it, then send everything in one WhatsApp message to the hotel.</p>
+                <p class="dining-order-dock__sub small mb-3 mb-lg-2">Choose how to send your order to the hotel.</p>
                 <div class="d-flex flex-column gap-2">
-                    <button type="button" class="theme-btn btn-sm" id="dining-order-whatsapp"><i class="fab fa-whatsapp me-1"></i> Send order on WhatsApp</button>
+                    <button type="button" class="theme-btn btn-sm" id="dining-order-whatsapp"><i class="fab fa-whatsapp me-1"></i> Send via WhatsApp</button>
+                    <button type="button" class="theme-btn style-three btn-sm" id="dining-order-email"><i class="far fa-envelope me-1"></i> Send via Email</button>
                     <button type="button" class="btn btn-outline-light btn-sm" id="dining-order-clear">Clear order</button>
                 </div>
             </div>
@@ -196,8 +219,14 @@
             btn.classList.toggle('active', btn.getAttribute('data-dining-currency') === menuCurrency);
         });
         columns.forEach(function (_, i) { renderCol(i); });
+        renderTodaysMenu();
         refreshDock();
     }
+
+    window.__diningRenderColumns = function () {
+        columns.forEach(function (_, i) { renderCol(i); });
+        renderTodaysMenu();
+    };
 
     function postDiningSubmission(channel, plainMessage) {
         var items = cart.map(function (l) {
@@ -211,6 +240,7 @@
             };
         });
         var gt = cartGrandTotals();
+        var extraEl = document.getElementById('dining-order-additional');
         return fetch(guestDiningUrl, {
             method: 'POST',
             headers: {
@@ -224,11 +254,65 @@
                 message_body: plainMessage,
                 items: items,
                 currency: menuCurrency,
+                guest_name: (document.getElementById('dining-guest-name') || {}).value || '',
+                guest_phone: (document.getElementById('dining-guest-phone') || {}).value || '',
+                guest_email: (document.getElementById('dining-guest-email') || {}).value || '',
+                special_requests: extraEl ? extraEl.value.trim() : '',
                 grand_total_usd: gt.sumUsd.toFixed(2),
                 grand_total_rwf: gt.sumRwf > 0 ? String(gt.sumRwf) : '',
                 session_id: maSessionId()
             })
         }).catch(function () {});
+    }
+
+    function renderTodaysMenu() {
+        document.querySelectorAll('.dining-todays-menu-root[data-dining-todays-mode="order"]').forEach(function (root) {
+            var tbody = root.querySelector('.dining-todays-tbody');
+            var jsonEl = root.querySelector('.dining-todays-items-json');
+            if (!tbody || !jsonEl) return;
+            var items = [];
+            try {
+                items = JSON.parse(jsonEl.textContent || '[]');
+            } catch (e) {
+                items = [];
+            }
+            tbody.innerHTML = '';
+            items.forEach(function (it) {
+                var tr = document.createElement('tr');
+                var tdItem = document.createElement('td');
+                var strong = document.createElement('div');
+                strong.className = 'home-dining-mini-table__title fw-semibold';
+                strong.textContent = it.title || '';
+                tdItem.appendChild(strong);
+                if (it.description) {
+                    var desc = document.createElement('div');
+                    desc.className = 'home-dining-mini-table__desc text-muted small mt-1';
+                    desc.textContent = it.description;
+                    tdItem.appendChild(desc);
+                }
+                var tdPrice = document.createElement('td');
+                tdPrice.className = 'text-end align-top home-dining-mini-table__price';
+                var ph = document.createElement('div');
+                ph.innerHTML = menuCurrency === 'rwf' ? (it.priceHtmlRwf || '') : (it.priceHtmlUsd || '');
+                tdPrice.appendChild(ph);
+                var tdAct = document.createElement('td');
+                tdAct.className = 'text-end align-top';
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'theme-btn style-three btn-sm dining-dish-add';
+                b.setAttribute('data-id', String(it.id));
+                b.setAttribute('data-title', it.title || '');
+                b.setAttribute('data-price', it.priceUsd || '0');
+                b.setAttribute('data-price-rwf', it.priceRwfAttr || '');
+                b.setAttribute('data-prep-minutes', it.prepMinutes ? String(it.prepMinutes) : '');
+                b.innerHTML = '<i class="fas fa-plus me-1"></i> Add';
+                tdAct.appendChild(b);
+                tr.appendChild(tdItem);
+                tr.appendChild(tdPrice);
+                tr.appendChild(tdAct);
+                tbody.appendChild(tr);
+            });
+        });
     }
 
     var elJson = document.getElementById('dining-menu-data');
@@ -486,7 +570,6 @@
     function renderOrderSummary() {
         var tbody = document.getElementById('dining-order-table-body');
         var tfoot = document.getElementById('dining-order-table-foot');
-        var hint = document.getElementById('dining-order-channel-hint');
         if (!tbody || !tfoot) return;
 
         tbody.innerHTML = '';
@@ -555,12 +638,6 @@
             tfoot.appendChild(trF);
         }
 
-        if (hint) {
-            var parts = [];
-            if (cfg.displayPhone) parts.push('WhatsApp: ' + cfg.displayPhone);
-            if (cfg.displayEmail) parts.push('Email: ' + cfg.displayEmail);
-            hint.textContent = parts.length ? ('Orders are sent to: ' + parts.join(' · ') + '.') : 'The hotel is still setting up contact details for online orders. Please call the front desk.';
-        }
     }
 
     function refreshDock() {
@@ -589,11 +666,17 @@
         var party = document.getElementById('dining-global-party') ? document.getElementById('dining-global-party').value : '';
         var extraEl = document.getElementById('dining-order-additional');
         var extra = extraEl ? extraEl.value.trim() : '';
+        var guestName = (document.getElementById('dining-guest-name') || {}).value || '';
+        var guestPhone = (document.getElementById('dining-guest-phone') || {}).value || '';
+        var guestEmail = (document.getElementById('dining-guest-email') || {}).value || '';
         var gt = cartGrandTotals();
         var sep = '----------------------------------------';
         var lines = [];
         lines.push('*' + cfg.hotel + ' — Bar & Restaurant order*');
         lines.push('Currency: ' + (menuCurrency === 'rwf' ? 'RWF' : 'USD'));
+        if (guestName) lines.push('Guest: ' + guestName);
+        if (guestPhone) lines.push('Phone: ' + guestPhone);
+        if (guestEmail) lines.push('Email: ' + guestEmail);
         lines.push('');
         lines.push('ORDER LINES');
         lines.push(sep);
@@ -661,29 +744,59 @@
         });
     });
 
-    document.getElementById('dining-order-whatsapp').addEventListener('click', function () {
+    function validateBeforeSubmit(channel) {
         if (!cart.length) {
             alert('Your order is empty. Add dishes from the menu first.');
-            return;
+            return false;
         }
-        var timeVal = document.getElementById('dining-global-time') ? document.getElementById('dining-global-time').value : '';
-        if (!timeVal) {
-            alert('Please set the time you need your order (Time required).');
-            document.getElementById('dining-global-time') && document.getElementById('dining-global-time').focus();
-            return;
+        var phone = (document.getElementById('dining-guest-phone') || {}).value || '';
+        var email = (document.getElementById('dining-guest-email') || {}).value || '';
+        if (channel === 'whatsapp') {
+            if (!cfg.wa || cfg.wa.length < 8) {
+                alert('WhatsApp ordering is unavailable. Please use email or call the hotel.');
+                return false;
+            }
+            if (phone.replace(/\D/g, '').length < 8) {
+                alert('Enter your WhatsApp phone number.');
+                document.getElementById('dining-guest-phone') && document.getElementById('dining-guest-phone').focus();
+                return false;
+            }
         }
-        if (!cfg.wa || cfg.wa.length < 8) {
-            alert('WhatsApp ordering is unavailable (no hotel phone on file). Please try email or call the hotel directly.');
-            return;
+        if (channel === 'email') {
+            if (!cfg.email) {
+                alert('Email ordering is unavailable. Please use WhatsApp or call the hotel.');
+                return false;
+            }
+            if (!email || email.indexOf('@') < 1) {
+                alert('Enter a valid email address.');
+                document.getElementById('dining-guest-email') && document.getElementById('dining-guest-email').focus();
+                return false;
+            }
         }
+        return true;
+    }
+
+    document.getElementById('dining-order-whatsapp').addEventListener('click', function () {
+        if (!validateBeforeSubmit('whatsapp')) return;
         var plain = buildMessage();
         postDiningSubmission('whatsapp', plain).finally(function () {
             window.open('https://wa.me/' + cfg.wa + '?text=' + encodeURIComponent(plain), '_blank');
         });
     });
+
+    document.getElementById('dining-order-email').addEventListener('click', function () {
+        if (!validateBeforeSubmit('email')) return;
+        var plain = buildMessage();
+        var subject = encodeURIComponent(cfg.hotel + ' — Restaurant order');
+        var body = encodeURIComponent(plain);
+        postDiningSubmission('email', plain).finally(function () {
+            window.location.href = 'mailto:' + encodeURIComponent(cfg.email) + '?subject=' + subject + '&body=' + body;
+        });
+    });
     menuCurrency = getMenuCurrency();
     setMenuCurrency(menuCurrency);
     load();
+    renderTodaysMenu();
     refreshDock();
 })();
 </script>

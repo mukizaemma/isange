@@ -61,6 +61,11 @@ class SiteContentController extends Controller
                     unset($sections['mission_bullets_text']);
                 }
 
+                if ($key === 'booking' && isset($sections['benefits_lines_text'])) {
+                    $sections['benefits_lines'] = $this->parseBenefitsLines((string) $sections['benefits_lines_text']);
+                    unset($sections['benefits_lines_text']);
+                }
+
                 $page->sections_json = $this->cleanSections($sections);
             }
 
@@ -95,5 +100,32 @@ class SiteContentController extends Controller
         }
 
         return $clean;
+    }
+
+    /**
+     * @return list<array{text: string, type: string}>
+     */
+    private function parseBenefitsLines(string $raw): array
+    {
+        $lines = [];
+        foreach (preg_split('/\r\n|\r|\n/', $raw) ?: [] as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+            if (str_starts_with($line, '*')) {
+                $lines[] = [
+                    'text' => trim(substr($line, 1)),
+                    'type' => 'note',
+                ];
+            } else {
+                $lines[] = [
+                    'text' => $line,
+                    'type' => 'bullet',
+                ];
+            }
+        }
+
+        return $lines;
     }
 }

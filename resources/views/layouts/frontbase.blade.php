@@ -67,7 +67,7 @@
                            </ul>
                        </div>
                        <p class="header-location-tagline">
-                           <i class="fas fa-mountain" aria-hidden="true"></i>
+                           <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
                            <span>{{ $globalSections['header_tagline'] ?? 'Musanze, Rwanda — 15 minutes drive from/to Volcanoes National Park office' }}</span>
                        </p>
                        <div class="header-social-inline">
@@ -198,6 +198,7 @@
                                 <li><a href="{{ route('experiences') }}">Experiences</a></li>
                                 <li><a href="{{ route('dining') }}">Restaurant &amp; Bar</a></li>
                                 <li><a href="{{ route('future4kids') }}">Future 4 Kids</a></li>
+                                <li><a href="{{ route('blogs') }}">Updates</a></li>
                                 <li><a href="{{ route('contact') }}">Contact</a></li>
                                 <li><a href="{{ route('terms') }}">Terms &amp; Conditions</a></li>
                             </ul>
@@ -242,6 +243,8 @@
         <!-- footer area end -->
         
         
+        @include('frontend.includes.whatsapp-float')
+
         <!-- Scroll Top Button -->
         <button class="scroll-top scroll-to-target" data-target="html"><span class="fas fa-angle-double-up"></span></button>
 

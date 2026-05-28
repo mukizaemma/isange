@@ -36,7 +36,7 @@
                         href="{{ $bookingEngineUrl ?: '#' }}"
                         @if ($bookingEngineUrl) target="_blank" rel="noopener noreferrer" @endif
                     >
-                        Book and Pay at the hotel
+                        Book and Pay Now
                     </a>
                 </div>
             </div>

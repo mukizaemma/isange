@@ -55,10 +55,10 @@
                 <div class="sb-nav-link-icon"><i class="fas fa-handshake"></i></div>
                 Partners
             </a>
-            {{-- <a class="nav-link" href="{{route('slides')}}">
-                <div class="sb-nav-link-icon"><i class="far fa-envelope-open"></i></div>
+            <a class="nav-link" href="{{ route('admin.blogs.index') }}">
+                <div class="sb-nav-link-icon"><i class="far fa-newspaper"></i></div>
                 Updates
-            </a> --}}
+            </a>
             <hr>
             {{-- <a class="nav-link" href="{{route('RestoMenu')}}">
                 <div class="sb-nav-link-icon"><i class="fa fa-hotel"></i></div>

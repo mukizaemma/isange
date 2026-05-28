@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DiningMenuItem extends Model
 {
-    protected $fillable = ['title', 'description', 'price_usd', 'price_rwf', 'prep_minutes', 'image', 'sort_order', 'menu_category_id'];
+    protected $fillable = ['title', 'description', 'price_usd', 'price_rwf', 'prep_minutes', 'image', 'sort_order', 'is_today_menu', 'menu_category_id'];
 
     protected static function booted(): void
     {
@@ -24,6 +24,7 @@ class DiningMenuItem extends Model
     protected $casts = [
         'price_usd' => 'decimal:2',
         'price_rwf' => 'decimal:2',
+        'is_today_menu' => 'boolean',
     ];
 
     public function category(): BelongsTo

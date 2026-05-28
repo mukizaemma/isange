@@ -206,6 +206,31 @@
                                     <p class="small text-muted mb-0">Listings are managed under <strong>Rooms</strong> in the sidebar. The shared banner image above applies to both tabs.</p>
                                 @endif
 
+                                @if ($tabKey === 'booking')
+                                    <hr>
+                                    <h6 class="fw-semibold">Confirm booking — benefits panel</h6>
+                                    <p class="small text-muted">Shown below “How would you like to book?” on the confirm booking page. Start a line with <code>*</code> for a highlighted note (e.g. <code>*Subject to availability</code>).</p>
+                                    <div class="mb-3">
+                                        <label class="form-label">Benefits heading</label>
+                                        <input type="text" class="form-control" name="pages[booking][sections][benefits_heading]" value="{{ old('pages.booking.sections.benefits_heading', $s['benefits_heading'] ?? '') }}">
+                                    </div>
+                                    @php
+                                        $benefitsLinesDefault = collect($s['benefits_lines'] ?? [])
+                                            ->map(function ($line) {
+                                                $t = is_array($line) ? ($line['text'] ?? '') : (string) $line;
+                                                $type = is_array($line) ? ($line['type'] ?? 'bullet') : 'bullet';
+
+                                                return ($type === 'note' ? '*' : '').$t;
+                                            })
+                                            ->implode("\n");
+                                        $benefitsLinesForTextarea = old('pages.booking.sections.benefits_lines_text', $benefitsLinesDefault);
+                                    @endphp
+                                    <div class="mb-3">
+                                        <label class="form-label">Benefits list (one line per item)</label>
+                                        <textarea class="form-control font-monospace" name="pages[booking][sections][benefits_lines_text]" rows="10">{{ $benefitsLinesForTextarea }}</textarea>
+                                    </div>
+                                @endif
+
                                 @if (in_array($tabKey, ['facilities', 'dining', 'contact', 'booking', 'services', 'gallery', 'blogs'], true))
                                     <div class="mb-3">
                                         <label class="form-label">Page body / extra copy</label>
