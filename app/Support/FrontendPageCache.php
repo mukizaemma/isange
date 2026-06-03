@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
  */
 final class FrontendPageCache
 {
-    public const HOME_PAGE_DATA = 'frontend.home_page_data_v1';
+    public const HOME_PAGE_DATA = 'frontend.home_page_data_v2';
 
     public const DINING_MENU_COLUMNS = 'frontend.dining_menu_columns_v1';
 

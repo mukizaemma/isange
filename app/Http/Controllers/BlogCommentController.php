@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Blog;
 use App\Models\BlogComment;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class BlogCommentController extends Controller
 {
@@ -12,11 +13,17 @@ class BlogCommentController extends Controller
     {
         abort_unless($blog->isPublished(), 404);
 
-        $validated = $request->validate([
+        try {
+            $validated = $request->validate([
             'author_name' => ['required', 'string', 'max:120'],
             'author_email' => ['nullable', 'email', 'max:255'],
             'body' => ['required', 'string', 'max:5000'],
-        ]);
+            ]);
+        } catch (ValidationException $e) {
+            throw $e->redirectTo(
+                route('blog', $blog).'#comments'
+            );
+        }
 
         BlogComment::create([
             'blog_id' => $blog->id,
@@ -30,7 +37,8 @@ class BlogCommentController extends Controller
         }
 
         return redirect()
-            ->route('blog', $blog->slug)
+            ->route('blog', $blog)
+            ->withFragment('comments')
             ->with('comment_success', 'Thank you — your comment has been posted.');
     }
 }

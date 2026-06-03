@@ -8,7 +8,7 @@ class BookingEngine
 {
     public static function url(?Setting $setting): ?string
     {
-        $url = trim((string) ($setting->booking_engine_url ?? ''));
+        $url = trim((string) ($setting?->booking_engine_url ?? ''));
 
         if ($url === '') {
             return null;

@@ -300,6 +300,27 @@
 
 @include('frontend.includes.youtube-stories-widget', ['variant' => 'white'])
 
+@if (! empty($latestBlogs) && $latestBlogs->isNotEmpty())
+{{-- Latest news & updates --}}
+<section class="isange-updates isange-section isange-section--cream rel z-1">
+    <div class="container">
+        <div class="row justify-content-center mb-50">
+            <div class="col-lg-8 text-center wow fadeInUp delay-0-2s">
+                <span class="isange-section__eyebrow">News &amp; updates</span>
+                <h2>Stories from Isange Paradise</h2>
+                <p class="mb-0">Announcements, travel tips, and news from the resort and our community.</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            @include('frontend.includes.blog-update-cards', ['blogs' => $latestBlogs])
+        </div>
+        <div class="text-center mt-50 wow fadeInUp delay-0-2s">
+            <a href="{{ route('blogs') }}" class="theme-btn style-three">All updates <i class="far fa-angle-right"></i></a>
+        </div>
+    </div>
+</section>
+@endif
+
 {{-- 9. FINAL CTA --}}
 <section class="isange-cta-band rel z-1 wow fadeInUp">
     <div class="container">

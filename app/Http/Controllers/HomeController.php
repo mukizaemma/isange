@@ -33,10 +33,19 @@ class HomeController extends Controller
                 ->oldest()
                 ->get();
 
+            $latestBlogs = Blog::query()
+                ->published()
+                ->withCount('comments')
+                ->latest('published_at')
+                ->latest('id')
+                ->take(3)
+                ->get();
+
             return [
                 'slides' => $slides,
                 'rooms' => $rooms,
                 'homeTodaysMenu' => DiningMenuPresenter::todaysMenuItems(),
+                'latestBlogs' => $latestBlogs,
             ];
         });
 
@@ -149,6 +158,7 @@ class HomeController extends Controller
     {
         $blogs = Blog::query()
             ->published()
+            ->withCount('comments')
             ->latest('published_at')
             ->latest('id')
             ->paginate(9);
@@ -165,7 +175,7 @@ class HomeController extends Controller
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $post->increment('views');
+        $post->recordPageView();
 
         $post->load(['comments']);
 

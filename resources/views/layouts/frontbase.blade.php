@@ -126,6 +126,7 @@
                                         </li>
                                         <li><a href="{{ route('experiences') }}">Experiences</a></li>
                                         <li><a href="{{ route('future4kids') }}">Future 4 Kids</a></li>
+                                        <li><a href="{{ route('blogs') }}">Updates</a></li>
                                         <li><a href="{{ route('gallery') }}">Gallery</a></li>
                                     </ul>
                                 </div>
@@ -188,6 +189,7 @@
                             <div class="pt-10">
                                 @include('frontend.includes.social-links', ['style' => 'one'])
                             </div>
+                            @include('frontend.includes.footer-map-card')
                         </div>
                     </div>
                     <div class="col-lg-3 col-md-6">

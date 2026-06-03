@@ -92,14 +92,14 @@
                     @foreach ($related as $item)
                         <div class="col-md-4">
                             <article class="isange-update-card isange-update-card--compact h-100">
-                                <a href="{{ route('blog', $item->slug) }}" class="isange-update-card__image-link">
+                                        <a href="{{ route('blog', $item) }}" class="isange-update-card__image-link">
                                     <img src="{{ $item->imageUrl() }}" alt="{{ $item->title }}" class="isange-update-card__image" loading="lazy">
                                 </a>
                                 <div class="isange-update-card__body">
                                     <h4 class="isange-update-card__title h6">
-                                        <a href="{{ route('blog', $item->slug) }}">{{ $item->title }}</a>
+                                        <a href="{{ route('blog', $item) }}">{{ $item->title }}</a>
                                     </h4>
-                                    <a href="{{ route('blog', $item->slug) }}" class="isange-update-card__more">Read more <i class="fal fa-angle-right"></i></a>
+                                    <a href="{{ route('blog', $item) }}" class="isange-update-card__more">Read more <i class="fal fa-angle-right"></i></a>
                                 </div>
                             </article>
                         </div>

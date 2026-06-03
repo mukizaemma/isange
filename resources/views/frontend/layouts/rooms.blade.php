@@ -20,7 +20,7 @@
         </div>
         <div class="row gap-90">
             @forelse($displayRooms as $room)
-                <div class="col-md-6">
+                <div class="col-xl-3 col-lg-3 col-md-6">
                     @include('frontend.includes.room-card', ['room' => $room])
                 </div>
             @empty

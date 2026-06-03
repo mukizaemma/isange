@@ -25,6 +25,39 @@
                         </div>
                     @endif
 
+                    @if ($blogs->isNotEmpty())
+                        @php
+                            $totalViews = $blogs->sum('views');
+                            $totalComments = $blogs->sum('comments_count');
+                        @endphp
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-4">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body">
+                                        <div class="text-muted small">Published posts</div>
+                                        <div class="fs-4 fw-semibold">{{ $blogs->where('status', 'Published')->count() }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body">
+                                        <div class="text-muted small">Total page views</div>
+                                        <div class="fs-4 fw-semibold">{{ number_format($totalViews) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4">
+                                <div class="card border-0 bg-light h-100">
+                                    <div class="card-body">
+                                        <div class="text-muted small">Total comments</div>
+                                        <div class="fs-4 fw-semibold">{{ number_format($totalComments) }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <span class="fw-semibold">All updates</span>
@@ -55,7 +88,7 @@
                                                         <a href="{{ route('admin.blogs.edit', $blog) }}" class="fw-semibold text-decoration-none">{{ $blog->title }}</a>
                                                         @if ($blog->isPublished())
                                                             <div class="small text-muted">
-                                                                <a href="{{ route('blog', $blog->slug) }}" target="_blank" rel="noopener">View on site</a>
+                                                                <a href="{{ route('blog', $blog) }}" target="_blank" rel="noopener">View on site</a>
                                                             </div>
                                                         @endif
                                                     </td>
