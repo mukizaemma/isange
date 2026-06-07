@@ -18,9 +18,9 @@
                 </ul>
             </div>
         </div>
-        <div class="row gap-90">
+        <div class="row g-4">
             @forelse($displayRooms as $room)
-                <div class="col-xl-3 col-lg-3 col-md-6">
+                <div class="col-md-6">
                     @include('frontend.includes.room-card', ['room' => $room])
                 </div>
             @empty
