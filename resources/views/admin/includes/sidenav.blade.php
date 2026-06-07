@@ -74,6 +74,10 @@
                 <div class="sb-nav-link-icon"><i class="fas fa-chart-line"></i></div>
                 Guest insights
             </a>
+            <a class="nav-link" href="https://analytics.google.com/analytics/web/?authuser=6#/a352534398p486046047/realtime/overview?params=_u..nav%3Dmaui" target="_blank">
+                <div class="sb-nav-link-icon"><i class="fa fa-globe"></i></div>
+                Google Analytics
+            </a>  
             @auth
                 @if (auth()->user()->canManageUsers())
                 <a class="nav-link" href="{{ route('admin.users') }}">
@@ -86,10 +90,7 @@
                     Change password
                 </a>
             @endauth
-            <a class="nav-link" href="https://analytics.google.com/analytics/web/?authuser=6#/a352534398p486046047/realtime/overview?params=_u..nav%3Dmaui" target="_blank">
-                <div class="sb-nav-link-icon"><i class="fa fa-globe"></i></div>
-                Google Analytics
-            </a>             
+           
 
 
 
