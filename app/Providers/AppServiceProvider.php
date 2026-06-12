@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\View\Composers\AuthLayoutComposer;
 use App\View\Composers\FrontLayoutComposer;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -24,6 +25,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+
         // Child views (e.g. frontend.index) are composed under their own name, not
         // layouts.frontbase, so the composer must also match frontend.* or $setting
         // / $about / footer $facilities are undefined in @section('content').

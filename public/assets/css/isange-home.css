@@ -791,8 +791,44 @@ body.home-one #spa-content.container-fluid {
   border: 1px solid rgba(16, 107, 56, 0.12);
 }
 
-.isange-updates__pagination .pagination {
+/* Laravel Bootstrap pagination — theme .pagination rules break layout (24px text, no borders). */
+.page-wrapper nav .pagination {
+  margin-left: 0;
+  margin-right: 0;
   gap: 0.35rem;
+}
+
+.page-wrapper nav .pagination .page-item {
+  margin: 0;
+}
+
+.page-wrapper nav .pagination .page-link {
+  padding: 0.45rem 0.85rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.25;
+  border: 1px solid rgba(16, 107, 56, 0.2);
+  border-radius: 8px;
+  color: var(--eco-green, #106b38);
+  background: #fff;
+  box-shadow: none;
+}
+
+.page-wrapper nav .pagination .page-item.active .page-link,
+.page-wrapper nav .pagination .page-item .page-link:hover {
+  background: var(--eco-green, #106b38);
+  color: #fff;
+  border-color: var(--eco-green, #106b38);
+}
+
+.page-wrapper nav .pagination .page-item.disabled .page-link {
+  color: rgba(16, 107, 56, 0.45);
+  background: #fff;
+  border-color: rgba(16, 107, 56, 0.12);
+}
+
+.isange-updates__pagination {
+  width: 100%;
 }
 
 @media (max-width: 991px) {
