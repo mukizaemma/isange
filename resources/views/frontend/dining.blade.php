@@ -34,6 +34,15 @@
                     <p class="text-center text-muted py-5 mb-0 d-none" id="dining-menu-empty">Menu coming soon.</p>
                     <div id="dining-menu-loaded" class="d-none">
                         <div class="dining-menu-tabs-sticky" id="dining-menu-tabs-sticky">
+                            <div class="dining-menu-toolbar d-flex flex-wrap align-items-center gap-3 mb-2">
+                                <div class="dining-menu-search flex-grow-1">
+                                    <label class="visually-hidden" for="dining-menu-search">Search menu</label>
+                                    <div class="dining-menu-search__wrap">
+                                        <i class="fas fa-search dining-menu-search__icon" aria-hidden="true"></i>
+                                        <input type="search" class="form-control form-control-sm dining-menu-search__input" id="dining-menu-search" placeholder="Search dishes by name…" autocomplete="off">
+                                    </div>
+                                </div>
+                            </div>
                             <div class="dining-menu-tabs-wrap" role="navigation" aria-label="Menu categories">
                                 <div class="dining-menu-tabs nav nav-pills flex-nowrap gap-2" id="dining-menu-tabs" role="tablist"></div>
                             </div>

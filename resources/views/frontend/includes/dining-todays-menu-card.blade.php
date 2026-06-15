@@ -6,14 +6,20 @@
     $compactHeader = $compactHeader ?? false;
     $useHomeCard = $useHomeCard ?? false;
     $useRowList = $useRowList ?? false;
-    $cardClass = $mode === 'preview'
-        ? 'home-dining-choose__card home-dining-choose__card--menu h-100'
-        : ($useHomeCard
-            ? 'home-dining-choose__card home-dining-choose__card--menu home-dining-choose__card--order h-100'
-            : 'dining-todays-card dining-todays-card--page h-100 mb-0');
-    $innerClass = ($mode === 'preview' || $useHomeCard)
-        ? 'home-dining-choose__card-inner home-dining-choose__card-inner--menu'
-        : 'dining-todays-card__inner';
+    $useCardGrid = $useCardGrid ?? false;
+    $heroOverlay = $heroOverlay ?? false;
+    $cardClass = $heroOverlay
+        ? 'home-dining-choose__menu-hero dining-todays-menu-root h-100'
+        : ($mode === 'preview'
+            ? 'home-dining-choose__card home-dining-choose__card--menu h-100'
+            : ($useHomeCard
+                ? 'home-dining-choose__card home-dining-choose__card--menu home-dining-choose__card--order h-100'
+                : 'dining-todays-card dining-todays-card--page h-100 mb-0'));
+    $innerClass = $heroOverlay
+        ? 'home-dining-choose__menu-hero-inner'
+        : (($mode === 'preview' || $useHomeCard)
+            ? 'home-dining-choose__card-inner home-dining-choose__card-inner--menu'
+            : 'dining-todays-card__inner');
 @endphp
 
 <article class="{{ $cardClass }} dining-todays-menu-root" data-dining-todays-mode="{{ $mode }}">
@@ -34,9 +40,9 @@
         @endif
 
         @if (count($items) === 0)
-            <p class="text-muted small py-3 mb-0">Today's menu is being prepared. Browse the full menu below to order.</p>
-        @elseif ($useRowList && $mode === 'order')
-            <div class="dining-todays-items dining-todays-items--rows"></div>
+            <p class="home-dining-choose__empty small py-3 mb-0">Today's menu is being prepared. <a href="{{ route('dining') }}">View the full menu</a> to order.</p>
+        @elseif (($useCardGrid || $useRowList) && $mode === 'order')
+            <div class="dining-todays-items {{ $useCardGrid ? 'dining-todays-items--grid' : 'dining-todays-items--rows' }}"></div>
             <script type="application/json" class="dining-todays-items-json">@json($items)</script>
         @else
             <div class="table-responsive home-dining-tcol__wrap border rounded-3 overflow-hidden bg-white mb-3{{ $mode === 'preview' ? ' home-dining-tcol__wrap--preview' : '' }}">
@@ -57,7 +63,7 @@
         @endif
 
         @if ($showViewFullLink)
-            <a href="{{ route('dining') }}" class="theme-btn style-three home-dining-choose__btn mt-1">
+            <a href="{{ route('dining') }}" class="theme-btn style-three home-dining-choose__btn home-dining-choose__btn--view mt-3">
                 View full menu <i class="far fa-angle-right ms-2"></i>
             </a>
         @endif

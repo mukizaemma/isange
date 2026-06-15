@@ -225,6 +225,71 @@
         save();
     }
 
+    function buildDishCard(it, cur) {
+        cur = cur || menuCurrency;
+        var article = document.createElement('article');
+        article.className = 'dining-menu-grid-card';
+        article.setAttribute('data-dish-title', (it.title || '').toLowerCase());
+
+        var media = document.createElement('div');
+        media.className = 'dining-menu-grid-card__media' + (it.imageUrl ? '' : ' dining-menu-grid-card__media--ph');
+        if (it.imageUrl) {
+            var img = document.createElement('img');
+            img.src = it.imageUrl;
+            img.alt = it.title || '';
+            img.loading = 'lazy';
+            media.appendChild(img);
+        }
+        article.appendChild(media);
+
+        var body = document.createElement('div');
+        body.className = 'dining-menu-grid-card__body';
+
+        var title = document.createElement('h4');
+        title.className = 'dining-menu-grid-card__title';
+        title.textContent = it.title || '';
+        body.appendChild(title);
+
+        if (it.description) {
+            var desc = document.createElement('p');
+            desc.className = 'dining-menu-grid-card__desc text-muted small mb-0';
+            desc.textContent = it.description;
+            if (it.descriptionTitle) desc.title = it.descriptionTitle;
+            body.appendChild(desc);
+        }
+
+        if (it.prepMinutes) {
+            var prep = document.createElement('p');
+            prep.className = 'dining-menu-grid-card__prep text-muted small mb-0 mt-1';
+            prep.innerHTML = '<i class="far fa-clock me-1" aria-hidden="true"></i> ~' + it.prepMinutes + ' min';
+            body.appendChild(prep);
+        }
+
+        article.appendChild(body);
+
+        var foot = document.createElement('div');
+        foot.className = 'dining-menu-grid-card__foot';
+
+        var price = document.createElement('div');
+        price.className = 'dining-menu-grid-card__price';
+        price.innerHTML = cur === 'rwf' ? (it.priceHtmlRwf || '') : (it.priceHtmlUsd || '');
+        foot.appendChild(price);
+
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'theme-btn style-three btn-sm dining-dish-add';
+        b.setAttribute('data-id', String(it.id));
+        b.setAttribute('data-title', it.title || '');
+        b.setAttribute('data-price', it.priceUsd || '0');
+        b.setAttribute('data-price-rwf', it.priceRwfAttr || '');
+        b.setAttribute('data-prep-minutes', it.prepMinutes ? String(it.prepMinutes) : '');
+        b.innerHTML = '<i class="fas fa-plus me-1" aria-hidden="true"></i> Add';
+        foot.appendChild(b);
+
+        article.appendChild(foot);
+        return article;
+    }
+
     function buildDishRow(it, cur) {
         cur = cur || menuCurrency;
         var article = document.createElement('article');
@@ -303,8 +368,10 @@
 
             if (listEl) {
                 listEl.innerHTML = '';
+                var useCards = listEl.classList.contains('dining-todays-items--grid');
+                var builder = useCards ? buildDishCard : buildDishRow;
                 items.forEach(function (it) {
-                    listEl.appendChild(buildDishRow(it, menuCurrency));
+                    listEl.appendChild(builder(it, menuCurrency));
                 });
                 return;
             }
@@ -583,7 +650,8 @@
         setMenuCurrency: setMenuCurrency,
         renderTodaysMenu: renderTodaysMenu,
         refreshDock: refreshDock,
-        buildDishRow: buildDishRow
+        buildDishRow: buildDishRow,
+        buildDishCard: buildDishCard
     };
 
     if (document.readyState === 'loading') {

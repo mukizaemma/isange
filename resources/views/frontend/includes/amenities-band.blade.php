@@ -2,6 +2,10 @@
     $globalContent = \App\Support\PageContent::get('global', $pageHeaders ?? collect());
     $gs = $globalContent['sections'];
 
+    if (request()->routeIs('dining')) {
+        return;
+    }
+
     $amenitiesBg = null;
     if (! empty($setting->flexible_stay_bg_image ?? null)) {
         $amenitiesBg = asset('storage/images/pages/' . ltrim($setting->flexible_stay_bg_image, '/'));

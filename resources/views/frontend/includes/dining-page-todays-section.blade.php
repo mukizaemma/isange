@@ -15,6 +15,17 @@
   </div>
 
   <div class="dining-page-todays__row">
+    <div class="dining-page-todays__menu-col">
+      @include('frontend.includes.dining-todays-menu-card', [
+          'items' => $todaysMenu,
+          'mode' => 'order',
+          'showViewFullLink' => false,
+          'hideCurrencyBar' => true,
+          'compactHeader' => true,
+          'useCardGrid' => true,
+      ])
+    </div>
+
     <div class="dining-page-todays__visual-col">
       <figure class="dining-page-todays__visual">
         <img
@@ -30,17 +41,6 @@
           <p class="dining-page-todays__visual-text mb-0">Seasonal plates &amp; drinks prepared in our open kitchen.</p>
         </figcaption>
       </figure>
-    </div>
-
-    <div class="dining-page-todays__menu-col">
-      @include('frontend.includes.dining-todays-menu-card', [
-          'items' => $todaysMenu,
-          'mode' => 'order',
-          'showViewFullLink' => false,
-          'hideCurrencyBar' => true,
-          'compactHeader' => true,
-          'useRowList' => true,
-      ])
     </div>
   </div>
 </section>
