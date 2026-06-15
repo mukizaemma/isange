@@ -22,11 +22,17 @@ class DiningMenuPresenter
             ? (string) (int) round((float) $item->price_rwf)
             : '';
 
+        $imageUrl = null;
+        if (! empty($item->image)) {
+            $imageUrl = asset('storage/images/dining/'.ltrim($item->image, '/'));
+        }
+
         return [
             'id' => $item->id,
             'title' => $item->title,
             'description' => $short,
             'descriptionTitle' => $rawDesc,
+            'imageUrl' => $imageUrl,
             'priceHtml' => Currency::formatUsdWithLocal($item->price_usd, $item->price_rwf),
             'priceHtmlUsd' => Currency::formatDiningPrice($item->price_usd, $item->price_rwf, 'usd'),
             'priceHtmlRwf' => Currency::formatDiningPrice($item->price_usd, $item->price_rwf, 'rwf'),
@@ -77,8 +83,12 @@ class DiningMenuPresenter
             if ($catItems->isEmpty()) {
                 continue;
             }
+            $coverUrl = ! empty($cat->cover_image)
+                ? asset('storage/images/menu-categories/'.ltrim($cat->cover_image, '/'))
+                : null;
             $columns[] = [
                 'label' => $cat->name,
+                'coverUrl' => $coverUrl,
                 'items' => $catItems->map(fn (DiningMenuItem $i) => self::serializeItem($i))->values()->all(),
             ];
         }
@@ -87,6 +97,7 @@ class DiningMenuPresenter
         if ($menuCategories->isNotEmpty() && $uncatItems->isNotEmpty()) {
             $columns[] = [
                 'label' => 'Other',
+                'coverUrl' => null,
                 'items' => $uncatItems->map(fn (DiningMenuItem $i) => self::serializeItem($i))->values()->all(),
             ];
         }
@@ -94,6 +105,7 @@ class DiningMenuPresenter
         if ($columns === [] && $allMenuItems->isNotEmpty()) {
             $columns[] = [
                 'label' => 'Menu',
+                'coverUrl' => null,
                 'items' => $allMenuItems->map(fn (DiningMenuItem $i) => self::serializeItem($i))->values()->all(),
             ];
         }

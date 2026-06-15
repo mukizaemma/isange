@@ -41,9 +41,21 @@
             </div>
 
             <div class="home-dining-choose__col home-dining-choose__col--menu wow fadeInRight delay-0-2s">
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                    <p class="home-dining-choose__order-hint small text-muted mb-0">Add dishes, then send your order via WhatsApp or email. Pay at the hotel.</p>
+                    <div class="dining-currency-picker d-flex align-items-center gap-2 flex-shrink-0">
+                        <span class="small fw-semibold">Prices in</span>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Menu currency">
+                            <button type="button" class="btn btn-outline-secondary active" data-dining-currency="usd">USD ($)</button>
+                            <button type="button" class="btn btn-outline-secondary" data-dining-currency="rwf">RWF</button>
+                        </div>
+                    </div>
+                </div>
                 @include('frontend.includes.dining-todays-menu-card', [
                     'items' => $homeTodaysMenu,
-                    'mode' => 'preview',
+                    'mode' => 'order',
+                    'useHomeCard' => true,
+                    'useRowList' => true,
                     'showViewFullLink' => true,
                 ])
             </div>
@@ -51,50 +63,7 @@
     </div>
 </section>
 
-@if (count($homeTodaysMenu) > 0)
-<script>
-(function () {
-    function getCurrency() {
-        try {
-            return localStorage.getItem('dining_currency') === 'rwf' ? 'rwf' : 'usd';
-        } catch (e) {
-            return 'usd';
-        }
-    }
-    function renderTodaysPreview(root) {
-        var tbody = root.querySelector('.dining-todays-tbody');
-        var jsonEl = root.querySelector('.dining-todays-items-json');
-        if (!tbody || !jsonEl) return;
-        var items = [];
-        try {
-            items = JSON.parse(jsonEl.textContent || '[]');
-        } catch (e) {
-            items = [];
-        }
-        var cur = getCurrency();
-        tbody.innerHTML = '';
-        items.forEach(function (it) {
-            var tr = document.createElement('tr');
-            var tdItem = document.createElement('td');
-            var title = document.createElement('div');
-            title.className = 'fw-semibold';
-            title.textContent = it.title || '';
-            tdItem.appendChild(title);
-            if (it.description) {
-                var d = document.createElement('div');
-                d.className = 'text-muted small mt-1';
-                d.textContent = it.description;
-                tdItem.appendChild(d);
-            }
-            var tdPrice = document.createElement('td');
-            tdPrice.className = 'text-end';
-            tdPrice.innerHTML = cur === 'rwf' ? (it.priceHtmlRwf || it.priceHtml || '') : (it.priceHtmlUsd || it.priceHtml || '');
-            tr.appendChild(tdItem);
-            tr.appendChild(tdPrice);
-            tbody.appendChild(tr);
-        });
-    }
-    document.querySelectorAll('.dining-todays-menu-root[data-dining-todays-mode="preview"]').forEach(renderTodaysPreview);
-})();
-</script>
-@endif
+@include('frontend.includes.dining-order-ui')
+@push('scripts')
+    @include('frontend.includes.dining-order-scripts')
+@endpush

@@ -1204,6 +1204,44 @@ body.spa-loading::before {
   width: 5.5rem;
 }
 
+.home-dining-choose__card--order .dining-todays-items--rows,
+.home-dining-choose__card-inner--menu .dining-todays-items--rows {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(22rem, 52vh);
+  overflow: auto;
+  margin-bottom: 0.85rem;
+}
+
+.dining-page-todays__menu-col .dining-todays-items--rows {
+  max-height: min(28rem, 62vh);
+}
+
+.home-dining-choose__card--order .dining-todays-table th:last-child,
+.home-dining-choose__card--order .dining-todays-table td:last-child {
+  width: 4.5rem;
+}
+
+.home-dining-choose__order-hint {
+  max-width: 18rem;
+  line-height: 1.45;
+}
+
+body.dining-order-active {
+  padding-bottom: min(20rem, 50vh);
+}
+
+@media (min-width: 992px) {
+  body.dining-order-active {
+    padding-bottom: 13rem;
+  }
+}
+
+.dining-order-dock__pay-note {
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.4;
+}
+
 .home-dining-choose__card-inner--menu .home-dining-choose__btn {
   margin-top: 0;
   width: 100%;
@@ -1345,27 +1383,139 @@ body.spa-loading::before {
 }
 
 /* Public dining page + order dock */
-.dining-page .dining-intro__inner {
-  max-width: 48rem;
-  color: #3a3a3a;
-}
-
 .dining-page {
   padding-bottom: 10rem;
+  background: #fff;
 }
 
-.dining-page__shell {
+.dining-page-band {
   width: 100vw;
   max-width: 100%;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  overflow-x: clip;
   box-sizing: border-box;
 }
 
+.dining-page-band--cream {
+  background: #f7f6f3;
+}
+
+.dining-page-band--white {
+  background: #fff;
+}
+
 .dining-page__inner {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
   padding-left: clamp(16px, 3vw, 48px);
   padding-right: clamp(16px, 3vw, 48px);
+}
+
+.dining-page-intro__title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: clamp(1.65rem, 3vw, 2.25rem);
+  font-weight: 700;
+  color: #0a0a0a;
+  margin-bottom: 0.75rem;
+}
+
+.dining-page-intro__lead,
+.dining-page-intro__prose {
+  max-width: 42rem;
+  color: #4a4a4a;
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.dining-page-intro__prose p:last-child {
+  margin-bottom: 0;
+}
+
+.dining-page-chips {
+  margin-top: 0.25rem;
+}
+
+.dining-page-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #3a3a3a;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.dining-page-chip i {
+  color: var(--header-footer-accent);
+}
+
+.dining-page-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  margin-top: 2rem;
+  padding: 1rem 1.15rem;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.05);
+}
+
+.dining-page-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.65rem;
+}
+
+.dining-page-steps__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.dining-page-steps__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--header-footer-accent);
+  color: #0a0a0a;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.dining-page-steps__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2a2a2a;
+}
+
+.dining-page-steps__sep {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 0.8rem;
+}
+
+.dining-page-section-head {
+  margin-bottom: 1.35rem;
+}
+
+.dining-page-section-head__sub {
+  max-width: 36rem;
+}
+
+.dining-page .dining-intro__inner {
+  max-width: 48rem;
+  color: #3a3a3a;
 }
 
 .dining-todays-card__inner {
@@ -1400,9 +1550,106 @@ body.spa-loading::before {
 
 @media (min-width: 992px) {
   .dining-page-todays__row {
-    grid-template-columns: 58% 42%;
+    grid-template-columns: 58fr 42fr;
     gap: clamp(1rem, 2vw, 1.75rem);
   }
+}
+
+.dining-page-todays__menu-col .dining-todays-card--page,
+.dining-page-todays__menu-col .dining-todays-card__inner {
+  height: 100%;
+}
+
+.dining-todays-items--rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: min(28rem, 62vh);
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.dining-todays-items--rows .dining-menu-item-row {
+  padding: 0.7rem 0.8rem;
+}
+
+.dining-menu-tabs-sticky {
+  position: sticky;
+  top: 72px;
+  z-index: 20;
+  margin: 0 0 1rem;
+  padding: 0.65rem 0;
+  background: linear-gradient(180deg, #f7f6f3 75%, rgba(247, 246, 243, 0));
+}
+
+.dining-menu-category-banner {
+  position: relative;
+  height: 120px;
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dining-menu-category-banner__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dining-menu-category-banner__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.85rem 1.1rem;
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.05) 0%, rgba(10, 10, 10, 0.72) 100%);
+}
+
+.dining-menu-category-banner__title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.dining-menu-panel {
+  margin-top: 0.25rem;
+}
+
+.dining-menu-item-row--has-img {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.dining-menu-item-row__thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #e8e4dc;
+}
+
+.dining-menu-item-row__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dining-menu-item-row--has-img .dining-menu-item-row__main {
+  grid-column: 2;
+}
+
+.dining-menu-item-row--has-img .dining-menu-item-row__aside {
+  grid-column: 3;
+  grid-row: 1;
 }
 
 .dining-page-todays__visual {
@@ -1472,12 +1719,19 @@ body.spa-loading::before {
 .dining-menu-items-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 @media (min-width: 768px) {
   .dining-menu-items-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .dining-menu-items-grid {
+    gap: 0.6rem;
   }
 }
 
@@ -1485,12 +1739,17 @@ body.spa-loading::before {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.85rem;
-  padding: 0.85rem 0.95rem;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
   border: 1px solid rgba(0, 0, 0, 0.07);
   border-radius: 12px;
   background: linear-gradient(180deg, #fffefb 0%, #faf8f4 100%);
   border-left: 3px solid var(--header-footer-accent);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dining-menu-item-row:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .dining-menu-item-row__main {
@@ -1556,10 +1815,38 @@ body.spa-loading::before {
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.dining-menu-grid-wrap {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: clamp(0.75rem, 1.8vw, 1.1rem);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+}
+
 @media (max-width: 575.98px) {
-  .dining-menu-item-row {
+  .dining-menu-item-row:not(.dining-menu-item-row--has-img) {
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.55rem;
+  }
+
+  .dining-menu-item-row--has-img {
+    grid-template-columns: 56px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .dining-menu-item-row--has-img .dining-menu-item-row__thumb {
+    width: 56px;
+    height: 56px;
+    grid-row: 1 / span 2;
+  }
+
+  .dining-menu-item-row--has-img .dining-menu-item-row__aside {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .dining-menu-item-row__aside {
@@ -1573,8 +1860,21 @@ body.spa-loading::before {
     min-height: 220px;
   }
 
-  .dining-todays-card--page .home-dining-tcol__wrap {
+  .dining-todays-items--rows {
     max-height: none;
+  }
+
+  .dining-page-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dining-page-steps__sep {
+    display: none;
+  }
+
+  .dining-menu-tabs-sticky {
+    top: 64px;
   }
 }
 
