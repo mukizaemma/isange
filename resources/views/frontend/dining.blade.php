@@ -15,30 +15,37 @@
                 </div>
             @endif
 
-            @include('frontend.includes.dining-todays-menu-card', [
-                'items' => $todaysMenu ?? [],
-                'mode' => 'order',
-                'showViewFullLink' => false,
+            @include('frontend.includes.dining-page-todays-section', [
+                'todaysMenu' => $todaysMenu ?? [],
             ])
 
-            <h2 class="h4 mb-3 wow fadeInUp">Full menu</h2>
-
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4 wow fadeInUp">
-                <p class="text-muted small mb-0">Add dishes to your order, review the summary, then send via WhatsApp or email.</p>
-                <div class="dining-currency-picker d-flex align-items-center gap-2">
-                    <span class="small fw-semibold">Prices in</span>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="Menu currency">
-                        <button type="button" class="btn btn-outline-secondary active" data-dining-currency="usd" id="dining-cur-usd">USD ($)</button>
-                        <button type="button" class="btn btn-outline-secondary" data-dining-currency="rwf" id="dining-cur-rwf">RWF</button>
+            <div class="dining-full-menu wow fadeInUp">
+                <div class="dining-full-menu__head">
+                    <div>
+                        <span class="dining-cat-kicker">Explore</span>
+                        <h2 class="dining-cat-title h4 mb-1" id="dining-full-menu-heading">Full menu</h2>
+                        <p class="text-muted small mb-0">Add dishes to your order, review the summary, then send via WhatsApp or email.</p>
+                    </div>
+                    <div class="dining-currency-picker d-flex align-items-center gap-2 flex-shrink-0">
+                        <span class="small fw-semibold">Prices in</span>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Menu currency">
+                            <button type="button" class="btn btn-outline-secondary active" data-dining-currency="usd" id="dining-cur-usd">USD ($)</button>
+                            <button type="button" class="btn btn-outline-secondary" data-dining-currency="rwf" id="dining-cur-rwf">RWF</button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <script type="application/json" id="dining-menu-data">@json($diningMenuColumns)</script>
-            <div id="dining-menu-columns-app" class="dining-menu-columns-app wow fadeInUp">
-                <p class="text-center text-muted py-5 mb-0 d-none" id="dining-menu-empty">Menu coming soon.</p>
-                <div id="dining-menu-loaded" class="d-none">
-                    <div class="dining-menu-columns-grid" id="dining-menu-columns-root" aria-live="polite"></div>
+                <script type="application/json" id="dining-menu-data">@json($diningMenuColumns)</script>
+                <div id="dining-menu-columns-app" class="dining-menu-columns-app">
+                    <p class="text-center text-muted py-5 mb-0 d-none" id="dining-menu-empty">Menu coming soon.</p>
+                    <div id="dining-menu-loaded" class="d-none">
+                        <div class="dining-menu-tabs-wrap mb-3" role="navigation" aria-label="Menu categories">
+                            <div class="dining-menu-tabs nav nav-pills flex-nowrap gap-2" id="dining-menu-tabs" role="tablist"></div>
+                        </div>
+                        <div class="dining-menu-grid-wrap">
+                            <div class="dining-menu-items-grid" id="dining-menu-items-root" aria-live="polite"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -218,13 +225,13 @@
         document.querySelectorAll('[data-dining-currency]').forEach(function (btn) {
             btn.classList.toggle('active', btn.getAttribute('data-dining-currency') === menuCurrency);
         });
-        columns.forEach(function (_, i) { renderCol(i); });
+        renderCategory(activeCategory);
         renderTodaysMenu();
         refreshDock();
     }
 
     window.__diningRenderColumns = function () {
-        columns.forEach(function (_, i) { renderCol(i); });
+        renderCategory(activeCategory);
         renderTodaysMenu();
     };
 
@@ -322,160 +329,140 @@
     } catch (e) {
         columns = [];
     }
-    var root = document.getElementById('dining-menu-columns-root');
+    var root = document.getElementById('dining-menu-items-root');
+    var tabsRoot = document.getElementById('dining-menu-tabs');
     var emptyEl = document.getElementById('dining-menu-empty');
     var loadedEl = document.getElementById('dining-menu-loaded');
+    var activeCategory = 0;
     var pageIndex = [];
 
-    function buildLayout() {
-        if (!root) return;
-        root.innerHTML = '';
-        pageIndex = columns.map(function () { return 0; });
+    function buildDishRow(it) {
+        var article = document.createElement('article');
+        article.className = 'dining-menu-item-row';
+
+        var main = document.createElement('div');
+        main.className = 'dining-menu-item-row__main';
+
+        var title = document.createElement('h4');
+        title.className = 'dining-menu-item-row__title';
+        title.textContent = it.title || '';
+        main.appendChild(title);
+
+        if (it.description) {
+            var desc = document.createElement('p');
+            desc.className = 'dining-menu-item-row__desc';
+            desc.textContent = it.description;
+            if (it.descriptionTitle) desc.title = it.descriptionTitle;
+            main.appendChild(desc);
+        }
+
+        if (it.prepMinutes) {
+            var prep = document.createElement('p');
+            prep.className = 'dining-menu-item-row__prep';
+            prep.innerHTML = '<i class="far fa-clock me-1" aria-hidden="true"></i> ~' + it.prepMinutes + ' min prep';
+            main.appendChild(prep);
+        }
+
+        var aside = document.createElement('div');
+        aside.className = 'dining-menu-item-row__aside';
+
+        var price = document.createElement('div');
+        price.className = 'dining-menu-item-row__price';
+        price.innerHTML = menuCurrency === 'rwf' ? (it.priceHtmlRwf || '') : (it.priceHtmlUsd || '');
+        aside.appendChild(price);
+
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'theme-btn style-three btn-sm dining-dish-add';
+        b.setAttribute('data-id', String(it.id));
+        b.setAttribute('data-title', it.title || '');
+        b.setAttribute('data-price', it.priceUsd || '0');
+        b.setAttribute('data-price-rwf', it.priceRwfAttr || '');
+        b.setAttribute('data-prep-minutes', it.prepMinutes ? String(it.prepMinutes) : '');
+        b.innerHTML = '<i class="fas fa-plus me-1" aria-hidden="true"></i> Add';
+        aside.appendChild(b);
+
+        article.appendChild(main);
+        article.appendChild(aside);
+        return article;
+    }
+
+    function buildCategoryTabs() {
+        if (!tabsRoot) return;
+        tabsRoot.innerHTML = '';
         columns.forEach(function (col, i) {
-            var wrap = document.createElement('div');
-            wrap.className = 'home-dining-tcol dining-menu-tcol';
-
-            var h4 = document.createElement('h4');
-            h4.className = 'home-dining-tcol__title mb-2';
-            h4.id = 'dining-col-title-' + i;
-
-            var trOuter = document.createElement('div');
-            trOuter.className = 'table-responsive home-dining-tcol__wrap border rounded-3 overflow-hidden bg-white';
-
-            var table = document.createElement('table');
-            table.className = 'table table-sm table-striped home-dining-mini-table dining-menu-page-table align-middle mb-0';
-
-            var thead = document.createElement('thead');
-            thead.className = 'table-light';
-            var trh = document.createElement('tr');
-            var th1 = document.createElement('th');
-            th1.scope = 'col';
-            th1.textContent = 'Item';
-            var th2 = document.createElement('th');
-            th2.scope = 'col';
-            th2.className = 'text-end text-nowrap';
-            th2.style.width = '6.5rem';
-            th2.textContent = 'Price';
-            var th3 = document.createElement('th');
-            th3.scope = 'col';
-            th3.className = 'text-end text-nowrap';
-            th3.style.width = '5rem';
-            var sr = document.createElement('span');
-            sr.className = 'visually-hidden';
-            sr.textContent = 'Add';
-            th3.appendChild(sr);
-            trh.appendChild(th1);
-            trh.appendChild(th2);
-            trh.appendChild(th3);
-            thead.appendChild(trh);
-
-            var tbody = document.createElement('tbody');
-            tbody.id = 'dining-tbody-' + i;
-
-            table.appendChild(thead);
-            table.appendChild(tbody);
-            trOuter.appendChild(table);
-
-            var pager = document.createElement('div');
-            pager.className = 'd-flex flex-wrap align-items-center justify-content-between gap-2 mt-2';
-            pager.id = 'dining-pager-' + i;
-
-            wrap.appendChild(h4);
-            wrap.appendChild(trOuter);
-            wrap.appendChild(pager);
-            root.appendChild(wrap);
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'nav-link dining-menu-tab-btn' + (i === activeCategory ? ' active' : '');
+            btn.setAttribute('role', 'tab');
+            btn.setAttribute('aria-selected', i === activeCategory ? 'true' : 'false');
+            btn.setAttribute('aria-controls', 'dining-menu-panel-' + i);
+            btn.id = 'dining-menu-tab-' + i;
+            var count = (col.items || []).length;
+            btn.textContent = (col.label || 'Menu') + (count ? ' (' + count + ')' : '');
+            btn.addEventListener('click', function () {
+                activeCategory = i;
+                columns.forEach(function (_, j) {
+                    var tab = document.getElementById('dining-menu-tab-' + j);
+                    if (tab) {
+                        tab.classList.toggle('active', j === i);
+                        tab.setAttribute('aria-selected', j === i ? 'true' : 'false');
+                    }
+                });
+                renderCategory(i);
+            });
+            tabsRoot.appendChild(btn);
         });
     }
 
-    function renderCol(idx) {
+    function renderCategory(idx) {
         var col = columns[idx];
-        var tbody = document.getElementById('dining-tbody-' + idx);
-        var pager = document.getElementById('dining-pager-' + idx);
-        var titleEl = document.getElementById('dining-col-title-' + idx);
-        if (!tbody || !pager || !titleEl || !col) return;
+        if (!root || !col) return;
 
-        titleEl.textContent = col.label || '';
         var items = col.items || [];
         var totalPages = Math.max(1, Math.ceil(items.length / PER));
+        if (pageIndex[idx] === undefined) pageIndex[idx] = 0;
         if (pageIndex[idx] >= totalPages) pageIndex[idx] = totalPages - 1;
         var start = pageIndex[idx] * PER;
         var slice = items.slice(start, start + PER);
 
-        tbody.innerHTML = '';
+        root.innerHTML = '';
+        root.id = 'dining-menu-panel-' + idx;
+        root.setAttribute('role', 'tabpanel');
+        root.setAttribute('aria-labelledby', 'dining-menu-tab-' + idx);
+
         if (!slice.length) {
-            var tr0 = document.createElement('tr');
-            var td0 = document.createElement('td');
-            td0.colSpan = 3;
-            td0.className = 'text-muted text-center py-4 small';
-            td0.textContent = 'No dishes in this section yet.';
-            tr0.appendChild(td0);
-            tbody.appendChild(tr0);
-        } else {
-            slice.forEach(function (it) {
-                var tr = document.createElement('tr');
-                var tdItem = document.createElement('td');
-                var strong = document.createElement('div');
-                strong.className = 'home-dining-mini-table__title fw-semibold';
-                strong.textContent = it.title || '';
-                tdItem.appendChild(strong);
-                if (it.description) {
-                    var desc = document.createElement('div');
-                    desc.className = 'home-dining-mini-table__desc text-muted small mt-1';
-                    desc.textContent = it.description;
-                    if (it.descriptionTitle) desc.title = it.descriptionTitle;
-                    tdItem.appendChild(desc);
-                }
-                if (it.prepMinutes) {
-                    var prep = document.createElement('div');
-                    prep.className = 'home-dining-mini-table__prep text-muted small mt-1';
-                    prep.innerHTML = '<i class="far fa-clock me-1"></i> ~' + it.prepMinutes + ' min prep';
-                    tdItem.appendChild(prep);
-                }
-                var tdPrice = document.createElement('td');
-                tdPrice.className = 'text-end align-top home-dining-mini-table__price';
-                var ph = document.createElement('div');
-                ph.innerHTML = menuCurrency === 'rwf' ? (it.priceHtmlRwf || '') : (it.priceHtmlUsd || '');
-                tdPrice.appendChild(ph);
-
-                var tdAct = document.createElement('td');
-                tdAct.className = 'text-end align-top';
-                var b = document.createElement('button');
-                b.type = 'button';
-                b.className = 'theme-btn style-three btn-sm dining-dish-add';
-                b.setAttribute('data-id', String(it.id));
-                b.setAttribute('data-title', it.title || '');
-                b.setAttribute('data-price', it.priceUsd || '0');
-                b.setAttribute('data-price-rwf', it.priceRwfAttr || '');
-                b.setAttribute('data-prep-minutes', it.prepMinutes ? String(it.prepMinutes) : '');
-                b.innerHTML = '<i class="fas fa-plus me-1"></i> Add';
-                tdAct.appendChild(b);
-
-                tr.appendChild(tdItem);
-                tr.appendChild(tdPrice);
-                tr.appendChild(tdAct);
-                tbody.appendChild(tr);
-            });
+            var empty = document.createElement('p');
+            empty.className = 'text-muted text-center py-4 mb-0 small';
+            empty.textContent = 'No dishes in this section yet.';
+            root.appendChild(empty);
+            return;
         }
 
-        pager.innerHTML = '';
-        pager.className = 'd-flex flex-wrap align-items-center justify-content-between gap-2 mt-2';
+        slice.forEach(function (it) {
+            root.appendChild(buildDishRow(it));
+        });
+
         if (items.length <= PER) return;
 
-        var info = document.createElement('span');
-        info.className = 'text-muted small';
-        info.textContent = 'Page ' + (pageIndex[idx] + 1) + ' of ' + totalPages;
+        var pager = document.createElement('div');
+        pager.className = 'dining-menu-pager';
 
         var prev = document.createElement('button');
         prev.type = 'button';
         prev.className = 'btn btn-sm btn-outline-secondary';
-        prev.textContent = 'Prev';
+        prev.textContent = 'Previous';
         prev.disabled = pageIndex[idx] <= 0;
         prev.addEventListener('click', function () {
             if (pageIndex[idx] > 0) {
                 pageIndex[idx]--;
-                renderCol(idx);
+                renderCategory(idx);
             }
         });
+
+        var info = document.createElement('span');
+        info.className = 'text-muted small';
+        info.textContent = 'Page ' + (pageIndex[idx] + 1) + ' of ' + totalPages;
 
         var next = document.createElement('button');
         next.type = 'button';
@@ -485,13 +472,20 @@
         next.addEventListener('click', function () {
             if (pageIndex[idx] < totalPages - 1) {
                 pageIndex[idx]++;
-                renderCol(idx);
+                renderCategory(idx);
             }
         });
 
         pager.appendChild(prev);
         pager.appendChild(info);
         pager.appendChild(next);
+        root.appendChild(pager);
+    }
+
+    function buildLayout() {
+        pageIndex = columns.map(function () { return 0; });
+        buildCategoryTabs();
+        renderCategory(activeCategory);
     }
 
     var hasItems = columns.some(function (c) { return c.items && c.items.length; });
@@ -500,9 +494,6 @@
     } else {
         if (loadedEl) loadedEl.classList.remove('d-none');
         buildLayout();
-        columns.forEach(function (_, i) {
-            renderCol(i);
-        });
     }
 
     function save() {

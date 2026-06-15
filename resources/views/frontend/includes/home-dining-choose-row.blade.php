@@ -1,5 +1,10 @@
 @php
+    use App\Support\PageHeaderResolver;
+
     $homeTodaysMenu = $homeTodaysMenu ?? [];
+    $diningHeader = ($pageHeaders ?? collect())['dining'] ?? null;
+    $diningCover = PageHeaderResolver::resolve('dining', $setting ?? null, $about ?? null, $diningHeader)['imageUrl']
+        ?? asset('assets/img/resto.jpg');
 @endphp
 
 <section class="home-dining-choose rel z-1 py-100 rpy-70">
@@ -10,28 +15,37 @@
         </div>
 
         <div class="home-dining-choose__row">
-            <div class="home-dining-choose__col home-dining-choose__col--menu wow fadeInLeft delay-0-2s">
+            <div class="home-dining-choose__col home-dining-choose__col--visual wow fadeInLeft delay-0-2s">
+                <figure class="home-dining-choose__visual">
+                    <img
+                        class="home-dining-choose__visual-img"
+                        src="{{ $diningCover }}"
+                        alt="Restaurant and garden dining at Isange Paradise"
+                        loading="lazy"
+                        width="960"
+                        height="720"
+                    >
+                    <figcaption class="home-dining-choose__visual-caption">
+                        <span class="home-dining-choose__badge home-dining-choose__badge--light"><i class="fas fa-gem me-2" aria-hidden="true"></i>Why choose us</span>
+                        <h3 class="home-dining-choose__visual-title">Garden dining experience</h3>
+                        <ul class="home-dining-choose__why-list home-dining-choose__why-list--overlay">
+                            <li><i class="fas fa-seedling" aria-hidden="true"></i><span>Produce from our ecological garden</span></li>
+                            <li><i class="fas fa-utensils" aria-hidden="true"></i><span>Rwandan specialties &amp; international favorites</span></li>
+                            <li><i class="fas fa-leaf" aria-hidden="true"></i><span>Vegetarian options &amp; locally sourced ingredients</span></li>
+                        </ul>
+                        <a href="{{ route('rooms') }}" class="theme-btn home-dining-choose__btn home-dining-choose__btn--solid home-dining-choose__btn--overlay">
+                            Book now <i class="far fa-angle-right ms-2"></i>
+                        </a>
+                    </figcaption>
+                </figure>
+            </div>
+
+            <div class="home-dining-choose__col home-dining-choose__col--menu wow fadeInRight delay-0-2s">
                 @include('frontend.includes.dining-todays-menu-card', [
                     'items' => $homeTodaysMenu,
                     'mode' => 'preview',
                     'showViewFullLink' => true,
                 ])
-            </div>
-            <div class="home-dining-choose__col home-dining-choose__col--why wow fadeInRight delay-0-2s">
-                <article class="home-dining-choose__card home-dining-choose__card--why h-100">
-                    <div class="home-dining-choose__card-inner home-dining-choose__card-inner--why">
-                        <span class="home-dining-choose__badge home-dining-choose__badge--accent"><i class="fas fa-gem me-2" aria-hidden="true"></i>Why choose us</span>
-                        <h3 class="home-dining-choose__card-title">Garden dining experience</h3>
-                        <ul class="home-dining-choose__why-list">
-                            <li><i class="fas fa-seedling" aria-hidden="true"></i><span>Produce from our ecological garden</span></li>
-                            <li><i class="fas fa-utensils" aria-hidden="true"></i><span>Rwandan specialties &amp; international favorites</span></li>
-                            <li><i class="fas fa-leaf" aria-hidden="true"></i><span>Vegetarian options &amp; locally sourced ingredients</span></li>
-                        </ul>
-                        <a href="{{ route('rooms') }}" class="theme-btn home-dining-choose__btn home-dining-choose__btn--solid">
-                            Book now <i class="far fa-angle-right ms-2"></i>
-                        </a>
-                    </div>
-                </article>
             </div>
         </div>
     </div>
