@@ -2072,6 +2072,27 @@ body.dining-order-active {
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+.home-dining-choose--hero .dining-menu-item-row {
+  background: rgba(0, 0, 0, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+  border-left-color: var(--header-footer-accent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+}
+
+.home-dining-choose--hero .dining-menu-item-row__title {
+  color: #ffffff;
+}
+
+.home-dining-choose--hero .dining-menu-item-row__desc {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.home-dining-choose--hero .dining-menu-item-row__price {
+  color: #ffffff;
+}
+
 .dining-menu-item-row:hover {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }

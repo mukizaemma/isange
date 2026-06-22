@@ -49,8 +49,10 @@ class DiningMenuPresenter
     {
         $items = DiningMenuItem::query()
             ->where('is_today_menu', true)
-            ->orderBy('sort_order')
-            ->orderBy('title')
+            // Show the most recently updated items first for "today's" picks
+            ->latest('updated_at')
+            ->latest('id')
+            ->take(9)
             ->get();
 
         if ($items->isEmpty()) {
