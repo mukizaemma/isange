@@ -26,8 +26,7 @@
             <p class="home-dining-choose__lead mx-auto mb-0">Fresh, local, delicious — meals from our ecological garden and farmers across Musanze.</p>
         </div>
 
-        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 wow fadeInUp delay-0-15s">
-            <p class="home-dining-choose__order-hint small mb-0">Add dishes, then send your order via WhatsApp or email. Pay at the hotel.</p>
+        <div class="d-flex flex-wrap align-items-center justify-content-end gap-3 mb-3 wow fadeInUp delay-0-15s">
             <div class="dining-currency-picker dining-currency-picker--on-dark d-flex align-items-center gap-2 flex-shrink-0">
                 <span class="small fw-semibold">Prices in</span>
                 <div class="btn-group btn-group-sm" role="group" aria-label="Menu currency">
@@ -42,9 +41,10 @@
                 'items' => $homeTodaysMenu,
                 'mode' => 'order',
                 'heroOverlay' => true,
-                'useCardGrid' => true,
+                'useRowList' => true,
                 'showViewFullLink' => true,
                 'hideCurrencyBar' => true,
+                'compactHeader' => true,
             ])
         </div>
     </div>
