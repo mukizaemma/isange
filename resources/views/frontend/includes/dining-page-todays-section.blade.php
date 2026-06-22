@@ -7,11 +7,13 @@
         ?? asset('assets/img/resto.jpg');
 @endphp
 
-<section class="dining-page-todays wow fadeInUp" aria-labelledby="dining-todays-heading">
-  <div class="dining-page-section-head">
-    <span class="dining-cat-kicker">Chef&rsquo;s selection</span>
-    <h2 class="dining-cat-title h4 mb-1" id="dining-todays-heading">Today&rsquo;s picks</h2>
-    <p class="dining-page-section-head__sub small text-muted mb-0">Updated daily from our garden kitchen — add to your tray below.</p>
+<section class="dining-page-todays dining-page-todays--full wow fadeInUp" aria-labelledby="dining-todays-heading">
+  <div class="dining-page-todays__head">
+    <div class="dining-page-section-head">
+      <span class="dining-cat-kicker">Chef&rsquo;s selection</span>
+      <h2 class="dining-cat-title h4 mb-1" id="dining-todays-heading">Today&rsquo;s picks</h2>
+      <p class="dining-page-section-head__sub small text-muted mb-0">Updated daily from our garden kitchen — add to your tray below.</p>
+    </div>
   </div>
 
   <div class="dining-page-todays__row">

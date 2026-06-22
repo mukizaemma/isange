@@ -204,7 +204,7 @@ body.spa-loading::before {
 @media only screen and (min-width: 992px) {
   .main-header .header-inner.header-inner--balanced {
     display: grid !important;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
     column-gap: 1rem;
   }
@@ -218,6 +218,7 @@ body.spa-loading::before {
     justify-self: center;
     width: auto;
     max-width: 100%;
+    min-width: 0;
   }
 
   .main-header .header-inner.header-inner--balanced .nav-outer .navbar-collapse {
@@ -227,10 +228,14 @@ body.spa-loading::before {
   .main-header .header-inner.header-inner--balanced .menu-btns {
     justify-self: end;
     margin-left: 0 !important;
+    flex-shrink: 0;
+    min-width: max-content;
   }
 
   .main-header .header-inner.header-inner--balanced .menu-btns .theme-btn {
     margin-left: 0;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }
 
@@ -338,6 +343,37 @@ body.spa-loading::before {
 
 .main-header .header-upper .main-menu .navbar-collapse > ul > li:hover .dropdown-btn {
   color: var(--primary-color) !important;
+}
+
+@media only screen and (min-width: 992px) {
+  .main-header .header-inner.header-inner--balanced {
+    column-gap: 0.65rem;
+  }
+
+  .main-header .header-upper .main-menu .navbar-collapse > ul > li {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .main-header .header-upper .main-menu .navbar-collapse > ul > li > a {
+    font-size: 16px;
+    white-space: nowrap;
+  }
+
+  .main-header .header-upper .main-menu .navbar-collapse li.dropdown .dropdown-btn {
+    margin-left: 3px;
+  }
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1399px) {
+  .main-header .header-upper .main-menu .navbar-collapse > ul > li {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  .main-header .header-upper .main-menu .navbar-collapse > ul > li > a {
+    font-size: 15px;
+  }
 }
 
 /* Footer — forest green, light text, orange hover */
@@ -1715,34 +1751,98 @@ body.dining-order-active {
   margin-bottom: 0 !important;
 }
 
+.dining-page-todays--full {
+  width: 100%;
+  max-width: none;
+  padding-left: clamp(16px, 3vw, 48px);
+  padding-right: clamp(16px, 3vw, 48px);
+}
+
+.dining-page-todays__head {
+  max-width: 72rem;
+  margin: 0 auto 1.35rem;
+}
+
 .dining-page-todays__row {
   display: grid;
   gap: 1.25rem;
-  align-items: stretch;
+  align-items: start;
   grid-template-columns: 1fr;
 }
 
 @media (min-width: 992px) {
   .dining-page-todays__row {
-    grid-template-columns: 58fr 42fr;
-    gap: clamp(1rem, 2vw, 1.75rem);
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 22rem);
+    gap: clamp(1rem, 2vw, 2rem);
   }
+}
+
+.dining-page-todays__menu-col {
+  min-width: 0;
+}
+
+.dining-page-todays__visual-col {
+  min-width: 0;
 }
 
 .dining-page-todays__menu-col .dining-todays-card--page,
 .dining-page-todays__menu-col .dining-todays-card__inner {
-  height: 100%;
+  height: auto;
+}
+
+.dining-page-todays__menu-col .dining-todays-card__inner {
+  padding: clamp(0.85rem, 1.5vw, 1.15rem);
 }
 
 .dining-page-todays__menu-col .dining-todays-items--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
   max-height: none;
+  overflow: visible;
+  align-items: stretch;
 }
 
-@media (min-width: 992px) {
+@media (min-width: 768px) {
   .dining-page-todays__menu-col .dining-todays-items--grid {
-    max-height: min(32rem, 70vh);
-    overflow: auto;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
+}
+
+@media (min-width: 1200px) {
+  .dining-page-todays__menu-col .dining-todays-items--grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1400px) {
+  .dining-page-todays__menu-col .dining-todays-items--grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.dining-page-todays .dining-menu-grid-card {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+.dining-page-todays .dining-menu-grid-card__body {
+  padding: 0.85rem 0.9rem 0.55rem;
+}
+
+.dining-page-todays .dining-menu-grid-card__foot {
+  flex-wrap: wrap;
+  padding: 0.7rem 0.9rem 0.85rem;
+}
+
+.dining-page-todays .dining-menu-grid-card__price {
+  min-width: 0;
+}
+
+.dining-page-todays .dining-dish-add {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .dining-todays-items--grid {
@@ -1867,8 +1967,9 @@ body.dining-order-active {
 .dining-page-todays__visual {
   position: relative;
   margin: 0;
-  height: 100%;
+  height: auto;
   min-height: 280px;
+  aspect-ratio: 4 / 5;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -2058,6 +2159,11 @@ body.dining-order-active {
 
   .dining-page-todays__visual {
     min-height: 220px;
+    aspect-ratio: 16 / 10;
+  }
+
+  .dining-page-todays__menu-col .dining-todays-items--grid {
+    grid-template-columns: 1fr;
   }
 
   .dining-todays-items--grid {

@@ -231,16 +231,16 @@
         article.className = 'dining-menu-grid-card';
         article.setAttribute('data-dish-title', (it.title || '').toLowerCase());
 
-        var media = document.createElement('div');
-        media.className = 'dining-menu-grid-card__media' + (it.imageUrl ? '' : ' dining-menu-grid-card__media--ph');
         if (it.imageUrl) {
+            var media = document.createElement('div');
+            media.className = 'dining-menu-grid-card__media';
             var img = document.createElement('img');
             img.src = it.imageUrl;
             img.alt = it.title || '';
             img.loading = 'lazy';
             media.appendChild(img);
+            article.appendChild(media);
         }
-        article.appendChild(media);
 
         var body = document.createElement('div');
         body.className = 'dining-menu-grid-card__body';

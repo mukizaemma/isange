@@ -13,11 +13,9 @@
     </div>
 
     <div class="dining-page-band dining-page-band--white py-100 rpy-70">
-        <div class="dining-page__inner">
-            @include('frontend.includes.dining-page-todays-section', [
-                'todaysMenu' => $todaysMenu ?? [],
-            ])
-        </div>
+        @include('frontend.includes.dining-page-todays-section', [
+            'todaysMenu' => $todaysMenu ?? [],
+        ])
     </div>
 
     <div class="dining-page-band dining-page-band--cream py-100 rpy-70">
