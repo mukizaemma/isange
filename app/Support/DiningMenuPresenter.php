@@ -45,15 +45,18 @@ class DiningMenuPresenter
     /**
      * @return list<array<string, mixed>>
      */
-    public static function todaysMenuItems(): array
+    public static function todaysMenuItems(?int $limit = null): array
     {
-        $items = DiningMenuItem::query()
+        $query = DiningMenuItem::query()
             ->where('is_today_menu', true)
-            // Show the most recently updated items first for "today's" picks
             ->latest('updated_at')
-            ->latest('id')
-            ->take(9)
-            ->get();
+            ->latest('id');
+
+        if ($limit !== null) {
+            $query->take($limit);
+        }
+
+        $items = $query->get();
 
         if ($items->isEmpty()) {
             return [];

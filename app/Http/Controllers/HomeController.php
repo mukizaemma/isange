@@ -44,7 +44,7 @@ class HomeController extends Controller
             return [
                 'slides' => $slides,
                 'rooms' => $rooms,
-                'homeTodaysMenu' => DiningMenuPresenter::todaysMenuItems(),
+                'homeTodaysMenu' => DiningMenuPresenter::todaysMenuItems(12),
                 'latestBlogs' => $latestBlogs,
             ];
         });

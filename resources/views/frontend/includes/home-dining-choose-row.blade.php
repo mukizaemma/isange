@@ -41,7 +41,7 @@
                 'items' => $homeTodaysMenu,
                 'mode' => 'order',
                 'heroOverlay' => true,
-                'useRowList' => true,
+                'useCardGrid' => true,
                 'showViewFullLink' => true,
                 'hideCurrencyBar' => true,
                 'compactHeader' => true,
