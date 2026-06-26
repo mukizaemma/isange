@@ -4,13 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\GuestDiningSubmission;
 use App\Models\SiteAnalyticsEvent;
+use App\Support\SpamProtection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class GuestDiningSubmissionController extends Controller
 {
     public function store(Request $request): JsonResponse
     {
+        try {
+            SpamProtection::validateRequest($request);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => collect($e->errors())->flatten()->first() ?? SpamProtection::failureMessage(),
+            ], 422);
+        }
+
         $data = $request->validate([
             'channel' => 'required|in:whatsapp,email',
             'message_body' => 'required|string|max:20000',

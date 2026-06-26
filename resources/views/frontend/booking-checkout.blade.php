@@ -255,6 +255,7 @@
                             </label>
                         </div>
                     </div>
+                    <x-human-form-fields class="mb-3" />
                     <button type="submit" class="theme-btn btn-lg w-100 ma-stay-checkout__submit" id="stay-checkout-submit">
                         Confirm booking
                     </button>

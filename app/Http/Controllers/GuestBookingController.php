@@ -5,8 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
-use App\Support\BookingEngine;
 use App\Models\SiteAnalyticsEvent;
+use App\Support\BookingEngine;
+use App\Support\SpamProtection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -59,6 +60,8 @@ class GuestBookingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        SpamProtection::validateRequest($request);
+
         $validated = Validator::make($request->all(), [
             'room_id' => 'nullable|exists:rooms,id',
             'check_in' => 'required|date|after_or_equal:today',

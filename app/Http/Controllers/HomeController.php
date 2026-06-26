@@ -15,6 +15,7 @@ use App\Models\Service;
 use App\Models\Slide;
 use App\Support\DiningMenuPresenter;
 use App\Support\FrontendPageCache;
+use App\Support\SpamProtection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -232,6 +233,7 @@ class HomeController extends Controller
 
     public function SendMessage(Request $request)
     {
+        SpamProtection::validateRequest($request);
 
         $comment = Message::create([
             'names' => $request->input('names'),
@@ -250,6 +252,8 @@ class HomeController extends Controller
 
     public function reserveNow(Request $request)
     {
+        SpamProtection::validateRequest($request);
+
         $today = now()->toDateString();
         $bookingCount = Booking::where('email', $request->email)
             ->whereDate('created_at', $today)

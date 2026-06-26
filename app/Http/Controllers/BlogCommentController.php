@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Blog;
 use App\Models\BlogComment;
+use App\Support\SpamProtection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -13,11 +14,16 @@ class BlogCommentController extends Controller
     {
         abort_unless($blog->isPublished(), 404);
 
+        SpamProtection::validateRequest(
+            $request,
+            route('blog', $blog).'#comments'
+        );
+
         try {
             $validated = $request->validate([
-            'author_name' => ['required', 'string', 'max:120'],
-            'author_email' => ['nullable', 'email', 'max:255'],
-            'body' => ['required', 'string', 'max:5000'],
+                'author_name' => ['required', 'string', 'max:120'],
+                'author_email' => ['nullable', 'email', 'max:255'],
+                'body' => ['required', 'string', 'max:5000'],
             ]);
         } catch (ValidationException $e) {
             throw $e->redirectTo(

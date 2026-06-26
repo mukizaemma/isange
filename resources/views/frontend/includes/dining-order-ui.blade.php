@@ -65,6 +65,7 @@
             </div>
             <div class="col-lg-4">
                 <p class="dining-order-dock__sub small mb-2">Send your order to the hotel. Payment is collected on site.</p>
+                <x-human-form-fields class="mb-3" />
                 <div class="d-flex flex-column gap-2">
                     <button type="button" class="theme-btn btn-sm" id="dining-order-whatsapp"><i class="fab fa-whatsapp me-1"></i> Send via WhatsApp</button>
                     <button type="button" class="theme-btn style-three btn-sm" id="dining-order-email"><i class="far fa-envelope me-1"></i> Send via Email</button>

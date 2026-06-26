@@ -129,7 +129,10 @@
 
                     <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center pt-2">
                         <p class="small text-muted mb-0">By continuing you agree your request may be stored for hotel operations.</p>
-                        <button type="submit" class="theme-btn">Submit booking request <i class="far fa-angle-right ms-2"></i></button>
+                        <div class="w-100">
+                            <x-human-form-fields class="mb-3" />
+                            <button type="submit" class="theme-btn">Submit booking request <i class="far fa-angle-right ms-2"></i></button>
+                        </div>
                     </div>
                 </form>
             </div>

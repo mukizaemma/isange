@@ -72,6 +72,8 @@
                     </div>
         
                     <textarea name="description" placeholder="Any Special Request? (Optional)" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 12px; height: 80px;"></textarea>
+
+                    <x-human-form-fields class="mb-3" />
         
                     <div class="row d-flex justify-content-center align-items-center gap-2" style="padding: 5px;">
                         <button type="submit" class="tp-btn btn btn-primary" style="width:20%; padding: 12px; border-radius: 4px; font-size: 1rem;">Submit</button>

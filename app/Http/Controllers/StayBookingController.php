@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
 use App\Support\BookingEngine;
 use App\Support\ExperienceCatalog;
+use App\Support\SpamProtection;
 use App\Support\StayBookingMessageBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -62,6 +63,8 @@ class StayBookingController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        SpamProtection::validateRequest($request);
+
         $setting = Setting::first();
         $hotelWhatsappReady = self::hotelWhatsappReady($setting);
         $hotelEmailReady = self::hotelEmailReady($setting);

@@ -35,6 +35,12 @@
                         <div class="alert alert-success" role="status">{{ session('comment_success') }}</div>
                     @endif
 
+                    @if ($errors->has('submission') || $errors->has('cf-turnstile-response'))
+                        <div class="alert alert-danger" role="alert">
+                            {{ $errors->first('submission') ?: $errors->first('cf-turnstile-response') }}
+                        </div>
+                    @endif
+
                     @if ($post->comments->isNotEmpty())
                         <ul class="isange-update-comments__list list-unstyled mb-4">
                             @foreach ($post->comments as $comment)
@@ -70,6 +76,9 @@
                                     <label class="form-label" for="body">Comment</label>
                                     <textarea class="form-control @error('body') is-invalid @enderror" id="body" name="body" rows="4" required maxlength="5000">{{ old('body') }}</textarea>
                                     @error('body')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                                </div>
+                                <div class="col-12">
+                                    <x-human-form-fields />
                                 </div>
                                 <div class="col-12">
                                     <button type="submit" class="theme-btn">Post comment <i class="far fa-angle-right"></i></button>

@@ -30,6 +30,25 @@
         return m ? m.getAttribute('content') : '';
     }
 
+    function spamPayload() {
+        var root = dockEl();
+        if (!root) return {};
+
+        var hp = root.querySelector('[name="_hp_website"]');
+        var ts = root.querySelector('[name="_form_ts"]');
+        var turnstile = root.querySelector('[name="cf-turnstile-response"]');
+        var payload = {
+            _hp_website: hp ? hp.value : '',
+            _form_ts: ts ? parseInt(ts.value, 10) || 0 : 0
+        };
+
+        if (turnstile && turnstile.value) {
+            payload['cf-turnstile-response'] = turnstile.value;
+        }
+
+        return payload;
+    }
+
     function postTrack(eventKey, properties) {
         if (!cfg || !cfg.trackUrl) return;
         fetch(cfg.trackUrl, {
@@ -498,7 +517,7 @@
                 'X-CSRF-TOKEN': csrfToken()
             },
             credentials: 'same-origin',
-            body: JSON.stringify({
+            body: JSON.stringify(Object.assign({
                 channel: channel,
                 message_body: plainMessage,
                 items: items,
@@ -510,7 +529,7 @@
                 grand_total_usd: gt.sumUsd.toFixed(2),
                 grand_total_rwf: gt.sumRwf > 0 ? String(gt.sumRwf) : '',
                 session_id: maSessionId()
-            })
+            }, spamPayload()))
         }).catch(function () {});
     }
 

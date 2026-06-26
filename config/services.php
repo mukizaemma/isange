@@ -36,4 +36,9 @@ return [
         'image_model' => env('OPENAI_IMAGE_MODEL', 'dall-e-3'),
     ],
 
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITE_KEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];

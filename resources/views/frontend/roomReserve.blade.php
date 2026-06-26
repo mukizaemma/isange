@@ -410,6 +410,7 @@
                 </div>
 
                 <div class="form-actions">
+                    <x-human-form-fields class="mb-3" />
                     <button type="submit" class="btn btn-primary text-black">
                         <i class="fa fa-save"></i> Confirm your reservation
                     </button>

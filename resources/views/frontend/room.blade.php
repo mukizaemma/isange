@@ -90,6 +90,8 @@
                     <input type="text" name="address" placeholder="Address, Country, City" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 12px;">
         
                     <textarea name="description" placeholder="Any Special Request? (Optional)" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 12px; height: 80px;"></textarea>
+
+                    <x-human-form-fields class="mb-3" />
         
                     <button type="submit" class="tp-btn" style="width: 100%; padding: 12px; border: none; border-radius: 4px; background-color: #007bff; color: white; font-size: 1rem; cursor: pointer;">Submit</button>
                 </form>

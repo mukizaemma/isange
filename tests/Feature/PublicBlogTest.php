@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Blog;
 use App\Models\Setting;
+use App\Support\SpamProtection;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -82,11 +83,11 @@ class PublicBlogTest extends TestCase
             'views' => 0,
         ]);
 
-        $this->post(route('blog.comments.store', $post), [
+        $this->post(route('blog.comments.store', $post), array_merge([
             'author_name' => 'Jane Guest',
             'author_email' => 'jane@example.com',
             'body' => 'Lovely place!',
-        ])
+        ], SpamProtection::testFields()))
             ->assertRedirect(route('blog', $post).'#comments');
 
         $this->assertDatabaseHas('blog_comments', [
