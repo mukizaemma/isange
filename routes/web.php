@@ -105,6 +105,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/updates/{blog}/edit', [BlogController::class, 'edit'])->name('admin.blogs.edit');
     Route::put('/updates/{blog}', [BlogController::class, 'update'])->name('admin.blogs.update');
     Route::delete('/updates/{blog}', [BlogController::class, 'destroy'])->name('admin.blogs.destroy');
+    Route::delete('/updates/{blog}/comments', [BlogController::class, 'destroyAllComments'])->name('admin.blogs.comments.destroy-all');
     Route::delete('/updates/{blog}/comments/{comment}', [BlogController::class, 'destroyComment'])->name('admin.blogs.comments.destroy');
 
     Route::get('/setting', [SettingController::class, 'setting'])->name('setting');

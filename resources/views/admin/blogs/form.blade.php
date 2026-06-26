@@ -104,9 +104,16 @@
                     </div>
 
                     @if ($blog->exists)
-                        <div class="card mb-4">
-                            <div class="card-header">
+                        <div class="card mb-4" id="comments">
+                            <div class="card-header d-flex justify-content-between align-items-center gap-2">
                                 <span class="fw-semibold">Comments ({{ $blog->comments->count() }})</span>
+                                @if ($blog->comments->isNotEmpty())
+                                    <form action="{{ route('admin.blogs.comments.destroy-all', $blog) }}" method="POST" onsubmit="return confirm('Remove all comments on this post from the website? This cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete all comments</button>
+                                    </form>
+                                @endif
                             </div>
                             <div class="card-body">
                                 @if ($blog->comments->isEmpty())

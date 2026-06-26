@@ -16,6 +16,7 @@ class BlogController extends Controller
     {
         $blogs = Blog::query()
             ->withCount('comments')
+            ->with(['comments' => fn ($q) => $q->latest()->limit(3)])
             ->latest('published_at')
             ->latest('id')
             ->get();
@@ -76,6 +77,19 @@ class BlogController extends Controller
         $comment->delete();
 
         return redirect()->route('admin.blogs.edit', $blog)->with('success', 'Comment removed.');
+    }
+
+    public function destroyAllComments(Blog $blog)
+    {
+        $count = $blog->comments()->count();
+
+        if ($count === 0) {
+            return redirect()->route('admin.blogs.edit', $blog)->with('success', 'No comments to remove.');
+        }
+
+        $blog->comments()->delete();
+
+        return redirect()->route('admin.blogs.edit', $blog)->with('success', $count === 1 ? 'Comment removed.' : "{$count} comments removed.");
     }
 
     private function validateBlog(Request $request, ?Blog $blog = null): array

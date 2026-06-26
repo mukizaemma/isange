@@ -83,7 +83,7 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($blogs as $blog)
-                                                <tr>
+                                                <tr @class(['table-warning' => $blog->comments_count > 0])>
                                                     <td>
                                                         <a href="{{ route('admin.blogs.edit', $blog) }}" class="fw-semibold text-decoration-none">{{ $blog->title }}</a>
                                                         @if ($blog->isPublished())
@@ -100,7 +100,23 @@
                                                         @endif
                                                     </td>
                                                     <td class="text-end">{{ number_format($blog->views ?? 0) }}</td>
-                                                    <td class="text-end">{{ $blog->comments_count }}</td>
+                                                    <td class="text-end">
+                                                        @if ($blog->comments_count > 0)
+                                                            <a href="{{ route('admin.blogs.edit', $blog) }}#comments" class="badge bg-warning text-dark text-decoration-none">
+                                                                {{ number_format($blog->comments_count) }} {{ $blog->comments_count === 1 ? 'comment' : 'comments' }}
+                                                            </a>
+                                                            <div class="small text-muted mt-1">
+                                                                Latest:
+                                                                {{ $blog->comments->pluck('author_name')->join(', ') }}
+                                                                @if ($blog->comments_count > $blog->comments->count())
+                                                                    <span class="text-nowrap">+{{ $blog->comments_count - $blog->comments->count() }} more</span>
+                                                                @endif
+                                                            </div>
+                                                            <a href="{{ route('admin.blogs.edit', $blog) }}#comments" class="small">Manage comments</a>
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
                                                     <td>{{ optional($blog->published_at)->format('d M Y') ?? '—' }}</td>
                                                     <td class="text-end text-nowrap">
                                                         <a href="{{ route('admin.blogs.edit', $blog) }}" class="btn btn-sm btn-primary">Edit</a>
