@@ -353,16 +353,18 @@
 
         document.addEventListener('click', function (e) {
             var dockContinue = e.target.closest('#stay-cart-continue, #stay-cart-continue-modal');
-            if (dockContinue) {
-                if (document.getElementById('stay-checkout-form') && window.IsangeCheckout && typeof window.IsangeCheckout.next === 'function') {
-                    e.preventDefault();
-                    window.IsangeCheckout.next();
-                    return;
+            if (!dockContinue) {
+                return;
+            }
+            if (document.getElementById('stay-checkout-form')) {
+                if (typeof window.__checkoutRunNext === 'function') {
+                    window.__checkoutRunNext(e);
                 }
-                if (!IsangeStayCart.hasItems()) {
-                    e.preventDefault();
-                    alert('Add a room or experience to continue.');
-                }
+                return;
+            }
+            if (!IsangeStayCart.hasItems()) {
+                e.preventDefault();
+                alert('Add a room or experience to continue.');
             }
         });
 

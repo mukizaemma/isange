@@ -57,7 +57,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/isange-home.css') }}">
 
 </head>
-<body class="home-one">
+<body class="home-one @yield('body_class')">
     <div class="page-wrapper">
 
         <!-- main header -->

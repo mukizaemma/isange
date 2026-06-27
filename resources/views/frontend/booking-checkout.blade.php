@@ -1,8 +1,8 @@
 @extends('layouts.frontbase')
 
-@section('content')
+@section('body_class', 'is-checkout-page')
 
-<script>document.body.classList.add('is-checkout-page');</script>
+@section('content')
 
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Confirm booking'])
 
@@ -11,7 +11,7 @@
     $prefillPayAtHotelChannel = $prefillPayAtHotelChannel ?? (in_array(request('channel'), ['whatsapp', 'email'], true) ? request('channel') : null);
 @endphp
 
-<section class="ma-stay-checkout py-80 rpy-60 rel z-1">
+<section class="ma-stay-checkout py-80 rpy-60">
     <div class="container">
         <div class="ma-stay-checkout__top d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
             <a href="{{ route('home') }}" class="text-muted small"><i class="fas fa-arrow-left me-1"></i> Back to home</a>
@@ -315,6 +315,58 @@
 (function () {
     window.IsangeCheckout = window.IsangeCheckout || { next: null, back: null };
 
+    function runCheckoutNext(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (typeof window.__checkoutAdvance === 'function') {
+            window.__checkoutAdvance();
+            return;
+        }
+        if (typeof window.__checkoutBoot === 'function') {
+            window.__checkoutBoot();
+        }
+        if (typeof window.__checkoutAdvance === 'function') {
+            window.__checkoutAdvance();
+        } else {
+            alert('Checkout is still loading. Please refresh the page and try again.');
+        }
+    }
+
+    function runCheckoutBack(e) {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (typeof window.__checkoutRetreat === 'function') {
+            window.__checkoutRetreat();
+            return;
+        }
+        if (typeof window.__checkoutBoot === 'function') {
+            window.__checkoutBoot();
+        }
+        if (typeof window.__checkoutRetreat === 'function') {
+            window.__checkoutRetreat();
+        }
+    }
+
+    window.__checkoutRunNext = runCheckoutNext;
+    window.__checkoutRunBack = runCheckoutBack;
+
+    document.addEventListener('click', function (e) {
+        if (!document.getElementById('stay-checkout-form')) {
+            return;
+        }
+        if (e.target.closest('#checkout-step-next, #stay-cart-continue, #stay-cart-continue-modal')) {
+            runCheckoutNext(e);
+            return;
+        }
+        if (e.target.closest('#checkout-step-back')) {
+            runCheckoutBack(e);
+        }
+    }, true);
+
     function initCheckout() {
         if (!window.IsangeStayCart) {
             return;
@@ -338,6 +390,7 @@
             return;
         }
 
+        try {
         @if (old('cart_json'))
         try {
             var restoredCart = {!! json_encode(old('cart_json')) !!};
@@ -366,6 +419,10 @@
         var nightsText = document.getElementById('stay-nights-text');
         var stepBackBtn = document.getElementById('checkout-step-back');
         var stepNextBtn = document.getElementById('checkout-step-next');
+        var stepNav = document.getElementById('checkout-step-nav');
+        if (stepNav && stepNav.parentElement !== document.body) {
+            document.body.appendChild(stepNav);
+        }
         var navTotalEl = document.getElementById('checkout-nav-total');
         var navStepEl = document.getElementById('checkout-nav-step');
         var reviewEl = document.getElementById('checkout-review-summary');
@@ -1005,35 +1062,13 @@
             sessionStorage.setItem(key, '1');
         })();
         @endif
+        } catch (err) {
+            console.error('Checkout init failed:', err);
+            form.dataset.checkoutBound = '0';
+        }
     }
 
-    document.addEventListener('click', function (e) {
-        if (e.target.closest('#checkout-step-next')) {
-            e.preventDefault();
-            if (typeof window.__checkoutAdvance === 'function') {
-                window.__checkoutAdvance();
-                return;
-            }
-            initCheckout();
-            if (typeof window.__checkoutAdvance === 'function') {
-                window.__checkoutAdvance();
-            } else {
-                alert('Checkout is still loading. Please refresh the page and try again.');
-            }
-            return;
-        }
-        if (e.target.closest('#checkout-step-back')) {
-            e.preventDefault();
-            if (typeof window.__checkoutRetreat === 'function') {
-                window.__checkoutRetreat();
-                return;
-            }
-            initCheckout();
-            if (typeof window.__checkoutRetreat === 'function') {
-                window.__checkoutRetreat();
-            }
-        }
-    });
+    window.__checkoutBoot = initCheckout;
 
     document.addEventListener('DOMContentLoaded', initCheckout);
     document.addEventListener('isange:stay-cart-ready', initCheckout);
