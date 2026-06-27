@@ -7,6 +7,7 @@
     </div>
     <div class="content flex-grow-1 d-flex flex-column">
         <h3 class="mb-15"><a href="{{ route('singleRoom', ['slug' => $room->slug]) }}">{{ $room->roomName }}</a></h3>
+        @include('frontend.includes.room-price', ['room' => $room])
         @if (! empty(trim(strip_tags($room->description ?? ''))))
             <div class="ma-room-card__desc text-muted mb-3 flex-grow-1">
                 {!! \Illuminate\Support\Str::limit(strip_tags($room->description), 180) !!}

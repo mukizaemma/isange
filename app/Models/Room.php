@@ -49,4 +49,10 @@ class Room extends Model
     {
         return $this->belongsToMany(HotelAmenityOption::class, 'hotel_amenity_room', 'room_id', 'hotel_amenity_option_id')->withTimestamps();
     }
+
+    /** @deprecated Use price — kept for older templates. */
+    public function getSinglePriceAttribute(): ?float
+    {
+        return $this->price !== null ? (float) $this->price : null;
+    }
 }

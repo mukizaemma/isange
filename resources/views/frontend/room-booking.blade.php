@@ -7,12 +7,8 @@
 @php
     $selectedChannel = old('fulfillment_choice', $selectedChannel ?? '');
     $channelLabels = [
-        'direct_pay' => 'Book directly',
         'whatsapp' => 'Book through WhatsApp',
         'email' => 'Book through email',
-        'booking_com' => 'Booking.com',
-        'expedia' => 'Expedia',
-        'emerging_travel' => 'Emerging Travel Group',
     ];
 @endphp
 

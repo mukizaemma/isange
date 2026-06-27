@@ -6,7 +6,6 @@ use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
-use App\Support\BookingEngine;
 use App\Support\ExperienceCatalog;
 use App\Support\SpamProtection;
 use App\Support\StayBookingMessageBuilder;
@@ -42,8 +41,6 @@ class StayBookingController extends Controller
 
         $hotelWhatsappReady = self::hotelWhatsappReady($setting);
         $hotelEmailReady = self::hotelEmailReady($setting);
-        $bookingEngineUrl = BookingEngine::url($setting);
-        $payAtHotelOnly = $request->query('mode') === 'pay_at_hotel';
         $prefillPayAtHotelChannel = in_array($request->query('channel'), ['whatsapp', 'email'], true)
             ? $request->query('channel')
             : null;
@@ -55,8 +52,6 @@ class StayBookingController extends Controller
             'setting',
             'hotelWhatsappReady',
             'hotelEmailReady',
-            'bookingEngineUrl',
-            'payAtHotelOnly',
             'prefillPayAtHotelChannel',
         ), 'Confirm booking');
     }

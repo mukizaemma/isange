@@ -6,7 +6,6 @@ use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
-use App\Support\BookingEngine;
 use App\Support\SpamProtection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,16 +36,9 @@ class GuestBookingController extends Controller
             $selectedRoomId = $r?->id;
         }
 
-        $allowedChannels = ['whatsapp', 'email', 'booking_com', 'expedia', 'emerging_travel', 'direct_pay'];
+        $allowedChannels = ['whatsapp', 'email'];
         $channel = $request->query('channel');
         $selectedChannel = in_array($channel, $allowedChannels, true) ? $channel : '';
-
-        if ($selectedChannel === 'direct_pay') {
-            $engineUrl = BookingEngine::url(Setting::first());
-            if ($engineUrl) {
-                return redirect()->away($engineUrl);
-            }
-        }
 
         if (in_array($selectedChannel, ['whatsapp', 'email'], true)) {
             return redirect()->route('booking.checkout', [
@@ -71,19 +63,10 @@ class GuestBookingController extends Controller
             'guest_phone' => 'required|string|max:64',
             'guest_email' => 'required|email|max:255',
             'guest_country' => 'required|string|max:120',
-            'fulfillment_choice' => 'required|in:direct_pay,whatsapp,email,booking_com,expedia,emerging_travel,pay_on_delivery',
+            'fulfillment_choice' => 'required|in:whatsapp,email,pay_on_delivery',
         ])->validate();
 
         $setting = Setting::first();
-        if ($validated['fulfillment_choice'] === 'booking_com' && empty(trim((string) ($setting->url_booking ?? '')))) {
-            return back()->withErrors(['fulfillment_choice' => 'Booking.com is not configured in site settings yet.'])->withInput();
-        }
-        if ($validated['fulfillment_choice'] === 'expedia' && empty(trim((string) ($setting->url_expedia ?? '')))) {
-            return back()->withErrors(['fulfillment_choice' => 'Expedia is not configured in site settings yet.'])->withInput();
-        }
-        if ($validated['fulfillment_choice'] === 'emerging_travel' && empty(trim((string) ($setting->url_emerging_travel ?? '')))) {
-            return back()->withErrors(['fulfillment_choice' => 'Emerging Travel Group is not configured in site settings yet.'])->withInput();
-        }
 
         $pickup = $request->boolean('airport_pickup');
         $dropoff = $request->boolean('airport_dropoff');
@@ -114,14 +97,8 @@ class GuestBookingController extends Controller
         ]);
 
         return match ($validated['fulfillment_choice']) {
-            'direct_pay' => redirect()->route('pay.dpo', array_filter([
-                'room' => $room?->slug,
-            ]))->with('booking_public_id', $record->public_id),
             'whatsapp', 'pay_on_delivery' => redirect()->route('room.booking.whatsapp', $record->public_id),
             'email' => redirect()->route('room.booking.email', $record->public_id),
-            'booking_com' => redirect()->route('room.booking.ota', ['publicId' => $record->public_id, 'which' => 'booking_com']),
-            'expedia' => redirect()->route('room.booking.ota', ['publicId' => $record->public_id, 'which' => 'expedia']),
-            'emerging_travel' => redirect()->route('room.booking.ota', ['publicId' => $record->public_id, 'which' => 'emerging_travel']),
         };
     }
 

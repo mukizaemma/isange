@@ -149,12 +149,7 @@
                         
                         <!-- Menu Button -->
                         <div class="menu-btns">
-                           @php($headerBookingUrl = \App\Support\BookingEngine::url($setting) ?? route('booking.checkout'))
-                           <a
-                               href="{{ $headerBookingUrl }}"
-                               class="theme-btn style-three"
-                               @if (\App\Support\BookingEngine::isConfigured($setting)) target="_blank" rel="noopener noreferrer" @endif
-                           >Book Your Stay <i class="far fa-angle-right"></i></a>
+                           <a href="{{ route('booking.checkout') }}" class="theme-btn style-three">Book Your Stay <i class="far fa-angle-right"></i></a>
                            
                             <!-- menu sidbar -->
                             {{-- <div class="menu-sidebar">

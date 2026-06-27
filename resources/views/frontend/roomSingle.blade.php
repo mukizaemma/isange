@@ -42,6 +42,7 @@
             <div class="col-lg-6">
                 <div class="product-details-content mt-35 rmt-55 wow fadeInRight delay-0-2s">
                     <h2 class="mb-4">{{ $room->roomName }}</h2>
+                    @include('frontend.includes.room-price', ['room' => $room])
                     @if (! empty(trim(strip_tags($room->description ?? ''))))
                         <div class="room-description prose">
                             {!! $room->description !!}

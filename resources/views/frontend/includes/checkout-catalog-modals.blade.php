@@ -19,7 +19,7 @@
                                 <div class="ma-checkout-pick-item__body">
                                     <h6 class="ma-checkout-pick-item__title">{{ $r->roomName }}</h6>
                                     @if ($r->price)
-                                        <p class="ma-checkout-pick-item__meta small text-muted mb-0">From {{ $r->price }}</p>
+                                        <p class="ma-checkout-pick-item__meta small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->price, $r->price_rwf) !!} / night</p>
                                     @else
                                         <p class="ma-checkout-pick-item__meta small text-muted mb-0">Rate on request</p>
                                     @endif

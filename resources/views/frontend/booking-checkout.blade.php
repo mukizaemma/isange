@@ -6,8 +6,6 @@
 
 @php
     $termsUrl = route('terms');
-    $payAtHotelOnly = $payAtHotelOnly ?? request('mode') === 'pay_at_hotel';
-    $bookingEngineUrl = $bookingEngineUrl ?? \App\Support\BookingEngine::url($setting ?? null);
     $prefillPayAtHotelChannel = $prefillPayAtHotelChannel ?? (in_array(request('channel'), ['whatsapp', 'email'], true) ? request('channel') : null);
 @endphp
 
@@ -17,16 +15,9 @@
             <a href="{{ route('home') }}" class="text-muted small"><i class="fas fa-arrow-left me-1"></i> Back to home</a>
         </div>
 
-        @if (! $payAtHotelOnly)
-            @include('frontend.includes.booking-mode-choice', [
-                'bookingEngineUrl' => $bookingEngineUrl,
-                'setting' => $setting,
-            ])
-        @endif
-
         @include('frontend.includes.booking-benefits')
 
-        <div id="checkout-flow" class="{{ $payAtHotelOnly ? '' : 'd-none' }}">
+        <div id="checkout-flow">
 
         <nav class="ma-checkout-wizard mb-4" id="checkout-wizard" aria-label="Booking steps">
             <ol class="ma-checkout-wizard__list">
@@ -363,9 +354,6 @@
         var payAtHotel = document.getElementById('pay-at-hotel-channels');
         var submitBtn = document.getElementById('stay-checkout-submit');
         var checkoutFlow = document.getElementById('checkout-flow');
-        var bookingModeChoice = document.getElementById('booking-mode-choice');
-        var payAtHotelModeBtn = document.getElementById('booking-mode-pay-at-hotel');
-        var payAtHotelOnly = @json($payAtHotelOnly);
         var nightsBadge = document.getElementById('stay-nights-badge');
         var nightsText = document.getElementById('stay-nights-text');
         var stepBackBtn = document.getElementById('checkout-step-back');
@@ -621,27 +609,6 @@
                 label.classList.toggle('ma-channel-choice--selected', input && input.checked);
             });
             syncGuestContactRequired();
-        }
-
-        function showCheckoutFlow() {
-            if (bookingModeChoice) {
-                bookingModeChoice.classList.add('d-none');
-            }
-            if (checkoutFlow) {
-                checkoutFlow.classList.remove('d-none');
-            }
-            try {
-                var u = new URL(window.location.href);
-                u.searchParams.set('mode', 'pay_at_hotel');
-                window.history.replaceState({}, '', u);
-            } catch (e) {}
-        }
-
-        if (payAtHotelModeBtn) {
-            payAtHotelModeBtn.addEventListener('click', showCheckoutFlow);
-        }
-        if (payAtHotelOnly && checkoutFlow) {
-            showCheckoutFlow();
         }
 
         function openCheckoutModal(id) {
