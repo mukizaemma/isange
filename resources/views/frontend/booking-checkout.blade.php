@@ -2,6 +2,8 @@
 
 @section('content')
 
+<script>document.body.classList.add('is-checkout-page');</script>
+
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Confirm booking'])
 
 @php
@@ -311,19 +313,27 @@
 @section('scripts')
 <script>
 (function () {
-    var checkoutBooted = false;
+    window.IsangeCheckout = window.IsangeCheckout || { next: null, back: null };
 
     function initCheckout() {
         if (!window.IsangeStayCart) {
             return;
         }
-        if (checkoutBooted) {
-            if (window.__checkoutRender) {
+
+        var form = document.getElementById('stay-checkout-form');
+        if (!form) {
+            window.IsangeCheckout.next = null;
+            window.IsangeCheckout.back = null;
+            return;
+        }
+
+        if (form.dataset.checkoutBound === '1') {
+            if (typeof window.__checkoutRender === 'function') {
                 window.__checkoutRender();
             }
             return;
         }
-        checkoutBooted = true;
+        form.dataset.checkoutBound = '1';
 
         @if (old('cart_json'))
         try {
@@ -334,7 +344,6 @@
         } catch (e) {}
         @endif
 
-        var form = document.getElementById('stay-checkout-form');
         var cartInput = document.getElementById('stay-checkout-cart-json');
         var linesEl = document.getElementById('checkout-summary-lines');
         var summaryMeta = document.getElementById('checkout-summary-meta');
@@ -428,6 +437,8 @@
             }
             if (!IsangeStayCart.hasItems()) {
                 IsangeStayCart.ensureStayRequest(stay);
+            } else {
+                pushStayToCart();
             }
             return true;
         }
@@ -517,6 +528,14 @@
 
         function fillStayFields(stay) {
             if (!stay) return;
+            var cart = IsangeStayCart.get();
+            if ((!stay.check_in || !stay.check_out) && cart.rooms.length > 0) {
+                var firstRoom = cart.rooms[0];
+                stay = Object.assign({}, stay, {
+                    check_in: stay.check_in || firstRoom.check_in || null,
+                    check_out: stay.check_out || firstRoom.check_out || null,
+                });
+            }
             if (stayCheckIn && stay.check_in) stayCheckIn.value = stay.check_in;
             if (stayCheckOut && stay.check_out) stayCheckOut.value = stay.check_out;
             if (stayAdults) stayAdults.value = stay.adults || 2;
@@ -824,6 +843,21 @@
             pushStayToCart();
         }
 
+        function advanceCheckoutStep() {
+            if (validateStep(currentStep)) {
+                goToStep(currentStep + 1);
+            }
+        }
+
+        function retreatCheckoutStep() {
+            if (currentStep > 1) {
+                goToStep(currentStep - 1);
+            }
+        }
+
+        window.IsangeCheckout.next = advanceCheckoutStep;
+        window.IsangeCheckout.back = retreatCheckoutStep;
+
         @if ($errors->any())
         goToStep(4, { silent: true });
         @else
@@ -831,18 +865,10 @@
         @endif
 
         if (stepBackBtn) {
-            stepBackBtn.addEventListener('click', function () {
-                if (currentStep > 1) {
-                    goToStep(currentStep - 1);
-                }
-            });
+            stepBackBtn.addEventListener('click', retreatCheckoutStep);
         }
         if (stepNextBtn) {
-            stepNextBtn.addEventListener('click', function () {
-                if (validateStep(currentStep)) {
-                    goToStep(currentStep + 1);
-                }
-            });
+            stepNextBtn.addEventListener('click', advanceCheckoutStep);
         }
         wizardBtns.forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -972,6 +998,18 @@
         })();
         @endif
     }
+
+    document.addEventListener('click', function (e) {
+        if (e.target.closest('#checkout-step-next') && typeof window.IsangeCheckout.next === 'function') {
+            e.preventDefault();
+            window.IsangeCheckout.next();
+            return;
+        }
+        if (e.target.closest('#checkout-step-back') && typeof window.IsangeCheckout.back === 'function') {
+            e.preventDefault();
+            window.IsangeCheckout.back();
+        }
+    });
 
     document.addEventListener('DOMContentLoaded', initCheckout);
     document.addEventListener('isange:stay-cart-ready', initCheckout);

@@ -4382,6 +4382,20 @@ body:has(.stay-cart-dock:not(.d-none)) {
   padding-bottom: 88px;
 }
 
+body.is-checkout-page:has(.stay-cart-dock:not(.d-none)) {
+  padding-bottom: 120px;
+}
+
+body.is-checkout-page .stay-cart-dock__continue {
+  display: none !important;
+}
+
+@media (max-width: 991.98px) {
+  body.is-checkout-page .ma-checkout-step-nav {
+    z-index: 1050;
+  }
+}
+
 @media (max-width: 575.98px) {
   .stay-cart-dock__pill {
     max-width: 100%;
