@@ -74,7 +74,7 @@
                         <span class="ma-checkout-card__icon" aria-hidden="true"><i class="fas fa-calendar-check"></i></span>
                         <div>
                             <h2 class="ma-checkout-card__title">Your stay</h2>
-                            <p class="ma-checkout-card__lead">Set your dates and guests. Adding a specific room is optional — we can confirm availability for you.</p>
+                            <p class="ma-checkout-card__lead">Set your dates and guests, then choose a room to continue.</p>
                         </div>
                     </div>
                     <div class="ma-checkout-card__body">
@@ -108,7 +108,7 @@
 
                         <div class="ma-checkout-cart-block mt-3">
                             <div id="checkout-step1-cart-items" class="ma-checkout-cart-items" aria-live="polite">
-                                <p class="small text-muted mb-0" id="checkout-step1-empty">No specific room selected yet — you can add one below or continue with your dates.</p>
+                                <p class="small text-muted mb-0" id="checkout-step1-empty">No room selected yet — tap “Add room” below to choose your accommodation.</p>
                             </div>
                             <div class="ma-checkout-add-actions mt-2">
                                 <button type="button" class="ma-checkout-add-action" id="checkout-open-room-modal">
@@ -331,9 +331,12 @@
             if (typeof window.__checkoutRender === 'function') {
                 window.__checkoutRender();
             }
+            if (typeof window.__checkoutAdvance === 'function') {
+                window.IsangeCheckout.next = window.__checkoutAdvance;
+                window.IsangeCheckout.back = window.__checkoutRetreat;
+            }
             return;
         }
-        form.dataset.checkoutBound = '1';
 
         @if (old('cart_json'))
         try {
@@ -425,27 +428,23 @@
                 }
                 return false;
             }
-            if (options.confirmIfNoRoom && !IsangeStayCart.hasSelectedRoom()) {
-                var proceed = window.confirm(
-                    'You have not selected a specific room yet.\n\n' +
-                    'If you continue, we will use your dates and guest details to check availability and confirm your stay via WhatsApp or email.\n\n' +
-                    'Continue without selecting a room?'
+            if (options.requireRoom && !IsangeStayCart.hasSelectedRoom()) {
+                alert(
+                    'Please select a room before continuing.\n\n' +
+                    'Tap "Add room" below to choose your accommodation.'
                 );
-                if (!proceed) {
-                    return false;
+                if (openRoomModalBtn) {
+                    openRoomModalBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
+                return false;
             }
-            if (!IsangeStayCart.hasItems()) {
-                IsangeStayCart.ensureStayRequest(stay);
-            } else {
-                pushStayToCart();
-            }
+            pushStayToCart();
             return true;
         }
 
         function validateStep(step) {
             if (step === 1) {
-                return prepareStepOneCart({ confirmIfNoRoom: true });
+                return prepareStepOneCart({ requireRoom: true });
             }
             if (step === 2) {
                 return true;
@@ -605,7 +604,8 @@
             if (channel === 'whatsapp') {
                 if (phone.replace(/\D/g, '').length < 8) {
                     alert('Enter a valid WhatsApp mobile number to submit via WhatsApp.');
-                    form.querySelector('[name="guest_phone"]')?.focus();
+                    var phoneField = form.querySelector('[name="guest_phone"]');
+                    if (phoneField) phoneField.focus();
                     return false;
                 }
                 return true;
@@ -613,7 +613,8 @@
             if (channel === 'email') {
                 if (!email || email.indexOf('@') < 1) {
                     alert('Enter a valid email address to submit via email.');
-                    form.querySelector('[name="guest_email"]')?.focus();
+                    var emailField = form.querySelector('[name="guest_email"]');
+                    if (emailField) emailField.focus();
                     return false;
                 }
                 return true;
@@ -673,7 +674,10 @@
 
         function renderStep1CartItems(cart) {
             if (!step1CartItems) return;
-            var hasItems = cart.rooms.length + cart.experiences.length > 0;
+            var realRooms = cart.rooms.filter(function (room) {
+                return room && room.room_id;
+            });
+            var hasItems = realRooms.length + cart.experiences.length > 0;
             if (step1EmptyEl) {
                 step1EmptyEl.classList.toggle('d-none', hasItems);
             }
@@ -682,7 +686,8 @@
             });
             if (!hasItems) return;
 
-            cart.rooms.forEach(function (room, idx) {
+            realRooms.forEach(function (room) {
+                var idx = cart.rooms.indexOf(room);
                 var row = document.createElement('div');
                 row.className = 'ma-checkout-step1-item';
                 row.innerHTML =
@@ -855,8 +860,11 @@
             }
         }
 
+        window.__checkoutAdvance = advanceCheckoutStep;
+        window.__checkoutRetreat = retreatCheckoutStep;
         window.IsangeCheckout.next = advanceCheckoutStep;
         window.IsangeCheckout.back = retreatCheckoutStep;
+        form.dataset.checkoutBound = '1';
 
         @if ($errors->any())
         goToStep(4, { silent: true });
@@ -898,7 +906,7 @@
             }
             pushStayToCart();
 
-            if (!prepareStepOneCart()) {
+            if (!prepareStepOneCart({ requireRoom: true })) {
                 e.preventDefault();
                 return;
             }
@@ -1000,20 +1008,39 @@
     }
 
     document.addEventListener('click', function (e) {
-        if (e.target.closest('#checkout-step-next') && typeof window.IsangeCheckout.next === 'function') {
+        if (e.target.closest('#checkout-step-next')) {
             e.preventDefault();
-            window.IsangeCheckout.next();
+            if (typeof window.__checkoutAdvance === 'function') {
+                window.__checkoutAdvance();
+                return;
+            }
+            initCheckout();
+            if (typeof window.__checkoutAdvance === 'function') {
+                window.__checkoutAdvance();
+            } else {
+                alert('Checkout is still loading. Please refresh the page and try again.');
+            }
             return;
         }
-        if (e.target.closest('#checkout-step-back') && typeof window.IsangeCheckout.back === 'function') {
+        if (e.target.closest('#checkout-step-back')) {
             e.preventDefault();
-            window.IsangeCheckout.back();
+            if (typeof window.__checkoutRetreat === 'function') {
+                window.__checkoutRetreat();
+                return;
+            }
+            initCheckout();
+            if (typeof window.__checkoutRetreat === 'function') {
+                window.__checkoutRetreat();
+            }
         }
     });
 
     document.addEventListener('DOMContentLoaded', initCheckout);
     document.addEventListener('isange:stay-cart-ready', initCheckout);
     document.addEventListener('ma:spa-content', initCheckout);
+    if (document.readyState !== 'loading') {
+        initCheckout();
+    }
 })();
 </script>
 @endsection

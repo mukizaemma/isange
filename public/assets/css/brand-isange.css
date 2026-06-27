@@ -4386,6 +4386,10 @@ body.is-checkout-page:has(.stay-cart-dock:not(.d-none)) {
   padding-bottom: 120px;
 }
 
+body.is-checkout-page .stay-cart-dock {
+  display: none !important;
+}
+
 body.is-checkout-page .stay-cart-dock__continue {
   display: none !important;
 }
@@ -4393,6 +4397,7 @@ body.is-checkout-page .stay-cart-dock__continue {
 @media (max-width: 991.98px) {
   body.is-checkout-page .ma-checkout-step-nav {
     z-index: 1050;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
   }
 }
 
