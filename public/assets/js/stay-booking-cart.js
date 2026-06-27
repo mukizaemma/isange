@@ -161,6 +161,12 @@
             return api.count() > 0;
         },
 
+        hasSelectedRoom: function () {
+            return load().rooms.some(function (room) {
+                return room && room.room_id;
+            });
+        },
+
         estimateTotalUsd: function () {
             var total = 0;
             load().rooms.forEach(function (room) {

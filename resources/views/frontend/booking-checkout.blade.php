@@ -405,7 +405,8 @@
             }
         }
 
-        function prepareStepOneCart() {
+        function prepareStepOneCart(options) {
+            options = options || {};
             pushStayToCart();
             var stay = readStayFields();
             if (!stay.check_in || !stay.check_out || stay.check_out <= stay.check_in) {
@@ -415,6 +416,16 @@
                 }
                 return false;
             }
+            if (options.confirmIfNoRoom && !IsangeStayCart.hasSelectedRoom()) {
+                var proceed = window.confirm(
+                    'You have not selected a specific room yet.\n\n' +
+                    'If you continue, we will use your dates and guest details to check availability and confirm your stay via WhatsApp or email.\n\n' +
+                    'Continue without selecting a room?'
+                );
+                if (!proceed) {
+                    return false;
+                }
+            }
             if (!IsangeStayCart.hasItems()) {
                 IsangeStayCart.ensureStayRequest(stay);
             }
@@ -423,7 +434,7 @@
 
         function validateStep(step) {
             if (step === 1) {
-                return prepareStepOneCart();
+                return prepareStepOneCart({ confirmIfNoRoom: true });
             }
             if (step === 2) {
                 return true;
