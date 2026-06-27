@@ -79,12 +79,12 @@ class StayBookingController extends Controller
             'terms_accepted' => 'accepted',
         ], [
             'terms_accepted.accepted' => 'Please accept the hotel policy and terms to continue.',
-            'cart_json.required' => 'Your cart is empty. Add a room or experience before booking.',
+            'cart_json.required' => 'Your booking details are missing. Please set your stay dates and try again.',
         ])->validate();
 
         $cart = json_decode($validated['cart_json'], true);
         if (! is_array($cart) || ! self::cartHasItems($cart)) {
-            return back()->withErrors(['cart_json' => 'Add at least one room or experience to your cart.'])->withInput();
+            return back()->withErrors(['cart_json' => 'Please set valid check-in and check-out dates, then try again.'])->withInput();
         }
 
         $rawItemCount = count($cart['rooms'] ?? []) + count($cart['experiences'] ?? []);
@@ -94,7 +94,7 @@ class StayBookingController extends Controller
             return back()->withErrors([
                 'cart_json' => $rawItemCount > 0
                     ? 'Some cart items could not be validated. Please remove and re-add them, then try again.'
-                    : 'Add at least one room or experience to your cart.',
+                    : 'Please set valid check-in and check-out dates, then try again.',
             ])->withInput();
         }
 

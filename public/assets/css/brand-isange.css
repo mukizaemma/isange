@@ -3571,10 +3571,6 @@ body.spa-loading::before {
     bottom: 1rem;
     z-index: 10;
   }
-
-  .ma-checkout-step-nav__meta {
-    display: none;
-  }
 }
 
 .ma-stay-checkout__step {

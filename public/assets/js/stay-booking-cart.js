@@ -129,6 +129,16 @@
         return isNaN(n) ? 0 : n;
     }
 
+    function isPlaceholderRoom(room) {
+        return !room || !room.room_id;
+    }
+
+    function stripPlaceholderRooms(cart) {
+        cart.rooms = cart.rooms.filter(function (room) {
+            return !isPlaceholderRoom(room);
+        });
+    }
+
     var api = {
         onChange: function (fn) {
             if (typeof fn === 'function') {
@@ -193,6 +203,7 @@
                 return false;
             }
             var cart = load();
+            stripPlaceholderRooms(cart);
             var stay = normalizeStay(cart);
             if (!room.check_in && stay.check_in) {
                 room.check_in = stay.check_in;
@@ -268,6 +279,39 @@
             }
             applyStayToRooms(cart);
             save(cart);
+        },
+
+        ensureStayRequest: function (stay) {
+            if (!stay || !stay.check_in || !stay.check_out || stay.check_out <= stay.check_in) {
+                return false;
+            }
+            var cart = load();
+            if (cart.rooms.some(function (room) { return room.room_id; }) || cart.experiences.length > 0) {
+                applyStayToRooms(cart);
+                save(cart);
+                return true;
+            }
+            stripPlaceholderRooms(cart);
+            cart.rooms.push({
+                room_id: null,
+                slug: '',
+                name: 'Room to be confirmed',
+                image: '',
+                price: '',
+                check_in: stay.check_in,
+                check_out: stay.check_out,
+                adults: Math.max(1, parseInt(stay.adults, 10) || 2),
+                children: Math.max(0, parseInt(stay.children, 10) || 0),
+                nights: nightsBetween(stay.check_in, stay.check_out),
+            });
+            normalizeStay(cart);
+            cart.stay.check_in = stay.check_in;
+            cart.stay.check_out = stay.check_out;
+            cart.stay.adults = Math.max(1, parseInt(stay.adults, 10) || 2);
+            cart.stay.children = Math.max(0, parseInt(stay.children, 10) || 0);
+            cart.stay.rooms_count = Math.max(1, parseInt(stay.rooms_count, 10) || 1);
+            save(cart);
+            return true;
         },
 
         setRoomsCount: function (count) {

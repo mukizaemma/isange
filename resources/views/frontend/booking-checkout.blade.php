@@ -72,7 +72,7 @@
                         <span class="ma-checkout-card__icon" aria-hidden="true"><i class="fas fa-calendar-check"></i></span>
                         <div>
                             <h2 class="ma-checkout-card__title">Your stay</h2>
-                            <p class="ma-checkout-card__lead">Set dates and guests — add or change rooms and experiences below.</p>
+                            <p class="ma-checkout-card__lead">Set your dates and guests. Adding a specific room is optional — we can confirm availability for you.</p>
                         </div>
                     </div>
                     <div class="ma-checkout-card__body">
@@ -106,7 +106,7 @@
 
                         <div class="ma-checkout-cart-block mt-3">
                             <div id="checkout-step1-cart-items" class="ma-checkout-cart-items" aria-live="polite">
-                                <p class="small text-muted mb-0" id="checkout-step1-empty">No rooms or experiences yet — add below.</p>
+                                <p class="small text-muted mb-0" id="checkout-step1-empty">No specific room selected yet — you can add one below or continue with your dates.</p>
                             </div>
                             <div class="ma-checkout-add-actions mt-2">
                                 <button type="button" class="ma-checkout-add-action" id="checkout-open-room-modal">
@@ -289,13 +289,10 @@
                         </div>
                     </div>
                     <div class="card-footer ma-checkout-summary__foot border-0">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
                             <span class="text-muted small" id="checkout-pay-label">Estimated total</span>
                             <strong class="ma-checkout-summary__total" id="checkout-summary-total">$0.00</strong>
                         </div>
-                        <button type="button" class="theme-btn w-100 ma-checkout-summary__continue" id="checkout-summary-continue">
-                            Continue <i class="fas fa-arrow-right ms-1"></i>
-                        </button>
                     </div>
                 </div>
             </aside>
@@ -344,7 +341,6 @@
         var summaryPicks = document.getElementById('checkout-summary-picks');
         var summaryAddRoom = document.getElementById('checkout-summary-add-room');
         var summaryAddExp = document.getElementById('checkout-summary-add-exp');
-        var summaryContinueBtn = document.getElementById('checkout-summary-continue');
         var step1CartItems = document.getElementById('checkout-step1-cart-items');
         var step1EmptyEl = document.getElementById('checkout-step1-empty');
         var openRoomModalBtn = document.getElementById('checkout-open-room-modal');
@@ -409,21 +405,25 @@
             }
         }
 
+        function prepareStepOneCart() {
+            pushStayToCart();
+            var stay = readStayFields();
+            if (!stay.check_in || !stay.check_out || stay.check_out <= stay.check_in) {
+                alert('Please choose valid check-in and check-out dates.');
+                if (stayCheckIn) {
+                    stayCheckIn.focus();
+                }
+                return false;
+            }
+            if (!IsangeStayCart.hasItems()) {
+                IsangeStayCart.ensureStayRequest(stay);
+            }
+            return true;
+        }
+
         function validateStep(step) {
             if (step === 1) {
-                pushStayToCart();
-                if (!IsangeStayCart.hasItems()) {
-                    alert('Please add at least one room or experience to your cart.');
-                    return false;
-                }
-                if (IsangeStayCart.get().rooms.length > 0) {
-                    var stay = readStayFields();
-                    if (!stay.check_in || !stay.check_out || stay.check_out <= stay.check_in) {
-                        alert('Please choose valid check-in and check-out dates.');
-                        return false;
-                    }
-                }
-                return true;
+                return prepareStepOneCart();
             }
             if (step === 2) {
                 return true;
@@ -803,6 +803,16 @@
 
         IsangeStayCart.onChange(renderSummary);
         renderSummary();
+
+        if (stayCheckIn && stayCheckOut && !stayCheckIn.value) {
+            stayCheckIn.value = today;
+            var tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            stayCheckOut.value = tomorrow.toISOString().slice(0, 10);
+            updateNightsBadge();
+            pushStayToCart();
+        }
+
         @if ($errors->any())
         goToStep(4, { silent: true });
         @else
@@ -851,20 +861,9 @@
             }
             pushStayToCart();
 
-            if (!IsangeStayCart.hasItems()) {
+            if (!prepareStepOneCart()) {
                 e.preventDefault();
-                alert('Please add at least one room or experience to your cart.');
                 return;
-            }
-
-            if (IsangeStayCart.get().rooms.length > 0) {
-                var stay = readStayFields();
-                if (!stay.check_in || !stay.check_out || stay.check_out <= stay.check_in) {
-                    e.preventDefault();
-                    alert('Please choose valid check-in and check-out dates.');
-                    document.getElementById('checkout-stay-dates-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    return;
-                }
             }
 
             cartInput.value = IsangeStayCart.toJson();
@@ -903,11 +902,6 @@
         if (summaryAddExp) {
             summaryAddExp.addEventListener('click', function () {
                 openCheckoutModal('checkoutPickExperienceModal');
-            });
-        }
-        if (summaryContinueBtn && stepNextBtn) {
-            summaryContinueBtn.addEventListener('click', function () {
-                stepNextBtn.click();
             });
         }
 
