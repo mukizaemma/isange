@@ -3482,13 +3482,14 @@ body.spa-loading::before {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: 1.25rem;
+  margin-top: 0.5rem;
   padding: 0.85rem 1rem;
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid rgba(0, 0, 0, 0.06);
-  pointer-events: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .ma-checkout-step-nav__back,
@@ -3497,9 +3498,7 @@ body.spa-loading::before {
   white-space: nowrap;
   padding: 0.55rem 1rem !important;
   font-size: 0.88rem !important;
-  pointer-events: auto;
-  position: relative;
-  z-index: 1;
+  cursor: pointer;
 }
 
 .ma-checkout-step-nav__meta {
@@ -3547,59 +3546,47 @@ body.spa-loading::before {
 }
 
 @media (max-width: 991.98px) {
-  .ma-stay-checkout__aside--desktop {
-    display: none !important;
-  }
-
   .ma-stay-checkout__main {
-    padding-bottom: 5.5rem;
+    padding-bottom: 0;
   }
-
-  .ma-checkout-step-nav {
-    position: fixed;
-    left: 0.75rem;
-    right: 0.75rem;
-    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
-    z-index: 1035;
-    margin-top: 0;
-  }
-
-  body:has(.stay-cart-dock:not(.d-none)) .ma-checkout-step-nav {
-    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0));
-  }
-}
-
-@media (min-width: 992px) {
-  .ma-checkout-step-nav {
-    position: sticky;
-    bottom: 1rem;
-    z-index: 10;
-  }
-}
-
-.ma-stay-checkout__step {
-  color: #6b7280;
-}
-
-.ma-stay-checkout__step--active {
-  font-weight: 700;
-  color: var(--eco-green, #106b38);
-}
-
-.ma-stay-checkout__step-divider {
-  color: #9ca3af;
 }
 
 .ma-stay-checkout__grid {
   display: grid;
   grid-template-columns: 1fr;
+  grid-template-areas:
+    "main"
+    "aside"
+    "footer";
   gap: 1.5rem;
   align-items: start;
 }
 
+.ma-stay-checkout__main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.ma-stay-checkout__aside {
+  grid-area: aside;
+  min-width: 0;
+}
+
+.ma-stay-checkout__footer {
+  grid-area: footer;
+}
+
 @media (min-width: 992px) {
   .ma-stay-checkout__grid {
-    grid-template-columns: 1fr 400px;
+    grid-template-columns: 1fr 380px;
+    grid-template-areas:
+      "main aside"
+      "footer footer";
+  }
+
+  .ma-stay-checkout__aside .ma-stay-summary {
+    position: sticky;
+    top: 1rem;
   }
 }
 
@@ -4177,17 +4164,12 @@ body.spa-loading::before {
   font-size: 1.15rem;
 }
 
-/* Payment panels: toggle by selected radio (works without JS) */
-#pay-now-details,
-#pay-at-hotel-channels {
+/* Payment panels: pay-at-hotel only on checkout (hidden pay-now removed) */
+#pay-now-details {
   display: none !important;
 }
 
-#stay-checkout-form:has(input[name="payment_method"][value="pay_now"]:checked) #pay-now-details {
-  display: block !important;
-}
-
-#stay-checkout-form:has(input[name="payment_method"][value="pay_at_hotel"]:checked) #pay-at-hotel-channels {
+body.is-checkout-page #pay-at-hotel-channels {
   display: block !important;
 }
 
@@ -4246,6 +4228,26 @@ body.spa-loading::before {
   background: #fff;
 }
 
+.ma-stay-terms-check__control {
+  display: flex;
+  align-items: flex-start;
+  flex-shrink: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.ma-stay-terms-check__label a {
+  color: var(--eco-green, #106b38);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ma-stay-terms-check__label a:hover,
+.ma-stay-terms-check__label a:focus {
+  color: #0a4f28;
+}
+
 .ma-stay-terms-check input,
 .ma-stay-inline-check input {
   position: absolute;
@@ -4295,6 +4297,11 @@ body.spa-loading::before {
   font-size: 0.88rem;
   line-height: 1.45;
   color: #374151;
+}
+
+.ma-checkout-confirm-channel .h6 {
+  font-weight: 700;
+  color: var(--heading-color, #1a1a1a);
 }
 
 .ma-checkout-summary {
@@ -4386,23 +4393,12 @@ body:has(.stay-cart-dock:not(.d-none)) {
   padding-bottom: 88px;
 }
 
-body.is-checkout-page:has(.stay-cart-dock:not(.d-none)) {
-  padding-bottom: 120px;
-}
-
 body.is-checkout-page .stay-cart-dock {
   display: none !important;
 }
 
-body.is-checkout-page .stay-cart-dock__continue {
-  display: none !important;
-}
-
-@media (max-width: 991.98px) {
-  body.is-checkout-page .ma-checkout-step-nav {
-    z-index: 1070;
-    bottom: calc(0.75rem + env(safe-area-inset-bottom, 0));
-  }
+body.is-checkout-page {
+  padding-bottom: 0 !important;
 }
 
 @media (max-width: 575.98px) {
@@ -4429,10 +4425,6 @@ body.is-checkout-page .stay-cart-dock__continue {
 
   .stay-cart-dock__total {
     font-size: 0.95rem;
-  }
-
-  .ma-stay-checkout__aside .sticky-top {
-    position: static !important;
   }
 }
 

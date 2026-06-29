@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
 use App\Support\ExperienceCatalog;
 use App\Support\SpamProtection;
+use App\Support\BookingEmailSender;
 use App\Support\StayBookingMessageBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -191,9 +192,27 @@ class StayBookingController extends Controller
             'session_id' => substr(sha1($request->session()->getId()), 0, 40),
         ]);
 
+        if ($fulfillment === 'email') {
+            if (BookingEmailSender::send($record, $setting)) {
+                $record->update(['completed_channel' => 'email']);
+                SiteAnalyticsEvent::create([
+                    'event_key' => 'booking_pay_delivery_email',
+                    'properties' => ['delivery' => 'resend'],
+                    'session_id' => substr(sha1($request->session()->getId()), 0, 40),
+                ]);
+
+                return redirect()
+                    ->route('room.booking.email', $record->public_id)
+                    ->with('email_sent', true);
+            }
+
+            return redirect()
+                ->route('room.booking.email', $record->public_id)
+                ->with('error', 'Your booking was saved, but we could not send the email automatically. Please contact the hotel directly or try again shortly.');
+        }
+
         return match ($fulfillment) {
             'whatsapp' => redirect()->route('room.booking.whatsapp', $record->public_id),
-            'email' => redirect()->route('room.booking.email', $record->public_id),
             default => redirect()->route('room.booking.confirmation', $record->public_id),
         };
     }

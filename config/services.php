@@ -41,4 +41,13 @@ return [
         'secret_key' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    'resend' => [
+        'key' => env('RESEND_API_KEY'),
+    ],
+
+    'booking_notification' => [
+        'to' => env('MAIL_NOTIFICATION_TO'),
+        'cc' => env('MAIL_NOTIFICATION_CC'),
+    ],
+
 ];

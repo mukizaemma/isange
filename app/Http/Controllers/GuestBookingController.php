@@ -7,6 +7,7 @@ use App\Models\Room;
 use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
 use App\Support\SpamProtection;
+use App\Support\BookingEmailSender;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -96,10 +97,21 @@ class GuestBookingController extends Controller
             'session_id' => substr(sha1($request->session()->getId()), 0, 40),
         ]);
 
-        return match ($validated['fulfillment_choice']) {
-            'whatsapp', 'pay_on_delivery' => redirect()->route('room.booking.whatsapp', $record->public_id),
-            'email' => redirect()->route('room.booking.email', $record->public_id),
-        };
+        if ($validated['fulfillment_choice'] === 'email') {
+            if (BookingEmailSender::send($record, $setting)) {
+                $record->update(['completed_channel' => 'email']);
+
+                return redirect()
+                    ->route('room.booking.email', $record->public_id)
+                    ->with('email_sent', true);
+            }
+
+            return redirect()
+                ->route('room.booking.email', $record->public_id)
+                ->with('error', 'Your booking was saved, but we could not send the email automatically. Please contact the hotel directly or try again shortly.');
+        }
+
+        return redirect()->route('room.booking.whatsapp', $record->public_id);
     }
 
     public function confirmation(string $publicId): View|Response
@@ -139,19 +151,22 @@ class GuestBookingController extends Controller
         if ($booking->fulfillment_choice !== 'email') {
             abort(404);
         }
-        $email = trim((string) (Setting::first()->email ?? ''));
-        if ($email === '') {
+
+        $setting = Setting::first();
+        $hotelEmail = trim((string) ($setting->email ?? ''));
+
+        if ($hotelEmail === '') {
             abort(404, 'Email not configured.');
         }
-        $booking->update(['completed_channel' => 'email']);
-        SiteAnalyticsEvent::create([
-            'event_key' => 'booking_pay_delivery_email',
-            'properties' => [],
-            'session_id' => substr(sha1($request->session()->getId()), 0, 40),
-        ]);
-        $subject = 'Room booking — '.(Setting::first()->company ?? 'Hotel');
 
-        return $this->spaView('frontend.room-booking-email', compact('booking', 'email', 'subject'), 'Email booking');
+        if ($booking->completed_channel !== 'email' && ! session('email_sent')) {
+            if (BookingEmailSender::send($booking, $setting)) {
+                $booking->update(['completed_channel' => 'email']);
+                session()->flash('email_sent', true);
+            }
+        }
+
+        return $this->spaView('frontend.room-booking-email', compact('booking', 'hotelEmail'), 'Booking sent');
     }
 
     public function otaRedirect(string $publicId, string $which): View|Response
