@@ -315,7 +315,7 @@
                     if (roomLabel) {
                         roomLabel.textContent = 'Added';
                     } else if (!addRoom.querySelector('i')) {
-                        addRoom.textContent = 'Added to cart';
+                        addRoom.textContent = 'Added';
                     }
                 }
             }
@@ -339,6 +339,10 @@
                 var added = cart.rooms.some(function (r) { return r.room_id === rid; });
                 btn.classList.toggle('is-added', added);
                 btn.setAttribute('aria-pressed', added ? 'true' : 'false');
+                var roomLabel = btn.querySelector('[data-add-room-label]');
+                if (roomLabel) {
+                    roomLabel.textContent = added ? 'Added' : 'Book Now';
+                }
             });
         }
 

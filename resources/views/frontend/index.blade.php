@@ -180,9 +180,16 @@
                                 <a href="{{ route('singleRoom', ['slug' => $room->slug]) }}" class="theme-btn style-three home-room-card__btn flex-grow-1 d-inline-flex justify-content-center align-items-center">
                                     View Details <i class="far fa-angle-right"></i>
                                 </a>
-                                <a href="{{ route('room.booking') }}" class="theme-btn home-room-card__btn flex-grow-1 d-inline-flex justify-content-center align-items-center">
-                                    Book <i class="far fa-angle-right"></i>
-                                </a>
+                                <button type="button"
+                                    class="theme-btn home-room-card__btn flex-grow-1 d-inline-flex justify-content-center align-items-center"
+                                    data-add-room
+                                    data-room-id="{{ $room->id }}"
+                                    data-room-slug="{{ $room->slug }}"
+                                    data-room-name="{{ $room->roomName }}"
+                                    data-room-price="{{ $room->price }}"
+                                    data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
+                                    <span data-add-room-label>Book Now</span> <i class="far fa-angle-right"></i>
+                                </button>
                             </div>
                         </div>
                     </article>

@@ -56,9 +56,9 @@
                             data-room-name="{{ $room->roomName }}"
                             data-room-price="{{ $room->price }}"
                             data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
-                            Add to stay cart
+                            <span data-add-room-label>Book Now</span>
                         </button>
-                        <a href="{{ route('booking.checkout', ['room' => $room->slug]) }}" class="theme-btn style-three">Book now</a>
+                        <a href="{{ route('booking.checkout', ['room' => $room->slug]) }}" class="theme-btn style-three">Proceed to checkout</a>
                     </div>
                 </div>
             </div>
