@@ -3,9 +3,9 @@
 @section('content')
 
 @include('frontend.includes.page-header', [
-    'title' => session('email_sent') || $booking->completed_channel === 'email' ? 'Request sent' : 'Email delivery',
+    'title' => session('email_sent') || $booking->completed_channel === 'email' ? 'Request received' : 'Email delivery',
     'subtitle' => session('email_sent') || $booking->completed_channel === 'email'
-        ? 'We emailed your booking request to the hotel team.'
+        ? 'We received your booking request and sent you a confirmation email.'
         : 'We could not deliver your request by email automatically.',
     'imageUrl' => null,
 ])
@@ -17,11 +17,15 @@
                 @if (session('error'))
                     <div class="alert alert-warning text-start">{{ session('error') }}</div>
                 @endif
+                @if (session('warning'))
+                    <div class="alert alert-warning text-start">{{ session('warning') }}</div>
+                @endif
 
                 @if (session('email_sent') || $booking->completed_channel === 'email')
                     <div class="alert alert-success text-start">
-                        <strong>Thank you!</strong> Your stay request was sent to <strong>{{ $hotelEmail }}</strong>.
-                        The hotel will reply to the email address you provided.
+                        <strong>Thank you!</strong> Your stay request has been received.
+                        A confirmation email was sent to <strong>{{ $booking->guest_email }}</strong>.
+                        Our team will review your reservation and send a final confirmation once approved.
                     </div>
                     <p class="text-muted mb-0">Reference: <code>{{ $booking->public_id }}</code></p>
                 @else

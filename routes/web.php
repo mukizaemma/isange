@@ -98,6 +98,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
 
     Route::get('/guest-insights', [GuestInsightsController::class, 'index'])->name('guestInsights');
+    Route::post('/guest-insights/bookings/{publicId}/status', [GuestInsightsController::class, 'updateBookingStatus'])->name('guestInsights.booking.status');
 
     Route::get('/updates', [BlogController::class, 'index'])->name('admin.blogs.index');
     Route::get('/updates/create', [BlogController::class, 'create'])->name('admin.blogs.create');

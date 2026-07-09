@@ -180,6 +180,10 @@ class StayBookingController extends Controller
             'fulfillment_choice' => $fulfillment,
             'message_body' => $body,
         ]);
+        $record->update([
+            'message_body' => GuestBookingRequest::appendReferenceToMessage($body, $record->public_id),
+        ]);
+        $record->refresh();
 
         SiteAnalyticsEvent::create([
             'event_key' => 'stay_cart_submitted',
@@ -193,17 +197,26 @@ class StayBookingController extends Controller
         ]);
 
         if ($fulfillment === 'email') {
-            if (BookingEmailSender::send($record, $setting)) {
+            $result = BookingEmailSender::sendOnSubmit($record, $setting);
+            if ($result['hotel']) {
                 $record->update(['completed_channel' => 'email']);
                 SiteAnalyticsEvent::create([
                     'event_key' => 'booking_pay_delivery_email',
-                    'properties' => ['delivery' => 'resend'],
+                    'properties' => [
+                        'delivery' => 'resend',
+                        'guest_ack' => $result['guest'],
+                    ],
                     'session_id' => substr(sha1($request->session()->getId()), 0, 40),
                 ]);
 
+                $flash = ['email_sent' => true];
+                if (! $result['guest']) {
+                    $flash['warning'] = 'Your request was sent to the hotel, but we could not deliver the acknowledgement email to you. The hotel will still contact you.';
+                }
+
                 return redirect()
                     ->route('room.booking.email', $record->public_id)
-                    ->with('email_sent', true);
+                    ->with($flash);
             }
 
             return redirect()

@@ -90,6 +90,10 @@ class GuestBookingController extends Controller
             'fulfillment_choice' => $validated['fulfillment_choice'],
             'message_body' => $body,
         ]);
+        $record->update([
+            'message_body' => GuestBookingRequest::appendReferenceToMessage($body, $record->public_id),
+        ]);
+        $record->refresh();
 
         SiteAnalyticsEvent::create([
             'event_key' => 'booking_submitted',
@@ -98,12 +102,18 @@ class GuestBookingController extends Controller
         ]);
 
         if ($validated['fulfillment_choice'] === 'email') {
-            if (BookingEmailSender::send($record, $setting)) {
+            $result = BookingEmailSender::sendOnSubmit($record, $setting);
+            if ($result['hotel']) {
                 $record->update(['completed_channel' => 'email']);
+
+                $flash = ['email_sent' => true];
+                if (! $result['guest']) {
+                    $flash['warning'] = 'Your request was sent to the hotel, but we could not deliver the acknowledgement email to you. The hotel will still contact you.';
+                }
 
                 return redirect()
                     ->route('room.booking.email', $record->public_id)
-                    ->with('email_sent', true);
+                    ->with($flash);
             }
 
             return redirect()
@@ -160,9 +170,13 @@ class GuestBookingController extends Controller
         }
 
         if ($booking->completed_channel !== 'email' && ! session('email_sent')) {
-            if (BookingEmailSender::send($booking, $setting)) {
+            $result = BookingEmailSender::sendOnSubmit($booking, $setting);
+            if ($result['hotel']) {
                 $booking->update(['completed_channel' => 'email']);
                 session()->flash('email_sent', true);
+                if (! $result['guest']) {
+                    session()->flash('warning', 'Your request was sent to the hotel, but we could not deliver the acknowledgement email to you.');
+                }
             }
         }
 

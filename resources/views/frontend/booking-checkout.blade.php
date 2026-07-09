@@ -2,7 +2,28 @@
 
 @section('body_class', 'is-checkout-page')
 
+@push('head')
+<style>
+    body.is-checkout-page .stay-cart-dock { display: none !important; }
+    body.is-checkout-page .ma-checkout-step-nav {
+        position: relative !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        z-index: 2 !important;
+        pointer-events: auto !important;
+    }
+    body.is-checkout-page .ma-checkout-step-nav__next,
+    body.is-checkout-page .ma-checkout-step-nav__back {
+        pointer-events: auto !important;
+        cursor: pointer !important;
+    }
+</style>
+@endpush
+
 @section('content')
+
+<script>document.body.classList.add('is-checkout-page');</script>
 
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Confirm booking'])
 
@@ -274,14 +295,14 @@
             </aside>
 
             <div class="ma-checkout-step-nav ma-stay-checkout__footer" id="checkout-step-nav">
-                <button type="button" class="btn btn-outline-secondary ma-checkout-step-nav__back" id="checkout-step-back" disabled>
+                <button type="button" class="btn btn-outline-secondary ma-checkout-step-nav__back" id="checkout-step-back" disabled onclick="if(window.__checkoutRunBack){window.__checkoutRunBack(event);}">
                     <i class="fas fa-arrow-left me-1"></i> Back
                 </button>
                 <div class="ma-checkout-step-nav__meta">
                     <span class="ma-checkout-step-nav__total" id="checkout-nav-total">$0.00</span>
                     <span class="ma-checkout-step-nav__step-label" id="checkout-nav-step">Step 1 of 3</span>
                 </div>
-                <button type="button" class="theme-btn ma-checkout-step-nav__next" id="checkout-step-next">
+                <button type="button" class="theme-btn ma-checkout-step-nav__next" id="checkout-step-next" onclick="if(window.__checkoutRunNext){window.__checkoutRunNext(event);}">
                     Continue <i class="fas fa-arrow-right ms-1"></i>
                 </button>
             </div>
@@ -631,9 +652,9 @@
 
             if (hintEl) {
                 if (channel === 'whatsapp') {
-                    hintEl.textContent = 'We will send your reservation confirmation to your WhatsApp number above.';
+                    hintEl.textContent = 'You will continue on WhatsApp — the hotel receives your request immediately.';
                 } else if (channel === 'email') {
-                    hintEl.textContent = 'We will send your reservation confirmation to your email above.';
+                    hintEl.textContent = 'We will email you an acknowledgement right away, then a confirmation once the hotel approves your reservation.';
                 } else {
                     hintEl.textContent = 'Choose WhatsApp or email — only that contact detail is required to submit.';
                 }

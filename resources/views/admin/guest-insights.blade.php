@@ -17,6 +17,16 @@
                 <h1 class="mt-4">Guest insights</h1>
                 <p class="text-muted">Aggregated interaction events (no PII) plus stored booking and dining submissions.</p>
 
+                @if (session('success'))
+                    <div class="alert alert-success">{{ session('success') }}</div>
+                @endif
+                @if (session('warning'))
+                    <div class="alert alert-warning">{{ session('warning') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="alert alert-danger">{{ session('error') }}</div>
+                @endif
+
                 <div class="card mb-4">
                     <div class="card-header">Event totals (all time)</div>
                     <div class="card-body">
@@ -90,7 +100,9 @@
                                     <th>Stay</th>
                                     <th>Payment</th>
                                     <th>Channel</th>
+                                    <th>Status</th>
                                     <th>Cart</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -101,6 +113,14 @@
                                         <td>{{ $b->check_in->format('Y-m-d') }} → {{ $b->check_out->format('Y-m-d') }}<br><small class="text-muted">{{ $b->room?->roomName ?? 'Any' }}</small></td>
                                         <td><code>{{ $b->payment_method ?? '—' }}</code></td>
                                         <td><code>{{ $b->fulfillment_choice }}</code>@if($b->completed_channel)<br><small>{{ $b->completed_channel }}</small>@endif</td>
+                                        <td>
+                                            <span class="badge {{ \App\Models\GuestBookingRequest::statusBadgeClass($b->status) }}">
+                                                {{ \App\Models\GuestBookingRequest::statusLabel($b->status) }}
+                                            </span>
+                                            @if ($b->reviewed_at)
+                                                <br><small class="text-muted">{{ $b->reviewed_at->format('Y-m-d H:i') }}</small>
+                                            @endif
+                                        </td>
                                         <td class="small">
                                             @if (is_array($b->cart_items))
                                                 {{ count($b->cart_items['rooms'] ?? []) }} room(s),
@@ -109,9 +129,32 @@
                                                 —
                                             @endif
                                         </td>
+                                        <td class="text-nowrap">
+                                            @if ($b->canBeReviewed())
+                                                <form method="POST" action="{{ route('guestInsights.booking.status', $b->public_id) }}" class="d-flex gap-1 align-items-center" data-channel="{{ $b->fulfillment_choice }}" data-guest-email="{{ $b->guest_email }}" onsubmit="return confirmBookingStatus(this);">
+                                                    @csrf
+                                                    <select name="status" class="form-select form-select-sm" style="min-width: 11rem;" required>
+                                                        <option value="" selected disabled>Choose outcome…</option>
+                                                        <option value="confirmed">Confirm</option>
+                                                        <option value="unfortunate">Unable to accommodate</option>
+                                                        <option value="rejected">Reject (unclear)</option>
+                                                        <option value="no_show">No show</option>
+                                                    </select>
+                                                    <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+                                                </form>
+                                            @elseif ($b->canBeMarkedNoShow())
+                                                <form method="POST" action="{{ route('guestInsights.booking.status', $b->public_id) }}" class="d-inline" onsubmit="return confirm('Mark this reservation as no-show{{ $b->fulfillment_choice === 'email' ? ' and notify '.$b->guest_email : '' }}?');">
+                                                    @csrf
+                                                    <input type="hidden" name="status" value="no_show">
+                                                    <button type="submit" class="btn btn-sm btn-outline-dark">Mark no show</button>
+                                                </form>
+                                            @else
+                                                <span class="text-muted small">—</span>
+                                            @endif
+                                        </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" class="text-muted">No submissions yet.</td></tr>
+                                    <tr><td colspan="8" class="text-muted">No submissions yet.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -159,4 +202,27 @@
         </main>
     </div>
 </div>
+
+@section('scripts')
+<script>
+function confirmBookingStatus(form) {
+    var select = form.querySelector('select[name="status"]');
+    if (!select || !select.value) {
+        alert('Choose an outcome first.');
+        return false;
+    }
+    var labels = {
+        confirmed: 'confirm this reservation',
+        unfortunate: 'mark as unable to accommodate',
+        rejected: 'reject this reservation (unclear details)',
+        no_show: 'mark as no-show'
+    };
+    var channel = form.getAttribute('data-channel') || '';
+    var guestEmail = form.getAttribute('data-guest-email') || '';
+    var action = labels[select.value] || 'update this reservation';
+    var emailNote = (channel === 'email' && guestEmail) ? ' and send an email to ' + guestEmail : '';
+    return confirm('Are you sure you want to ' + action + emailNote + '?');
+}
+</script>
+@endsection
 @endsection

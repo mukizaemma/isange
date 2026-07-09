@@ -53,8 +53,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/slick.min.css') }}">
     <!-- Main Style -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/brand-isange.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/isange-home.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/brand-isange.css') }}?v={{ @filemtime(public_path('assets/css/brand-isange.css')) ?: 1 }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/isange-home.css') }}?v={{ @filemtime(public_path('assets/css/isange-home.css')) ?: 1 }}">
+
+    @stack('head')
 
 </head>
 <body class="home-one @yield('body_class')">
@@ -292,7 +294,7 @@
     <script src="{{ asset('assets/js/script.js') }}" defer></script>
     <script src="{{ asset('assets/js/dual-currency.js') }}" defer></script>
     <script src="{{ asset('assets/js/parallax-bg.js') }}" defer></script>
-    <script src="{{ asset('assets/js/stay-booking-cart.js') }}" defer></script>
+    <script src="{{ asset('assets/js/stay-booking-cart.js') }}?v={{ @filemtime(public_path('assets/js/stay-booking-cart.js')) ?: 1 }}" defer></script>
     {{-- SPA navigation disabled: normal link clicks for reliable navigation and cart/scripts on each page --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
