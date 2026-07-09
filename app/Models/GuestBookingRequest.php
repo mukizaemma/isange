@@ -114,16 +114,18 @@ class GuestBookingRequest extends Model
 
     public static function generatePublicId(): string
     {
+        $start = self::referenceStart();
+
         $max = (int) static::query()
             ->whereRaw('public_id REGEXP \'^[0-9]{1,4}$\'')
             ->selectRaw('MAX(CAST(public_id AS UNSIGNED)) as max_ref')
             ->value('max_ref');
 
-        $next = max(1, $max + 1);
+        $next = max($start, $max + 1);
 
         for ($attempt = 0; $attempt < 10000; $attempt++) {
             if ($next > 9999) {
-                $next = 1;
+                $next = $start;
             }
 
             $ref = (string) $next;
@@ -135,6 +137,13 @@ class GuestBookingRequest extends Model
         }
 
         throw new \RuntimeException('Unable to generate a unique booking reference.');
+    }
+
+    public static function referenceStart(): int
+    {
+        $start = (int) config('services.booking_reference.start', 3258);
+
+        return max(1, min(9999, $start));
     }
 
     public static function appendReferenceToMessage(string $body, string $reference): string

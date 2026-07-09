@@ -50,4 +50,8 @@ return [
         'cc' => env('MAIL_NOTIFICATION_CC'),
     ],
 
+    'booking_reference' => [
+        'start' => (int) env('BOOKING_REFERENCE_START', 3258),
+    ],
+
 ];
