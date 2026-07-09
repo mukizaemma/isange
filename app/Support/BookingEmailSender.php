@@ -33,7 +33,6 @@ class BookingEmailSender
     public static function sendHotelNotification(GuestBookingRequest $booking, ?Setting $setting = null): bool
     {
         $setting = $setting ?? Setting::first();
-        $hotelName = trim((string) ($setting->company ?? 'Hotel'));
         $to = trim((string) (config('services.booking_notification.to') ?: ($setting->email ?? '')));
 
         if ($to === '' || ! filter_var($to, FILTER_VALIDATE_EMAIL)) {
@@ -43,7 +42,7 @@ class BookingEmailSender
         }
 
         $payload = [
-            'subject' => 'Room booking — '.$hotelName,
+            'subject' => 'Room booking — '.self::guestLabel($booking),
             'text' => (string) $booking->message_body,
         ];
 
@@ -77,7 +76,7 @@ class BookingEmailSender
         }
 
         $setting = $setting ?? Setting::first();
-        $hotelName = trim((string) ($setting->company ?? 'Hotel'));
+        $hotelName = self::resolveHotelName($setting);
         $hotelEmail = trim((string) ($setting->email ?? ''));
 
         $lines = [];
@@ -131,7 +130,7 @@ class BookingEmailSender
         }
 
         $setting = $setting ?? Setting::first();
-        $hotelName = trim((string) ($setting->company ?? 'Hotel'));
+        $hotelName = self::resolveHotelName($setting);
         $content = self::buildGuestStatusContent($booking, $status, $setting);
 
         $payload = [
@@ -156,7 +155,7 @@ class BookingEmailSender
     private static function buildGuestStatusContent(GuestBookingRequest $booking, string $status, ?Setting $setting): array
     {
         $setting = $setting ?? Setting::first();
-        $hotelName = trim((string) ($setting->company ?? 'Hotel'));
+        $hotelName = self::resolveHotelName($setting);
         $hotelEmail = trim((string) ($setting->email ?? ''));
         $hotelPhone = trim((string) ($setting->phone ?? ''));
         $guestName = $booking->guest_name ?: 'Guest';
@@ -274,9 +273,9 @@ class BookingEmailSender
         }
 
         $setting = Setting::first();
-        $hotelName = trim((string) ($setting->company ?? 'Hotel'));
+        $hotelName = self::resolveHotelName($setting);
         $fromAddress = trim((string) config('mail.from.address', ''));
-        $fromName = trim((string) config('mail.from.name', $hotelName));
+        $fromName = trim((string) config('mail.from.name', '')) ?: $hotelName;
 
         if ($fromAddress === '' || ! filter_var($fromAddress, FILTER_VALIDATE_EMAIL)) {
             Log::warning("Booking {$kind} not sent: MAIL_FROM_ADDRESS is missing or invalid.");
@@ -363,5 +362,40 @@ class BookingEmailSender
         }
 
         return implode("\n", $lines);
+    }
+
+    private static function resolveHotelName(?Setting $setting = null): string
+    {
+        $setting = $setting ?? Setting::first();
+        $candidates = [
+            trim((string) ($setting->company ?? '')),
+            trim((string) config('mail.from.name', '')),
+            trim((string) config('app.name', '')),
+        ];
+
+        foreach ($candidates as $name) {
+            if ($name !== '' && strcasecmp($name, 'Company Name') !== 0) {
+                return $name;
+            }
+        }
+
+        return 'Hotel';
+    }
+
+    private static function guestLabel(GuestBookingRequest $booking): string
+    {
+        $name = trim((string) ($booking->guest_name ?? ''));
+        $ref = trim((string) ($booking->public_id ?? ''));
+
+        if ($name !== '') {
+            return $ref !== '' ? $name.' ('.$ref.')' : $name;
+        }
+
+        $email = trim((string) ($booking->guest_email ?? ''));
+        if ($email !== '') {
+            return $ref !== '' ? $email.' ('.$ref.')' : $email;
+        }
+
+        return $ref !== '' ? 'Guest ('.$ref.')' : 'Guest';
     }
 }
