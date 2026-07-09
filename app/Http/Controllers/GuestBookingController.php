@@ -118,7 +118,7 @@ class GuestBookingController extends Controller
 
             return redirect()
                 ->route('room.booking.email', $record->public_id)
-                ->with('error', 'Your booking was saved, but we could not send the email automatically. Please contact the hotel directly or try again shortly.');
+                ->with('error', 'Your booking was saved, but we could not send the email automatically. You can send it via WhatsApp instead, or contact the hotel directly.');
         }
 
         return redirect()->route('room.booking.whatsapp', $record->public_id);
@@ -137,17 +137,25 @@ class GuestBookingController extends Controller
     public function openWhatsapp(Request $request, string $publicId): RedirectResponse
     {
         $booking = GuestBookingRequest::with('room')->where('public_id', $publicId)->firstOrFail();
-        if (! in_array($booking->fulfillment_choice, ['whatsapp', 'pay_on_delivery'], true)) {
+
+        $emailFallback = $booking->fulfillment_choice === 'email' && $booking->completed_channel !== 'email';
+        $allowed = in_array($booking->fulfillment_choice, ['whatsapp', 'pay_on_delivery'], true) || $emailFallback;
+
+        if (! $allowed) {
             abort(404);
         }
+
         $digits = preg_replace('/\D+/', '', (string) (Setting::first()->phone ?? ''));
         if (strlen($digits) < 8) {
-            return redirect()->route('room.booking.confirmation', $publicId)->with('error', 'WhatsApp is not configured. Please use email or call the hotel.');
+            return redirect()
+                ->route('room.booking.email', $publicId)
+                ->with('error', 'WhatsApp is not configured. Please email the hotel directly.');
         }
+
         $booking->update(['completed_channel' => 'whatsapp']);
         SiteAnalyticsEvent::create([
-            'event_key' => 'booking_pay_delivery_whatsapp',
-            'properties' => [],
+            'event_key' => $emailFallback ? 'booking_email_fallback_whatsapp' : 'booking_pay_delivery_whatsapp',
+            'properties' => ['fallback' => $emailFallback],
             'session_id' => substr(sha1($request->session()->getId()), 0, 40),
         ]);
         $text = rawurlencode($booking->message_body);
@@ -180,7 +188,9 @@ class GuestBookingController extends Controller
             }
         }
 
-        return $this->spaView('frontend.room-booking-email', compact('booking', 'hotelEmail'), 'Booking sent');
+        $hotelWhatsappReady = StayBookingController::hotelWhatsappReady($setting);
+
+        return $this->spaView('frontend.room-booking-email', compact('booking', 'hotelEmail', 'hotelWhatsappReady'), 'Booking sent');
     }
 
     public function otaRedirect(string $publicId, string $which): View|Response

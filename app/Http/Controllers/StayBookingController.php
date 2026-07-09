@@ -221,7 +221,7 @@ class StayBookingController extends Controller
 
             return redirect()
                 ->route('room.booking.email', $record->public_id)
-                ->with('error', 'Your booking was saved, but we could not send the email automatically. Please contact the hotel directly or try again shortly.');
+                ->with('error', 'Your booking was saved, but we could not send the email automatically. You can send it via WhatsApp instead, or contact the hotel directly.');
         }
 
         return match ($fulfillment) {

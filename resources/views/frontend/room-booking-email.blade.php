@@ -2,9 +2,13 @@
 
 @section('content')
 
+@php
+    $emailDelivered = session('email_sent') || $booking->completed_channel === 'email';
+@endphp
+
 @include('frontend.includes.page-header', [
-    'title' => session('email_sent') || $booking->completed_channel === 'email' ? 'Request received' : 'Email delivery',
-    'subtitle' => session('email_sent') || $booking->completed_channel === 'email'
+    'title' => $emailDelivered ? 'Request received' : 'Email delivery',
+    'subtitle' => $emailDelivered
         ? 'We received your booking request and sent you a confirmation email.'
         : 'We could not deliver your request by email automatically.',
     'imageUrl' => null,
@@ -21,7 +25,7 @@
                     <div class="alert alert-warning text-start">{{ session('warning') }}</div>
                 @endif
 
-                @if (session('email_sent') || $booking->completed_channel === 'email')
+                @if ($emailDelivered)
                     <div class="alert alert-success text-start">
                         <strong>Thank you!</strong> Your stay request has been received.
                         A confirmation email was sent to <strong>{{ $booking->guest_email }}</strong>.
@@ -29,10 +33,29 @@
                     </div>
                     <p class="text-muted mb-0">Reference: <code>{{ $booking->public_id }}</code></p>
                 @else
-                    <p class="mb-4">Please email the hotel directly at <a href="mailto:{{ $hotelEmail }}">{{ $hotelEmail }}</a> and include your reference <code>{{ $booking->public_id }}</code>.</p>
+                    <div class="border rounded-3 p-4 p-md-5 bg-light shadow-sm text-start mb-4">
+                        <p class="mb-3">Your booking is saved with reference <code>{{ $booking->public_id }}</code>. Choose how to send it to the hotel:</p>
+
+                        @if (! empty($hotelWhatsappReady))
+                            <div class="d-flex flex-column flex-sm-row gap-3 mb-4">
+                                <a class="theme-btn text-center flex-grow-1" href="{{ route('room.booking.whatsapp', $booking->public_id) }}">
+                                    <i class="fab fa-whatsapp me-2"></i> Send via WhatsApp
+                                </a>
+                                <a class="theme-btn style-three text-center flex-grow-1" href="{{ route('room.booking.email', $booking->public_id) }}">
+                                    <i class="far fa-envelope me-2"></i> Retry email
+                                </a>
+                            </div>
+                            <p class="small text-muted mb-0">WhatsApp opens with your booking details pre-filled — tap send to deliver your request.</p>
+                        @else
+                            <p class="mb-3">Please email the hotel directly at <a href="mailto:{{ $hotelEmail }}?subject={{ rawurlencode('Booking request '.$booking->public_id) }}">{{ $hotelEmail }}</a> and include your reference <code>{{ $booking->public_id }}</code>.</p>
+                            <a class="theme-btn style-three" href="{{ route('room.booking.email', $booking->public_id) }}">
+                                <i class="far fa-envelope me-2"></i> Retry automatic email
+                            </a>
+                        @endif
+                    </div>
                 @endif
 
-                <a class="theme-btn mt-4" href="{{ route('home') }}">Back to home</a>
+                <a class="theme-btn mt-2{{ $emailDelivered ? ' mt-4' : '' }}" href="{{ route('home') }}">Back to home</a>
             </div>
         </div>
     </div>
