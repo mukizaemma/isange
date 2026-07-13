@@ -48,6 +48,7 @@ class GuestBookingRequest extends Model
         'confirmed_at',
         'reviewed_at',
         'message_body',
+        'admin_message',
     ];
 
     protected $casts = [
@@ -85,10 +86,20 @@ class GuestBookingRequest extends Model
     {
         return match ($status) {
             self::STATUS_CONFIRMED => 'Confirmed',
-            self::STATUS_UNFORTUNATE => 'Unable to accommodate',
+            self::STATUS_UNFORTUNATE => 'Fully booked',
             self::STATUS_REJECTED => 'Rejected',
             self::STATUS_NO_SHOW => 'No show',
             default => 'Pending',
+        };
+    }
+
+    public static function channelLabel(?string $channel): string
+    {
+        return match ($channel) {
+            'whatsapp' => 'WhatsApp',
+            'email' => 'Email',
+            'pay_on_delivery' => 'Pay on delivery',
+            default => $channel ? ucfirst(str_replace('_', ' ', $channel)) : '—',
         };
     }
 

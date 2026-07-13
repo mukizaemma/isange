@@ -136,7 +136,7 @@
                                                     <select name="status" class="form-select form-select-sm" style="min-width: 11rem;" required>
                                                         <option value="" selected disabled>Choose outcome…</option>
                                                         <option value="confirmed">Confirm</option>
-                                                        <option value="unfortunate">Unable to accommodate</option>
+                                                        <option value="unfortunate">Fully booked</option>
                                                         <option value="rejected">Reject (unclear)</option>
                                                         <option value="no_show">No show</option>
                                                     </select>
@@ -213,7 +213,7 @@ function confirmBookingStatus(form) {
     }
     var labels = {
         confirmed: 'confirm this reservation',
-        unfortunate: 'mark as unable to accommodate',
+        unfortunate: 'mark as fully booked',
         rejected: 'reject this reservation (unclear details)',
         no_show: 'mark as no-show'
     };

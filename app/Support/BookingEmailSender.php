@@ -111,10 +111,6 @@ class BookingEmailSender
 
     public static function sendGuestStatusUpdate(GuestBookingRequest $booking, string $status, ?Setting $setting = null): bool
     {
-        if ($booking->fulfillment_choice !== 'email') {
-            return false;
-        }
-
         if (! in_array($status, GuestBookingRequest::REVIEWABLE_STATUSES, true)) {
             return false;
         }
@@ -140,7 +136,7 @@ class BookingEmailSender
 
         $kind = match ($status) {
             GuestBookingRequest::STATUS_CONFIRMED => 'guest confirmation',
-            GuestBookingRequest::STATUS_UNFORTUNATE => 'guest unfortunate',
+            GuestBookingRequest::STATUS_UNFORTUNATE => 'guest fully booked',
             GuestBookingRequest::STATUS_REJECTED => 'guest rejection',
             GuestBookingRequest::STATUS_NO_SHOW => 'guest no-show',
             default => 'guest status update',
@@ -179,6 +175,13 @@ class BookingEmailSender
             GuestBookingRequest::STATUS_NO_SHOW => self::appendNoShowBody($lines, $hotelName),
             default => $lines[] = 'There is an update regarding your reservation.',
         };
+
+        $adminMessage = trim((string) ($booking->admin_message ?? ''));
+        if ($adminMessage !== '') {
+            $lines[] = '';
+            $lines[] = 'Message from the hotel:';
+            $lines[] = $adminMessage;
+        }
 
         $lines[] = '';
         $lines[] = self::buildStaySummary($booking);
@@ -235,8 +238,7 @@ class BookingEmailSender
     private static function appendUnfortunateBody(array &$lines, string $hotelName): void
     {
         $lines[] = 'Thank you for choosing '.$hotelName.'.';
-        $lines[] = 'Unfortunately, we are unable to confirm your reservation for the requested dates.';
-        $lines[] = 'This may be due to availability or other constraints beyond our control.';
+        $lines[] = 'Unfortunately, we are fully booked for the requested dates and cannot confirm your reservation.';
         $lines[] = 'We sincerely apologise for any inconvenience.';
     }
 

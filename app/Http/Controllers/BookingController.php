@@ -4,46 +4,33 @@ namespace App\Http\Controllers;
 
 use App\Models\Foodorder;
 use App\Models\GuestBookingRequest;
+use App\Models\SiteAnalyticsEvent;
 use App\Models\Tablebooking;
+use App\Support\BookingEmailSender;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class BookingController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): View
     {
-        $bookings = GuestBookingRequest::with('room')->latest()->get();
-
-        return view('admin.bookings', [
-            'bookings' => $bookings,
-        ]);
+        return $this->renderBookingsList();
     }
 
-    public function search(Request $request)
+    public function search(Request $request): View
     {
-        $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date');
-
-        $query = GuestBookingRequest::with('room')->latest();
-
-        if ($start_date && $end_date) {
-            $start = Carbon::parse($start_date)->startOfDay();
-            $end = Carbon::parse($end_date)->endOfDay();
-
-            $query->whereBetween('created_at', [$start, $end]);
-        }
-
-        $bookings = $query->get();
-
-        return view('admin.bookings', [
-            'bookings' => $bookings,
-            'start_date' => $start_date,
-            'end_date' => $end_date,
-        ]);
+        return $this->renderBookingsList(
+            $request->input('start_date'),
+            $request->input('end_date')
+        );
     }
 
     public function TablesBookings()
@@ -55,25 +42,16 @@ class BookingController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('admin.testBooking');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function viewBooking($id)
+    public function viewBooking($id): View
     {
         $booking = GuestBookingRequest::with('room')->findOrFail($id);
 
@@ -82,34 +60,87 @@ class BookingController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function updateStatus(Request $request, $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(GuestBookingRequest::REVIEWABLE_STATUSES)],
+            'admin_message' => ['nullable', 'string', 'max:5000'],
+            'notify_guest' => ['sometimes', 'boolean'],
+        ]);
+
+        $booking = GuestBookingRequest::with('room')->findOrFail($id);
+        $newStatus = $validated['status'];
+
+        if ($booking->isPending()) {
+            // All review outcomes allowed from pending.
+        } elseif ($booking->isConfirmed() && $newStatus === GuestBookingRequest::STATUS_NO_SHOW) {
+            // Confirmed bookings can later be marked no-show.
+        } else {
+            return back()->with('error', 'This booking cannot be changed to that status.');
+        }
+
+        $now = now();
+        $booking->update([
+            'status' => $newStatus,
+            'admin_message' => $validated['admin_message'] ?? null,
+            'reviewed_at' => $now,
+            'confirmed_at' => $newStatus === GuestBookingRequest::STATUS_CONFIRMED ? $now : $booking->confirmed_at,
+        ]);
+        $booking->refresh();
+
+        $notifyGuest = $request->boolean('notify_guest', true);
+        $emailSent = false;
+        $hasGuestEmail = filter_var(trim((string) $booking->guest_email), FILTER_VALIDATE_EMAIL);
+
+        if ($notifyGuest && $hasGuestEmail) {
+            $emailSent = BookingEmailSender::sendGuestStatusUpdate($booking, $newStatus);
+        }
+
+        SiteAnalyticsEvent::create([
+            'event_key' => 'booking_admin_status_updated',
+            'properties' => [
+                'status' => $newStatus,
+                'fulfillment' => $booking->fulfillment_choice,
+                'guest_email' => $emailSent,
+                'source' => 'reservations',
+            ],
+            'session_id' => null,
+        ]);
+
+        $label = GuestBookingRequest::statusLabel($newStatus);
+
+        if ($notifyGuest && $hasGuestEmail && ! $emailSent) {
+            return back()->with('warning', "Booking marked as {$label}, but the notification email could not be sent to the guest.");
+        }
+
+        if ($notifyGuest && $hasGuestEmail && $emailSent) {
+            return back()->with('success', "Booking marked as {$label} and email sent to {$booking->guest_email}.");
+        }
+
+        if ($notifyGuest && ! $hasGuestEmail) {
+            return back()->with('success', "Booking marked as {$label}. No guest email on file, so no notification was sent.");
+        }
+
+        return back()->with('success', "Booking marked as {$label}.");
+    }
+
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, string $id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(string $id): RedirectResponse
     {
         $booking = GuestBookingRequest::findOrFail($id);
         $booking->delete();
 
         return redirect()->route('bookings')->with('success', 'Reservation deleted successfully.');
     }
-
-    //  controller to Check the available rooms based on dates selected
 
     public function availableRooms(Request $request, $checkinDate)
     {
@@ -133,13 +164,7 @@ class BookingController extends Controller
         $end_date = $request->input('end_date');
 
         $query = GuestBookingRequest::with('room')->latest();
-
-        if ($start_date && $end_date) {
-            $start = Carbon::parse($start_date)->startOfDay();
-            $end = Carbon::parse($end_date)->endOfDay();
-            $query->whereBetween('created_at', [$start, $end]);
-        }
-
+        $this->applyDateFilter($query, $start_date, $end_date);
         $bookings = $query->get();
 
         return view('admin.pages.printBookings', [
@@ -152,5 +177,47 @@ class BookingController extends Controller
     public function print()
     {
         return view('frontend.print.bookings');
+    }
+
+    private function renderBookingsList(?string $startDate = null, ?string $endDate = null): View
+    {
+        $query = GuestBookingRequest::with('room')->latest();
+        $this->applyDateFilter($query, $startDate, $endDate);
+        $bookings = $query->get();
+
+        return view('admin.bookings', [
+            'bookings' => $bookings,
+            'summary' => $this->buildSummary($bookings),
+            'start_date' => $startDate,
+            'end_date' => $endDate,
+        ]);
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, GuestBookingRequest>  $bookings
+     * @return array{total: int, whatsapp: int, email: int, confirmed: int, pending: int, fully_booked: int, rejected: int, no_show: int}
+     */
+    private function buildSummary($bookings): array
+    {
+        return [
+            'total' => $bookings->count(),
+            'whatsapp' => $bookings->where('fulfillment_choice', 'whatsapp')->count(),
+            'email' => $bookings->where('fulfillment_choice', 'email')->count(),
+            'confirmed' => $bookings->where('status', GuestBookingRequest::STATUS_CONFIRMED)->count(),
+            'pending' => $bookings->where('status', GuestBookingRequest::STATUS_PENDING)->count(),
+            'fully_booked' => $bookings->where('status', GuestBookingRequest::STATUS_UNFORTUNATE)->count(),
+            'rejected' => $bookings->where('status', GuestBookingRequest::STATUS_REJECTED)->count(),
+            'no_show' => $bookings->where('status', GuestBookingRequest::STATUS_NO_SHOW)->count(),
+        ];
+    }
+
+    private function applyDateFilter(Builder $query, ?string $startDate, ?string $endDate): void
+    {
+        if ($startDate && $endDate) {
+            $query->whereBetween('created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay(),
+            ]);
+        }
     }
 }

@@ -202,6 +202,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Bookings
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings');
     Route::get('/bookings/search', [BookingController::class, 'search'])->name('searchBookings');
+    Route::post('/bookings/{id}/status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
     Route::get('/TablesBookings', [BookingController::class, 'TablesBookings'])->name('TablesBookings');
     Route::get('/testBooking', [BookingController::class, 'create'])->name('testBooking');
     Route::post('/saveBooking', [BookingController::class, 'store'])->name('saveBooking');

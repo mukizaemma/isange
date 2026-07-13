@@ -52,6 +52,8 @@ class GuestInsightsController extends Controller
     {
         $validated = $request->validate([
             'status' => ['required', Rule::in(GuestBookingRequest::REVIEWABLE_STATUSES)],
+            'admin_message' => ['nullable', 'string', 'max:5000'],
+            'notify_guest' => ['sometimes', 'boolean'],
         ]);
 
         $booking = GuestBookingRequest::query()->with('room')->where('public_id', $publicId)->firstOrFail();
@@ -68,12 +70,19 @@ class GuestInsightsController extends Controller
         $now = now();
         $booking->update([
             'status' => $newStatus,
+            'admin_message' => array_key_exists('admin_message', $validated)
+                ? ($validated['admin_message'] ?: null)
+                : $booking->admin_message,
             'reviewed_at' => $now,
             'confirmed_at' => $newStatus === GuestBookingRequest::STATUS_CONFIRMED ? $now : $booking->confirmed_at,
         ]);
+        $booking->refresh();
 
+        $notifyGuest = $request->boolean('notify_guest', true);
         $emailSent = false;
-        if ($booking->fulfillment_choice === 'email') {
+        $hasGuestEmail = filter_var(trim((string) $booking->guest_email), FILTER_VALIDATE_EMAIL);
+
+        if ($notifyGuest && $hasGuestEmail) {
             $emailSent = BookingEmailSender::sendGuestStatusUpdate($booking, $newStatus);
         }
 
@@ -83,20 +92,25 @@ class GuestInsightsController extends Controller
                 'status' => $newStatus,
                 'fulfillment' => $booking->fulfillment_choice,
                 'guest_email' => $emailSent,
+                'source' => 'guest_insights',
             ],
             'session_id' => null,
         ]);
 
         $label = GuestBookingRequest::statusLabel($newStatus);
 
-        if ($booking->fulfillment_choice === 'email' && ! $emailSent) {
+        if ($notifyGuest && $hasGuestEmail && ! $emailSent) {
             return back()->with('warning', "Booking marked as {$label}, but the notification email could not be sent to the guest.");
         }
 
-        $message = $booking->fulfillment_choice === 'email'
-            ? "Booking marked as {$label} and email sent to {$booking->guest_email}."
-            : "Booking marked as {$label}. No email sent (WhatsApp booking).";
+        if ($notifyGuest && $hasGuestEmail && $emailSent) {
+            return back()->with('success', "Booking marked as {$label} and email sent to {$booking->guest_email}.");
+        }
 
-        return back()->with('success', $message);
+        if ($notifyGuest && ! $hasGuestEmail) {
+            return back()->with('success', "Booking marked as {$label}. No guest email on file, so no notification was sent.");
+        }
+
+        return back()->with('success', "Booking marked as {$label}.");
     }
 }

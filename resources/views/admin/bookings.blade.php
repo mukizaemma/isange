@@ -77,12 +77,44 @@
                                 </div>
                             @endif
 
+                            @php $summary = $summary ?? ['total' => 0, 'whatsapp' => 0, 'email' => 0, 'confirmed' => 0, 'pending' => 0]; @endphp
+                            <div class="row g-3 mb-4">
+                                <div class="col-6 col-md-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <div class="text-muted small text-uppercase fw-semibold">Reservations</div>
+                                        <div class="fs-3 fw-bold">{{ $summary['total'] }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <div class="text-muted small text-uppercase fw-semibold">WhatsApp</div>
+                                        <div class="fs-3 fw-bold">{{ $summary['whatsapp'] }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <div class="text-muted small text-uppercase fw-semibold">Email</div>
+                                        <div class="fs-3 fw-bold">{{ $summary['email'] }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <div class="text-muted small text-uppercase fw-semibold">Confirmed</div>
+                                        <div class="fs-3 fw-bold text-success">{{ $summary['confirmed'] }}</div>
+                                        @if (($summary['pending'] ?? 0) > 0)
+                                            <div class="small text-muted">{{ $summary['pending'] }} pending</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
                                         <th width="250px">Date</th>
                                         <th width="250px">Customer Names</th>
                                         <th width="250px">Customer Phone</th>
+                                        <th width="120px">Channel</th>
                                         <th width="200px">Room</th>
                                         <th width="250px">CheckIn Date</th>
                                         <th width="250px">CheckOut Date</th>
@@ -105,6 +137,7 @@
                                                 @endif
                                             </td>
                                             <td>{{ $rs->guest_phone }}</td>
+                                            <td>{{ \App\Models\GuestBookingRequest::channelLabel($rs->fulfillment_choice) }}</td>
                                             <td>{{ $rs->room->roomName ?? '—' }}</td>
                                             <td>{{ $rs->check_in?->format('Y-m-d') }}</td>
                                             <td>{{ $rs->check_out?->format('Y-m-d') }}</td>
@@ -112,7 +145,7 @@
                                             <td>{{ $rs->additional_requests }}</td>
                                             <td>
                                                 <div class="btn-btn-group">
-                                                    <a type="button" href="{{ route('viewBooking', $rs->id) }}" class="btn btn-primary text-black"><i class="fa fa-eye"></i> </a>
+                                                    <a type="button" href="{{ route('viewBooking', $rs->id) }}" class="btn btn-primary text-black" title="View & update"><i class="fa fa-eye"></i> </a>
                                                     <a type="button" href="{{ route('destroyBooking', $rs->id) }}" class="btn btn-danger text-black"
                                                         onclick="return confirm('Are you sure to delete this item?')"><i class="fa fa-trash"></i></a>
                                                 </div>
@@ -120,7 +153,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="9" class="text-muted text-center py-4">No reservations found for this period.</td>
+                                            <td colspan="10" class="text-muted text-center py-4">No reservations found for this period.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
