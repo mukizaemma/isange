@@ -78,6 +78,9 @@ class RoomsController extends Controller
             'accommodation_type' => $validated['accommodation_type'],
             'price' => $validated['price'] ?? null,
             'price_rwf' => $validated['price_rwf'] ?? null,
+            'discount_enabled' => $request->boolean('discount_enabled'),
+            'discount_type' => $validated['discount_type'] ?? null,
+            'discount_value' => $validated['discount_value'] ?? null,
             'size' => $validated['size'] ?? null,
             'maxAdults' => $validated['maxAdults'] ?? null,
             'maxChildren' => $validated['maxChildren'] ?? null,
@@ -130,6 +133,9 @@ class RoomsController extends Controller
         $room->accommodation_type = $validated['accommodation_type'];
         $room->price = $validated['price'] ?? null;
         $room->price_rwf = $validated['price_rwf'] ?? null;
+        $room->discount_enabled = $request->boolean('discount_enabled');
+        $room->discount_type = $validated['discount_type'] ?? null;
+        $room->discount_value = $validated['discount_value'] ?? null;
         $room->size = $validated['size'] ?? null;
         $room->maxAdults = $validated['maxAdults'] ?? null;
         $room->maxChildren = $validated['maxChildren'] ?? null;
@@ -230,12 +236,39 @@ class RoomsController extends Controller
     {
         $needsImage = $room === null || empty($room->image);
 
+        $discountOn = $request->boolean('discount_enabled');
+
         return [
             'image' => ($needsImage ? 'required' : 'nullable').'|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
             'roomName' => 'required|string|max:255',
             'accommodation_type' => 'required|in:'.Room::TYPE_ROOM.','.Room::TYPE_APARTMENT,
             'price' => 'nullable|string|max:64',
             'price_rwf' => 'nullable|numeric|min:0',
+            'discount_enabled' => 'sometimes|boolean',
+            'discount_type' => [$discountOn ? 'required' : 'nullable', 'in:'.Room::DISCOUNT_PERCENT.','.Room::DISCOUNT_FIXED],
+            'discount_value' => [
+                $discountOn ? 'required' : 'nullable',
+                'numeric',
+                'min:0.01',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request): void {
+                    if (! $request->boolean('discount_enabled')) {
+                        return;
+                    }
+                    $type = $request->input('discount_type');
+                    $amount = (float) $value;
+                    if ($type === Room::DISCOUNT_PERCENT && $amount > 100) {
+                        $fail('Percentage discount cannot exceed 100%.');
+                    }
+                    if ($type === Room::DISCOUNT_FIXED) {
+                        $price = (float) $request->input('price', 0);
+                        if ($price <= 0) {
+                            $fail('Set a USD room price before applying a fixed discount.');
+                        } elseif ($amount >= $price) {
+                            $fail('Fixed discount must be less than the USD room price.');
+                        }
+                    }
+                },
+            ],
             'size' => 'nullable|string|max:64',
             'maxAdults' => 'nullable|string|max:32',
             'maxChildren' => 'nullable|string|max:32',

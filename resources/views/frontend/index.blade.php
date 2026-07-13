@@ -186,7 +186,7 @@
                                     data-room-id="{{ $room->id }}"
                                     data-room-slug="{{ $room->slug }}"
                                     data-room-name="{{ $room->roomName }}"
-                                    data-room-price="{{ $room->price }}"
+                                    data-room-price="{{ $room->salePriceUsd() }}"
                                     data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
                                     <span data-add-room-label>Book Now</span> <i class="far fa-angle-right"></i>
                                 </button>
@@ -279,7 +279,7 @@
 @include('frontend.includes.home-dining-choose-row')
 
 {{-- 7. EVENTS & GARDEN --}}
-<section class="isange-section rel z-1 bgc-white">
+<section class="isange-section isange-section--green isange-events-section rel z-1">
     <div class="container">
         <div class="row justify-content-center text-center mb-40 wow fadeInUp">
             <div class="col-lg-8">
@@ -294,7 +294,7 @@
         <div class="row g-3 justify-content-center">
             @foreach ($eventTypes as $eventType)
             <div class="col-6 col-md-4 col-lg wow fadeInUp delay-0-2s">
-                <div class="isange-why-card py-4">
+                <div class="isange-why-card isange-why-card--on-green py-4">
                     <h3 class="h5 mb-0">{{ $eventType }}</h3>
                 </div>
             </div>

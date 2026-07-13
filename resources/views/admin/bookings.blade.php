@@ -46,12 +46,12 @@
                                         <div class="row">
                                             <div class="col-lg-3 col-sm-12">
                                                 <label for="start_date">Start Date:</label>
-                                                <input type="date" class="form-control mx-sm-2" id="start_date" name="start_date">
+                                                <input type="date" class="form-control mx-sm-2" id="start_date" name="start_date" value="{{ $start_date ?? '' }}">
         
                                             </div>
                                             <div class="col-lg-3 col-sm-12" >
                                                 <label for="end_date">End Date:</label>
-                                                <input type="date" class="form-control mx-sm-2" id="end_date" name="end_date">
+                                                <input type="date" class="form-control mx-sm-2" id="end_date" name="end_date" value="{{ $end_date ?? '' }}">
                                               
            
                                             </div>
@@ -93,25 +93,36 @@
                                 </thead>
 
                                 <tbody>
-                                    @foreach ($bookings as $rs)
+                                    @forelse ($bookings as $rs)
                                         <tr>
-                                            <td>{{ $rs->created_at }}</td>
-                                            <td>{{ $rs->names }}</td>
-                                            <td>{{ $rs->phone }}</td>
-                                            <td>{{ $rs->room->roomName ?? '' }}</td>
-                                            <td>{{ $rs->checkin }}</td>
-                                            <td>{{ $rs->checkout }}</td>
+                                            <td>{{ $rs->created_at?->format('Y-m-d H:i') }}</td>
+                                            <td>
+                                                {{ $rs->guest_name }}
+                                                @if ($rs->status)
+                                                    <br><span class="badge {{ \App\Models\GuestBookingRequest::statusBadgeClass($rs->status) }}">
+                                                        {{ \App\Models\GuestBookingRequest::statusLabel($rs->status) }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td>{{ $rs->guest_phone }}</td>
+                                            <td>{{ $rs->room->roomName ?? '—' }}</td>
+                                            <td>{{ $rs->check_in?->format('Y-m-d') }}</td>
+                                            <td>{{ $rs->check_out?->format('Y-m-d') }}</td>
                                             <td>{{ $rs->adults }} / {{ $rs->children }}</td>
-                                            <td>{{ $rs->description }}</td>
+                                            <td>{{ $rs->additional_requests }}</td>
                                             <td>
                                                 <div class="btn-btn-group">
                                                     <a type="button" href="{{ route('viewBooking', $rs->id) }}" class="btn btn-primary text-black"><i class="fa fa-eye"></i> </a>
-                                                    <a type="button" href="{{ route('roomTypeDelete', $rs->id) }}"class="btn btn-danger text-black"
+                                                    <a type="button" href="{{ route('destroyBooking', $rs->id) }}" class="btn btn-danger text-black"
                                                         onclick="return confirm('Are you sure to delete this item?')"><i class="fa fa-trash"></i></a>
                                                 </div>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="9" class="text-muted text-center py-4">No reservations found for this period.</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -245,7 +256,7 @@
                                                     <tbody>
                                                         @foreach ($bookings as $rs)
                                                             <tr>
-                                                                <td>{{ $rs->created_at }}</td>
+                                                                <td>{{ $rs->created_at?->format('Y-m-d H:i') }}</td>
                                                             </tr>
                                                         @endforeach
                                                     </tbody>

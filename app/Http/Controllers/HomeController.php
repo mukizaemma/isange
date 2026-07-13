@@ -370,18 +370,23 @@ class HomeController extends Controller
 
         // Check if there are available rooms
         if ($room->quantity > 0) {
-            $booking = new Roombooking;
-            $booking->room_id = $room->id;
-            $booking->names = $request->names;
-            $booking->email = $request->email;
-            $booking->phone = $request->phone;
-            $booking->checkin = $request->checkin;
-            $booking->checkout = $request->checkout;
-            $booking->price = $request->price;
-            $booking->room = $request->room;
-            $booking->adults = $request->adults;
-            $booking->description = $request->description;
-            $booking->save();
+            $nights = now()->parse($request->checkout)->diffInDays($request->checkin);
+
+            Booking::create([
+                'room_id' => $room->id,
+                'names' => $request->names,
+                'email' => $request->email,
+                'phone' => $request->phone,
+                'checkin' => $request->checkin,
+                'checkout' => $request->checkout,
+                'adults' => $request->adults,
+                'children' => $request->input('children', 0),
+                'rooms' => $request->input('room', 1),
+                'nights' => $nights,
+                'total' => $request->input('price', $room->price) * max(1, $nights),
+                'description' => $request->description,
+                'status' => 'Pending',
+            ]);
 
             return redirect()->back()->with('success', 'Thank you for booking with us. Remember we can pick you from Kigali at only $10');
         } else {

@@ -90,17 +90,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($bookings as $rs)
+                        @forelse ($bookings as $rs)
                             <tr>
-                                <td>{{ $rs->created_at }}</td>
-                                <td>{{ $rs->names }}</td>
-                                <td>{{ $rs->phone }}</td>
-                                <td>{{ $rs->room }}</td>
-                                <td>{{ $rs->checkin }}</td>
-                                <td>{{ $rs->checkout }}</td>
+                                <td>{{ $rs->created_at?->format('Y-m-d H:i') }}</td>
+                                <td>{{ $rs->guest_name }}</td>
+                                <td>{{ $rs->guest_phone }}</td>
+                                <td>{{ $rs->room->roomName ?? '—' }}</td>
+                                <td>{{ $rs->check_in?->format('Y-m-d') }}</td>
+                                <td>{{ $rs->check_out?->format('Y-m-d') }}</td>
                                 <td>{{ $rs->adults }}</td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-muted text-center">No reservations found for this period.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

@@ -41,25 +41,29 @@
                             </thead>
 
                             <tbody>
-                                @foreach ($bookings as $rs)
+                                @forelse ($bookings as $rs)
                                     <tr>
-                                        <td>{{ $rs->created_at }}</td>
-                                        <td>{{ $rs->names }}</td>
-                                        <td>{{ $rs->phone }}</td>
-                                        <td>{{ $rs->room->roomName ?? '' }}</td>
-                                        <td>{{ $rs->checkin }}</td>
-                                        <td>{{ $rs->checkout }}</td>
+                                        <td>{{ $rs->created_at?->format('Y-m-d H:i') }}</td>
+                                        <td>{{ $rs->guest_name }}</td>
+                                        <td>{{ $rs->guest_phone }}</td>
+                                        <td>{{ $rs->room->roomName ?? '—' }}</td>
+                                        <td>{{ $rs->check_in?->format('Y-m-d') }}</td>
+                                        <td>{{ $rs->check_out?->format('Y-m-d') }}</td>
                                         <td>{{ $rs->adults }} / {{ $rs->children }}</td>
-                                        <td>{{ $rs->description }}</td>
+                                        <td>{{ $rs->additional_requests }}</td>
                                         <td>
                                             <div class="btn-btn-group">
                                                 <a type="button" href="{{ route('viewBooking', $rs->id) }}" class="btn btn-primary text-black"><i class="fa fa-eye"></i> </a>
-                                                <a type="button" href="{{ route('roomTypeDelete', $rs->id) }}"class="btn btn-danger text-black"
+                                                <a type="button" href="{{ route('destroyBooking', $rs->id) }}" class="btn btn-danger text-black"
                                                     onclick="return confirm('Are you sure to delete this item?')"><i class="fa fa-trash"></i></a>
                                             </div>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="9" class="text-muted text-center py-4">No reservations yet.</td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>

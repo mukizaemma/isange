@@ -18,8 +18,16 @@
                                 @endif
                                 <div class="ma-checkout-pick-item__body">
                                     <h6 class="ma-checkout-pick-item__title">{{ $r->roomName }}</h6>
-                                    @if ($r->price)
-                                        <p class="ma-checkout-pick-item__meta small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->price, $r->price_rwf) !!} / night</p>
+                                    @if ($r->listPriceUsd() !== null)
+                                        @if ($r->hasActiveDiscount())
+                                            <p class="ma-checkout-pick-item__meta small text-muted mb-0">
+                                                From <span class="text-decoration-line-through">{{ \App\Support\Currency::formatRoomPriceLabel($r->listPriceUsd()) }}</span>
+                                                {!! \App\Support\Currency::formatUsdWithLocal($r->salePriceUsd(), $r->salePriceRwf()) !!} / night
+                                                <span class="badge bg-success">{{ $r->discountBadgeLabel() }}</span>
+                                            </p>
+                                        @else
+                                            <p class="ma-checkout-pick-item__meta small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->price, $r->price_rwf) !!} / night</p>
+                                        @endif
                                     @else
                                         <p class="ma-checkout-pick-item__meta small text-muted mb-0">Rate on request</p>
                                     @endif
@@ -29,7 +37,7 @@
                                     data-room-id="{{ $r->id }}"
                                     data-room-slug="{{ $r->slug }}"
                                     data-room-name="{{ $r->roomName }}"
-                                    data-room-price="{{ $r->price }}"
+                                    data-room-price="{{ $r->salePriceUsd() }}"
                                     data-room-image="{{ $r->image ? asset('storage/images/rooms/'.$r->image) : '' }}">
                                     Add
                                 </button>

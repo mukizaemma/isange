@@ -30,7 +30,10 @@ class StayBookingController extends Controller
         ]);
 
         $setting = Setting::first();
-        $rooms = Room::orderBy('roomName')->get(['id', 'slug', 'roomName', 'price', 'price_rwf', 'image', 'accommodation_type']);
+        $rooms = Room::orderBy('roomName')->get([
+            'id', 'slug', 'roomName', 'price', 'price_rwf', 'image', 'accommodation_type',
+            'discount_enabled', 'discount_type', 'discount_value',
+        ]);
         $experiences = ExperienceCatalog::items($request->attributes->get('page_headers'));
 
         $prefillRoom = null;
@@ -232,7 +235,10 @@ class StayBookingController extends Controller
 
     public function catalog(Request $request): JsonResponse
     {
-        $rooms = Room::orderBy('roomName')->get(['id', 'slug', 'roomName', 'price', 'price_rwf', 'image']);
+        $rooms = Room::orderBy('roomName')->get([
+            'id', 'slug', 'roomName', 'price', 'price_rwf', 'image',
+            'discount_enabled', 'discount_type', 'discount_value',
+        ]);
         $experiences = ExperienceCatalog::items();
 
         return response()->json([
@@ -240,8 +246,14 @@ class StayBookingController extends Controller
                 'room_id' => $r->id,
                 'slug' => $r->slug,
                 'name' => $r->roomName,
-                'price' => $r->price,
-                'price_rwf' => $r->price_rwf,
+                'price' => $r->salePriceUsd(),
+                'list_price' => $r->listPriceUsd(),
+                'price_rwf' => $r->salePriceRwf(),
+                'discount' => $r->hasActiveDiscount() ? [
+                    'badge' => $r->discountBadgeLabel(),
+                    'type' => $r->discount_type,
+                    'value' => $r->discount_value,
+                ] : null,
                 'image' => $r->image ? asset('storage/images/rooms/'.$r->image) : null,
             ]),
             'experiences' => collect($experiences)->map(fn ($e) => [

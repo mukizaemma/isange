@@ -54,7 +54,7 @@
                             data-room-id="{{ $room->id }}"
                             data-room-slug="{{ $room->slug }}"
                             data-room-name="{{ $room->roomName }}"
-                            data-room-price="{{ $room->price }}"
+                            data-room-price="{{ $room->salePriceUsd() }}"
                             data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
                             <span data-add-room-label>Book Now</span>
                         </button>

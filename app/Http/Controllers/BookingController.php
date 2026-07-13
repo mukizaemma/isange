@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Booking;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Request;
 use App\Models\Foodorder;
-use App\Models\Roombooking;
+use App\Models\GuestBookingRequest;
 use App\Models\Tablebooking;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -16,20 +16,31 @@ class BookingController extends Controller
      */
     public function index()
     {
-        $bookings = Booking::with('room')->latest()->get();
-        return view('admin.bookings',[
-            'bookings'=>$bookings
+        $bookings = GuestBookingRequest::with('room')->latest()->get();
+
+        return view('admin.bookings', [
+            'bookings' => $bookings,
         ]);
     }
+
     public function search(Request $request)
     {
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
-    
-        $bookings = Roombooking::whereBetween('created_at', [$start_date, $end_date])->get();
 
-        return view('admin.pages.printBookings',[
-            'bookings'=>$bookings,
+        $query = GuestBookingRequest::with('room')->latest();
+
+        if ($start_date && $end_date) {
+            $start = Carbon::parse($start_date)->startOfDay();
+            $end = Carbon::parse($end_date)->endOfDay();
+
+            $query->whereBetween('created_at', [$start, $end]);
+        }
+
+        $bookings = $query->get();
+
+        return view('admin.bookings', [
+            'bookings' => $bookings,
             'start_date' => $start_date,
             'end_date' => $end_date,
         ]);
@@ -38,8 +49,9 @@ class BookingController extends Controller
     public function TablesBookings()
     {
         $bookings = Tablebooking::latest()->get();
-        return view('admin.bookingsTable',[
-            'bookings'=>$bookings
+
+        return view('admin.bookingsTable', [
+            'bookings' => $bookings,
         ]);
     }
 
@@ -56,8 +68,6 @@ class BookingController extends Controller
      */
     public function store(Request $request)
     {
-
-  
     }
 
     /**
@@ -65,7 +75,11 @@ class BookingController extends Controller
      */
     public function viewBooking($id)
     {
+        $booking = GuestBookingRequest::with('room')->findOrFail($id);
 
+        return view('admin.bookingView', [
+            'booking' => $booking,
+        ]);
     }
 
     /**
@@ -89,35 +103,54 @@ class BookingController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $booking = GuestBookingRequest::findOrFail($id);
+        $booking->delete();
+
+        return redirect()->route('bookings')->with('success', 'Reservation deleted successfully.');
     }
 
-//  controller to Check the available rooms based on dates selected
+    //  controller to Check the available rooms based on dates selected
 
-public function availableRooms(Request $request, $checkinDate){
-    $availRooms = DB::SELECT("SELECT * FROM rooms where id NOT IN(SELECT room_id FROM bookikings WHERE '$checkinDate' BETWEEN checkin AND checkout)");
-    return response()->json(['data'=>$availRooms]);
-}
+    public function availableRooms(Request $request, $checkinDate)
+    {
+        $availRooms = DB::SELECT("SELECT * FROM rooms where id NOT IN(SELECT room_id FROM bookikings WHERE '$checkinDate' BETWEEN checkin AND checkout)");
 
+        return response()->json(['data' => $availRooms]);
+    }
 
-public function FoodOrders(){
-    $orders = Foodorder::with('items')->get();
-    return view('admin.foodOrders',[
-        'orders'=>$orders
-    ]);
-}
-public function export(Request $request)
-{
-    $start_date = $request->input('start_date');
-    $end_date = $request->input('end_date');
+    public function FoodOrders()
+    {
+        $orders = Foodorder::with('items')->get();
 
-    $bookings = Roombooking::whereBetween('created_at', [$start_date, $end_date])->get();
+        return view('admin.foodOrders', [
+            'orders' => $orders,
+        ]);
+    }
 
-    // return Excel::download(new BookingsExport($bookings), 'bookings.xlsx');
-}
+    public function export(Request $request)
+    {
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
 
-public function print(){
-    return view('frontend.print.bookings');
-}
+        $query = GuestBookingRequest::with('room')->latest();
 
+        if ($start_date && $end_date) {
+            $start = Carbon::parse($start_date)->startOfDay();
+            $end = Carbon::parse($end_date)->endOfDay();
+            $query->whereBetween('created_at', [$start, $end]);
+        }
+
+        $bookings = $query->get();
+
+        return view('admin.pages.printBookings', [
+            'bookings' => $bookings,
+            'start_date' => $start_date,
+            'end_date' => $end_date,
+        ]);
+    }
+
+    public function print()
+    {
+        return view('frontend.print.bookings');
+    }
 }

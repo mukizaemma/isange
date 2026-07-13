@@ -49,6 +49,7 @@
                                     <tr>
                                         <th>Room Name</th>
                                         <th>Price</th>
+                                        <th>Discount</th>
                                         <th>Type</th>
                                         <th>Image</th>
                                         <th>Gallery</th>
@@ -61,7 +62,22 @@
                                     @foreach ($rooms as $rs)
                                         <tr>
                                             <td>{{ $rs->roomName }}</td>
-                                            <td>{!! \App\Support\Currency::formatUsdWithLocal($rs->price, $rs->price_rwf) !!}</td>
+                                            <td>
+                                                @if ($rs->hasActiveDiscount())
+                                                    <span class="text-decoration-line-through text-muted small">{{ \App\Support\Currency::formatRoomPriceLabel($rs->listPriceUsd()) }}</span><br>
+                                                    {!! \App\Support\Currency::formatUsdWithLocal($rs->salePriceUsd(), $rs->salePriceRwf()) !!}
+                                                    <br><span class="badge bg-success">{{ $rs->discountBadgeLabel() }}</span>
+                                                @else
+                                                    {!! \App\Support\Currency::formatUsdWithLocal($rs->price, $rs->price_rwf) !!}
+                                                @endif
+                                            </td>
+                                            <td>
+                                                @if ($rs->hasActiveDiscount())
+                                                    <span class="badge bg-success">On</span>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
                                             <td>{{ ucfirst($rs->accommodation_type ?? 'room') }}</td>
                                             <td><img src="{{ asset('storage/images/rooms/' . $rs->image) }}" alt="" width="150px"></td>
                                             <td>
@@ -119,6 +135,8 @@
                                                     <input type="number" step="1" min="0" id="price_rwf" class="form-control" placeholder="Exact local amount" name="price_rwf">
                                                 </div>
                                             </div>
+
+                                            @include('admin.includes.room-discount-fields', ['discountFieldId' => 'create'])
                                     
                                             <div class="row mt-3">
                                                 <div class="col-md-3">
@@ -262,12 +280,34 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
-    @if ($errors->hasAny(['image', 'roomName', 'accommodation_type', 'price', 'price_rwf', 'size', 'maxAdults', 'maxChildren', 'description']))
+    @if ($errors->hasAny(['image', 'roomName', 'accommodation_type', 'price', 'price_rwf', 'discount_enabled', 'discount_type', 'discount_value', 'size', 'maxAdults', 'maxChildren', 'description']))
         var roomModal = document.getElementById('RoomModal');
         if (roomModal) {
             bootstrap.Modal.getOrCreateInstance(roomModal).show();
         }
     @endif
+
+    function bindRoomDiscountFields(root) {
+        root.querySelectorAll('[data-room-discount]').forEach(function (wrap) {
+            var toggle = wrap.querySelector('[data-discount-toggle]');
+            var typeEl = wrap.querySelector('[data-discount-type]');
+            var valueLabel = wrap.querySelector('[data-discount-value-label]');
+            var controls = wrap.querySelectorAll('[data-discount-controls]');
+
+            function sync() {
+                var on = toggle && toggle.checked;
+                controls.forEach(function (el) { el.style.display = on ? '' : 'none'; });
+                if (valueLabel && typeEl) {
+                    valueLabel.textContent = typeEl.value === 'fixed' ? 'Amount off (USD)' : 'Percent off (%)';
+                }
+            }
+
+            if (toggle) toggle.addEventListener('change', sync);
+            if (typeEl) typeEl.addEventListener('change', sync);
+            sync();
+        });
+    }
+    bindRoomDiscountFields(document);
 
     var createForm = document.getElementById('roomCreateForm');
     if (createForm) {

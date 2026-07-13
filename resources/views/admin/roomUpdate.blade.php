@@ -64,6 +64,9 @@
                                     <input type="number" step="1" min="0" id="price_rwf" class="form-control" value="{{ $room->price_rwf ?? '' }}" name="price_rwf" placeholder="Exact local amount">
                                 </div>
                             </div>
+
+                            @include('admin.includes.room-discount-fields', ['room' => $room, 'discountFieldId' => 'edit'])
+
                                     <div class="row mt-3">
                                         <div class="col-md-3">
                                             <label for="accommodation_type">Listing type</label>
@@ -162,6 +165,28 @@
 @section('scripts')
 <script>
 $(document).ready(function () {
+    function bindRoomDiscountFields(root) {
+        root.querySelectorAll('[data-room-discount]').forEach(function (wrap) {
+            var toggle = wrap.querySelector('[data-discount-toggle]');
+            var typeEl = wrap.querySelector('[data-discount-type]');
+            var valueLabel = wrap.querySelector('[data-discount-value-label]');
+            var controls = wrap.querySelectorAll('[data-discount-controls]');
+
+            function sync() {
+                var on = toggle && toggle.checked;
+                controls.forEach(function (el) { el.style.display = on ? '' : 'none'; });
+                if (valueLabel && typeEl) {
+                    valueLabel.textContent = typeEl.value === 'fixed' ? 'Amount off (USD)' : 'Percent off (%)';
+                }
+            }
+
+            if (toggle) toggle.addEventListener('change', sync);
+            if (typeEl) typeEl.addEventListener('change', sync);
+            sync();
+        });
+    }
+    bindRoomDiscountFields(document);
+
     var updateForm = document.getElementById('roomUpdateForm');
     if (updateForm) {
         updateForm.addEventListener('submit', function (e) {

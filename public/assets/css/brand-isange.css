@@ -2751,6 +2751,108 @@ body.spa-loading::before {
   font-weight: 400;
 }
 
+/* Room promotional / sale price */
+.room-price--sale {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  line-height: 1.2;
+}
+
+.room-price__was {
+  font-size: 0.92rem;
+  color: #6b7280;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.room-price__now {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--eco-green, #106b38);
+}
+
+.room-price__now .dual-currency,
+.room-price__now .dual-currency__usd,
+.room-price__now .price-usd-only {
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+.room-price__info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  border: 1.5px solid #9ca3af;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-style: italic;
+  font-family: Georgia, serif;
+  line-height: 1;
+  padding: 0;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.room-price__info:hover,
+.room-price__info:focus-visible {
+  border-color: var(--eco-green, #106b38);
+  color: var(--eco-green, #106b38);
+  outline: none;
+}
+
+.room-price__badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--primary-color, #e85e26);
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
+.room-price--sale .price-suffix {
+  margin-top: 0.1rem;
+}
+
+.rooms-on-white .home-room-card .content .room-price--sale,
+.ma-room-card .room-price--sale {
+  margin-bottom: 0.65rem;
+}
+
+.room-two-item:hover .room-price__now,
+.room-two-item:hover .room-price__now .dual-currency__usd {
+  color: #fff;
+}
+
+.room-two-item:hover .room-price__was {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.room-two-item:hover .room-price__info {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.room-two-item:hover .room-price--sale .price-suffix {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
 /* Booking mode choice (checkout landing) */
 .ma-booking-mode-choice {
   max-width: 720px;

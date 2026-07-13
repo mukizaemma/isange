@@ -185,6 +185,39 @@ body.home-one #spa-content.container-fluid {
   color: rgba(255, 255, 255, 0.85);
 }
 
+.isange-section--green > .container > .row > [class*="col"] > p,
+.isange-events-section p {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.isange-events-section .isange-events-capacity {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.isange-events-section .isange-why-card--on-green {
+  background: #fff;
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+}
+
+.isange-events-section .isange-why-card--on-green h3 {
+  color: var(--eco-green, #106b38);
+}
+
+.isange-events-section .theme-btn.style-three {
+  background: transparent !important;
+  color: #fff !important;
+  border-color: #fff !important;
+}
+
+.isange-events-section .theme-btn.style-three:hover {
+  background: #fff !important;
+  color: var(--eco-green, #106b38) !important;
+  border-color: #fff !important;
+}
+
 .isange-impact-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
