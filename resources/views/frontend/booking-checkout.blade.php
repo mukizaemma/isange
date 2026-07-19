@@ -27,6 +27,8 @@
 
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Confirm booking'])
 
+@include('frontend.includes.direct-booking-discount', ['bookUrl' => '#checkout-flow'])
+
 @php
     $termsUrl = route('terms');
     $prefillPayAtHotelChannel = $prefillPayAtHotelChannel ?? (in_array(request('channel'), ['whatsapp', 'email'], true) ? request('channel') : null);

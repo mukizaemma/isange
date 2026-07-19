@@ -15,7 +15,7 @@
 
 @include('frontend.includes.page-header', ['pageKey' => 'about'])
 
-<section class="who-we-are-area pb-130 rpb-100 rel z-1 isange-section--cream">
+<section class="who-we-are-area pb-60 rpb-40 rel z-1 isange-section--cream">
     <div class="container">
         <div class="row justify-content-between align-items-center g-4">
             <div class="col-xl-6 col-lg-7">
@@ -48,6 +48,8 @@
         </div>
     </div>
 </section>
+
+@include('frontend.includes.direct-booking-discount')
 
 <section class="isange-section rel z-1 bgc-white" id="team">
     <div class="container">

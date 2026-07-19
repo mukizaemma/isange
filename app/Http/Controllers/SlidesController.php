@@ -11,22 +11,26 @@ class SlidesController extends Controller
     public function index()
     {
 
-        $slides = Slide::latest()->get();
-        return view('admin.slides', ['slides'=>$slides]);
-    }
+        $slides = Slide::ordered()->get();
 
+        return view('admin.slides', ['slides' => $slides]);
+    }
 
     public function store(Request $request)
     {
         $request->validate([
             'heading' => 'nullable|string|max:500',
             'subheading' => 'nullable|string|max:500',
+            'sort_order' => 'nullable|integer|min:0|max:9999',
             'image' => 'required|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
         ]);
 
         $data = new Slide();
         $data->heading = $request->heading;
         $data->subheading = $request->subheading;
+        if ($request->filled('sort_order')) {
+            $data->sort_order = (int) $request->input('sort_order');
+        }
 
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('public/images/slides');
@@ -35,11 +39,11 @@ class SlidesController extends Controller
 
         $stored = $data->save();
 
-        if($stored){
+        if ($stored) {
             return redirect('slides')->with('success', 'New Image has been added successfuly');
         }
 
-        return redirect()->back()->with('error','Failed to add new Image');
+        return redirect()->back()->with('error', 'Failed to add new Image');
     }
 
     public function edit($id)
@@ -59,11 +63,15 @@ class SlidesController extends Controller
         $request->validate([
             'heading' => 'nullable|string|max:500',
             'subheading' => 'nullable|string|max:500',
+            'sort_order' => 'nullable|integer|min:0|max:9999',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
         ]);
 
         $data->heading = $request->input('heading');
         $data->subheading = $request->input('subheading');
+        if ($request->filled('sort_order')) {
+            $data->sort_order = (int) $request->input('sort_order');
+        }
 
         if ($request->hasFile('image')) {
             $oldPath = 'public/images/slides/'.ltrim((string) $data->image, '/');

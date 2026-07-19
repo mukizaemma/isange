@@ -4535,3 +4535,134 @@ body.is-checkout-page {
     max-width: 480px;
   }
 }
+
+/* Direct booking discount strip */
+.isange-direct-discount {
+  background: #e8f0ea;
+  border-top: 1px solid rgba(16, 107, 56, 0.12);
+  border-bottom: 1px solid rgba(16, 107, 56, 0.12);
+  padding: 0.85rem 0;
+}
+
+.isange-direct-discount__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 0;
+}
+
+.isange-direct-discount__col {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1.15rem;
+  min-width: 0;
+}
+
+.isange-direct-discount__col + .isange-direct-discount__col {
+  border-left: 1px solid rgba(42, 58, 50, 0.18);
+}
+
+.isange-direct-discount__icon {
+  flex-shrink: 0;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--eco-green, #106b38);
+  font-size: 0.95rem;
+}
+
+.isange-direct-discount__body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.isange-direct-discount__body--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem 0.75rem;
+}
+
+.isange-direct-discount__text {
+  margin: 0;
+  color: var(--eco-green, #106b38);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.isange-direct-discount__text strong {
+  font-size: 1.08em;
+  font-weight: 800;
+}
+
+.isange-direct-discount__text--emphasis {
+  font-weight: 800;
+}
+
+.isange-direct-discount__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.28rem 0.85rem;
+  border: 1px solid var(--eco-green, #106b38);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--eco-green, #106b38) !important;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.3;
+  text-decoration: none !important;
+  white-space: nowrap;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.isange-direct-discount__btn:hover,
+.isange-direct-discount__btn:focus {
+  background: var(--eco-green, #106b38);
+  color: #fff !important;
+  border-color: var(--eco-green, #106b38);
+}
+
+.isange-direct-discount__btn i {
+  font-size: 0.72rem;
+}
+
+@media (max-width: 991px) {
+  .isange-direct-discount__row {
+    grid-template-columns: 1fr;
+  }
+
+  .isange-direct-discount__col {
+    padding: 0.85rem 0.25rem;
+  }
+
+  .isange-direct-discount__col + .isange-direct-discount__col {
+    border-left: 0;
+    border-top: 1px solid rgba(42, 58, 50, 0.14);
+  }
+
+  .isange-direct-discount__body--inline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 575px) {
+  .isange-direct-discount {
+    padding: 0.55rem 0;
+  }
+
+  .isange-direct-discount__text {
+    font-size: 0.88rem;
+  }
+}
+
