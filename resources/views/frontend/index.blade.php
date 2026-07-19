@@ -168,28 +168,34 @@
                 <div class="col-md-6 col-lg-4 wow fadeInUp delay-0-2s">
                     <article class="room-two-item home-room-card h-100 d-flex flex-column">
                         <div class="image home-room-card__image">
-                            <img class="home-room-card__img" src="{{ asset('storage/images/rooms/' . $room->image) }}" alt="{{ $room->roomName }}" loading="lazy" width="800" height="500">
+                            <a href="{{ route('singleRoom', ['slug' => $room->slug]) }}" class="d-block h-100" tabindex="-1" aria-hidden="true">
+                                <img class="home-room-card__img" src="{{ asset('storage/images/rooms/' . $room->image) }}" alt="" loading="lazy" width="800" height="500">
+                            </a>
                         </div>
                         <div class="content flex-grow-1 d-flex flex-column">
-                            <h3 class="mb-15"><a href="{{ route('singleRoom', ['slug' => $room->slug]) }}">{{ $room->roomName }}</a></h3>
+                            <h3 class="home-room-card__title mb-2">
+                                <a href="{{ route('singleRoom', ['slug' => $room->slug]) }}">{{ $room->roomName }}</a>
+                            </h3>
                             @include('frontend.includes.room-price', ['room' => $room])
                             @if (! empty(trim(strip_tags($room->description ?? ''))))
-                                <p class="text-muted mb-3 flex-grow-1">{!! \Illuminate\Support\Str::limit(strip_tags($room->description), 140) !!}</p>
+                                <p class="home-room-card__desc text-muted mb-3 flex-grow-1">{!! \Illuminate\Support\Str::limit(strip_tags($room->description), 120) !!}</p>
+                            @else
+                                <div class="flex-grow-1"></div>
                             @endif
-                            <div class="d-flex flex-wrap gap-2 mt-auto">
-                                <a href="{{ route('singleRoom', ['slug' => $room->slug]) }}" class="theme-btn style-three home-room-card__btn flex-grow-1 d-inline-flex justify-content-center align-items-center">
-                                    View Details <i class="far fa-angle-right"></i>
-                                </a>
+                            <div class="home-room-card__actions mt-auto">
                                 <button type="button"
-                                    class="theme-btn home-room-card__btn flex-grow-1 d-inline-flex justify-content-center align-items-center"
+                                    class="theme-btn home-room-card__btn home-room-card__btn--book"
                                     data-add-room
                                     data-room-id="{{ $room->id }}"
                                     data-room-slug="{{ $room->slug }}"
                                     data-room-name="{{ $room->roomName }}"
                                     data-room-price="{{ $room->bookingPriceUsd((bool) auth()->user()?->hasUnlockedDiscount()) }}"
                                     data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
-                                    <span data-add-room-label>Book Now</span> <i class="far fa-angle-right"></i>
+                                    <span data-add-room-label>Book Now</span>
                                 </button>
+                                <a href="{{ route('singleRoom', ['slug' => $room->slug]) }}" class="home-room-card__details">
+                                    View details <i class="far fa-angle-right" aria-hidden="true"></i>
+                                </a>
                             </div>
                         </div>
                     </article>

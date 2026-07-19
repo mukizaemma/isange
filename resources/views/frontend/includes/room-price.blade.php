@@ -33,7 +33,7 @@
             <span class="price-suffix text-muted"> / night</span>
         </div>
     @else
-        <div class="price mb-2">
+        <div class="room-price room-price--list mb-2">
             {!! Currency::formatUsdWithLocal($room->bookingPriceUsd(false), $room->bookingPriceRwf(false)) !!}
             <span class="price-suffix text-muted"> / night</span>
         </div>

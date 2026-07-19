@@ -722,7 +722,7 @@ body.spa-loading::before {
   }
 }
 
-/* Rooms on white: clearer cards + better contrast */
+/* Rooms on white: editorial listing cards */
 .rooms-on-white {
   background: #ffffff !important;
 }
@@ -730,15 +730,56 @@ body.spa-loading::before {
 .rooms-on-white .room-two-item,
 .rooms-on-white .room-item.style-three {
   background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
+  border: 1px solid rgba(16, 107, 56, 0.12);
+  border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.10);
+  box-shadow: 0 10px 28px rgba(26, 36, 32, 0.06);
+  margin-bottom: 0;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.rooms-on-white .room-two-item:hover,
+.rooms-on-white .room-item.style-three:hover {
+  transform: translateY(-6px);
+  border-color: rgba(16, 107, 56, 0.28);
+  box-shadow: 0 18px 40px rgba(26, 36, 32, 0.12);
 }
 
 .rooms-on-white .room-two-item .content,
 .rooms-on-white .room-item.style-three .content {
-  padding: 22px 22px 26px;
+  padding: 1.15rem 1.25rem 1.35rem;
+  background: #fff !important;
+  position: relative;
+}
+
+/* Kill theme circular price badge + full-orange hover fill */
+.rooms-on-white .room-two-item .content .price,
+.rooms-on-white .home-room-card .content .price {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0 0 0.65rem;
+  line-height: 1.3;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  top: auto;
+  right: auto;
+}
+
+.rooms-on-white .room-two-item:hover .content,
+.rooms-on-white .room-two-item:hover .content h3 a,
+.rooms-on-white .room-two-item:hover .content .blog-meta li i,
+.rooms-on-white .room-two-item:hover .content .blog-meta li a,
+.rooms-on-white .room-two-item:hover .content .price {
+  background: #fff !important;
+  color: inherit !important;
+}
+
+.rooms-on-white .room-two-item:hover .content h3 a {
+  color: var(--heading-color) !important;
 }
 
 .rooms-on-white .room-two-item .image img,
@@ -747,12 +788,27 @@ body.spa-loading::before {
   display: block;
 }
 
-/* Home index: 2×2 room grid (no slick), cover images, amenity chips */
+/* Home / listing room card media */
 .rooms-on-white .home-room-card .home-room-card__image {
   position: relative;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #ececec;
+  background: #e8ebe9;
+}
+
+.rooms-on-white .home-room-card .home-room-card__image::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 42%;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(26, 36, 32, 0.28) 0%, rgba(26, 36, 32, 0) 100%);
+  opacity: 0.85;
+  transition: opacity 0.35s ease;
+}
+
+.rooms-on-white .home-room-card:hover .home-room-card__image::after {
+  opacity: 1;
 }
 
 .rooms-on-white .home-room-card .home-room-card__image a {
@@ -765,11 +821,66 @@ body.spa-loading::before {
   height: 100%;
   object-fit: cover;
   object-position: center;
-  transition: transform 0.5s ease;
+  transition: transform 0.55s ease;
 }
 
 .rooms-on-white .home-room-card:hover .home-room-card__img {
-  transform: scale(1.05);
+  transform: scale(1.04);
+}
+
+.home-room-card__title {
+  font-size: clamp(1.2rem, 2.2vw, 1.45rem);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.home-room-card__title a {
+  color: var(--heading-color);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.home-room-card__title a:hover {
+  color: var(--primary-color);
+}
+
+.home-room-card__desc {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.home-room-card__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}
+
+.home-room-card__btn--book {
+  width: 100%;
+  justify-content: center;
+  text-align: center;
+}
+
+.home-room-card__details {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--eco-green);
+  text-decoration: none;
+  padding: 0.15rem 0;
+  transition: color 0.2s ease, gap 0.2s ease;
+}
+
+.home-room-card__details:hover {
+  color: var(--primary-color);
+  gap: 0.5rem;
 }
 
 .room-amenity-chips {
@@ -790,44 +901,16 @@ body.spa-loading::before {
   line-height: 1.2;
   color: #1a1a1a;
   padding: 0.42rem 0.95rem;
-  border-radius: 999px;
-  background: rgba(232, 155, 0, 0.12);
-  border: 1px solid rgba(232, 155, 0, 0.38);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75) inset;
+  border-radius: 4px;
+  background: rgba(16, 107, 56, 0.08);
+  border: 1px solid rgba(16, 107, 56, 0.18);
+  box-shadow: none;
   transition: color 0.25s ease, background 0.25s ease, border-color 0.25s ease;
 }
 
 .room-amenity-chips li i {
   color: var(--header-footer-accent);
   font-size: 0.95rem;
-  transition: color 0.25s ease;
-}
-
-.room-two-item:hover .room-amenity-chips li {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255, 255, 255, 0.45);
-  box-shadow: none;
-}
-
-.room-two-item:hover .room-amenity-chips li i {
-  color: #fff;
-}
-
-.rooms-on-white .home-room-card .content .price {
-  right: 22px;
-}
-
-/* Card hover: content goes brand orange — keep outline CTA readable */
-.room-two-item:hover .home-room-card__btn.style-three {
-  color: #ffffff !important;
-  border-color: #ffffff !important;
-}
-
-.room-two-item:hover .home-room-card__btn.style-three:hover {
-  background: #ffffff !important;
-  color: #0a0a0a !important;
-  border-color: #ffffff !important;
 }
 
 @media (max-width: 767px) {
@@ -2738,17 +2821,40 @@ body.spa-loading::before {
   color: var(--header-footer-accent, #e89b00);
 }
 .ma-room-card__actions .theme-btn {
-  flex: 1 1 auto;
-  min-width: 8rem;
+  width: 100%;
   text-align: center;
 }
 .price-usd-only {
   font-weight: 700;
   font-size: 1.15rem;
 }
-.ma-room-card .price-suffix {
+.ma-room-card .price-suffix,
+.home-room-card .price-suffix {
   font-size: 0.85rem;
-  font-weight: 400;
+  font-weight: 500;
+}
+
+/* List price (non-sale) — typography, not theme circular badge */
+.room-price--list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.35rem;
+  margin: 0 0 0.65rem;
+  line-height: 1.25;
+}
+
+.room-price--list .dual-currency__usd,
+.room-price--list .price-usd-only {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--eco-green, #106b38);
+}
+
+.room-price--list .dual-currency__suffix {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #5a6b62;
 }
 
 /* Room promotional / sale price */
@@ -2831,26 +2937,10 @@ body.spa-loading::before {
 }
 
 .rooms-on-white .home-room-card .content .room-price--sale,
-.ma-room-card .room-price--sale {
+.rooms-on-white .home-room-card .content .room-price--list,
+.ma-room-card .room-price--sale,
+.ma-room-card .room-price--list {
   margin-bottom: 0.65rem;
-}
-
-.room-two-item:hover .room-price__now,
-.room-two-item:hover .room-price__now .dual-currency__usd {
-  color: #fff;
-}
-
-.room-two-item:hover .room-price__was {
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.room-two-item:hover .room-price__info {
-  border-color: rgba(255, 255, 255, 0.7);
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.room-two-item:hover .room-price--sale .price-suffix {
-  color: rgba(255, 255, 255, 0.8) !important;
 }
 
 /* Booking mode choice (checkout landing) */
