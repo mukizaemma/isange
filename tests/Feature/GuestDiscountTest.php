@@ -80,12 +80,15 @@ class GuestDiscountTest extends TestCase
 
         $this->assertFalse($pendingGuest->hasUnlockedDiscount());
         $this->assertFalse($verifiedGuest->hasUnlockedDiscount());
-        $this->withSession(['guest_discount_unlocked_user_id' => $verifiedGuest->id]);
+        $this->withSession([
+            'guest_discount_unlocked_user_id' => $verifiedGuest->id,
+            'guest_discount_expires_at' => now()->addHours(2)->timestamp,
+        ]);
         $this->assertTrue($verifiedGuest->hasUnlockedDiscount());
         $this->assertTrue(Hash::check('password', $verifiedGuest->password));
     }
 
-    public function test_new_and_returning_guests_use_the_same_modal_otp_and_returns_are_counted(): void
+    public function test_return_unlocks_are_counted_only_after_the_twenty_four_hour_cooldown(): void
     {
         config([
             'services.resend.key' => 'test-key',
@@ -123,6 +126,20 @@ class GuestDiscountTest extends TestCase
         $this->postJson(route('guest.discount.code.verify'), ['code' => $secondCode[1]])
             ->assertOk();
 
+        $this->assertSame(1, $guest->fresh()->discount_unlock_count);
+
+        auth()->logout();
+        session()->flush();
+        $this->travel(25)->hours();
+
+        $this->postJson(route('guest.discount.code.request'), [
+            'email' => 'returning@example.com',
+        ])->assertOk();
+        $thirdEmail = Http::recorded()->last()[0];
+        preg_match('/>(\d{4})</', (string) $thirdEmail['html'], $thirdCode);
+        $this->postJson(route('guest.discount.code.verify'), ['code' => $thirdCode[1]])
+            ->assertOk();
+
         $this->assertSame(2, $guest->fresh()->discount_unlock_count);
     }
 
@@ -151,6 +168,45 @@ class GuestDiscountTest extends TestCase
         $this->postJson(route('guest.discount.code.verify'), ['code' => $wrongCode])
             ->assertStatus(422)
             ->assertJsonPath('locked', true);
+    }
+
+    public function test_guest_discount_and_login_expire_after_two_hours_and_cookie_closes_with_browser(): void
+    {
+        config([
+            'services.resend.key' => 'test-key',
+            'mail.from.address' => 'bookings@example.com',
+        ]);
+        Http::fake(['api.resend.com/*' => Http::response(['id' => 'email-expiry'], 200)]);
+
+        $this->postJson(route('guest.discount.code.request'), [
+            'email' => 'expiry@example.com',
+        ])->assertOk();
+        $email = Http::recorded()->last()[0];
+        preg_match('/>(\d{4})</', (string) $email['html'], $sentCode);
+
+        $response = $this->postJson(route('guest.discount.code.verify'), ['code' => $sentCode[1]])
+            ->assertOk();
+
+        $guest = User::where('email', 'expiry@example.com')->firstOrFail();
+        $this->assertAuthenticatedAs($guest);
+        $this->assertTrue($guest->hasUnlockedDiscount());
+        $this->assertSame(
+            now()->addHours(2)->timestamp,
+            session('guest_discount_expires_at')
+        );
+
+        $sessionCookie = collect($response->headers->getCookies())
+            ->first(fn ($cookie) => $cookie->getName() === config('session.cookie'));
+        $this->assertNotNull($sessionCookie);
+        $this->assertSame(0, $sessionCookie->getExpiresTime());
+
+        $this->travel(121)->minutes();
+        $this->get(route('home'))->assertOk();
+
+        $this->assertGuest();
+        $this->assertFalse($guest->hasUnlockedDiscount());
+        $this->assertNull(session('guest_discount_unlocked_user_id'));
+        $this->assertNull(session('guest_discount_expires_at'));
     }
 
     public function test_admin_can_open_latest_guest_reporting_page(): void

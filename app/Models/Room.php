@@ -187,6 +187,17 @@ class Room extends Model
         return round(max(0, $list - $sale), 2);
     }
 
+    public function effectiveDiscountPercent(): ?float
+    {
+        $list = $this->listPriceUsd();
+        $saving = $this->savingsUsd();
+        if ($list === null || $list <= 0 || $saving === null || $saving <= 0) {
+            return null;
+        }
+
+        return round(($saving / $list) * 100, 1);
+    }
+
     public function discountBadgeLabel(): ?string
     {
         if (! $this->hasActiveDiscount()) {

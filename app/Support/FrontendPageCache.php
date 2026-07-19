@@ -15,9 +15,12 @@ final class FrontendPageCache
 
     public const FOOTER_FACILITIES = 'frontend.footer_facilities_v1';
 
+    public const ROOM_DISCOUNT_PROMOTION = 'frontend.room_discount_promotion_v1';
+
     public static function forgetHomePage(): void
     {
         Cache::forget(self::HOME_PAGE_DATA);
+        Cache::forget(self::ROOM_DISCOUNT_PROMOTION);
     }
 
     public static function forgetDiningMenu(): void

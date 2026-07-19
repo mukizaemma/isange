@@ -2,21 +2,22 @@
     $discountUnlocked = (bool) ($discountUnlocked ?? auth()->user()?->hasUnlockedDiscount());
     $discountPercent = $discountPercent ?? null;
 
-    if ($discountPercent === null && isset($room) && $room && $room->hasActiveDiscount() && $room->discount_type === \App\Models\Room::DISCOUNT_PERCENT) {
-        $discountPercent = (float) $room->discount_value;
+    if ($discountPercent === null && isset($room) && $room && $room->hasActiveDiscount()) {
+        $discountPercent = $room->effectiveDiscountPercent();
     }
 
     if ($discountPercent === null && isset($rooms) && $rooms) {
         $discountPercent = collect($rooms)
-            ->filter(fn ($r) => $r->hasActiveDiscount() && $r->discount_type === \App\Models\Room::DISCOUNT_PERCENT)
-            ->max(fn ($r) => (float) $r->discount_value);
+            ->filter(fn ($r) => $r->hasActiveDiscount())
+            ->max(fn ($r) => (float) $r->effectiveDiscountPercent());
     }
 
+    $discountPercent = $discountPercent ?? \App\Support\RoomDiscountPromotion::maximumPercent();
     $discountPercent = $discountPercent !== null && $discountPercent > 0
         ? ((float) $discountPercent == floor((float) $discountPercent)
             ? (string) (int) $discountPercent
             : number_format((float) $discountPercent, 1))
-        : '30';
+        : null;
 
     $label = $discountUnlocked
         ? 'Discount unlocked'
@@ -27,7 +28,9 @@
     $class = trim('isange-unlock-discount '.($class ?? ''));
 @endphp
 
-@if ($discountUnlocked)
+@if ($discountPercent === null)
+    {{-- No active room discount: do not advertise an unavailable saving. --}}
+@elseif ($discountUnlocked)
     <span class="{{ $class }} isange-unlock-discount--done">
         <i class="fas fa-check-circle" aria-hidden="true"></i>
         {{ $label }}

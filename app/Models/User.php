@@ -86,7 +86,8 @@ class User extends Authenticatable
     {
         return $this->isGuest()
             && $this->email_verified_at !== null
-            && (int) session('guest_discount_unlocked_user_id') === (int) $this->id;
+            && (int) session('guest_discount_unlocked_user_id') === (int) $this->id
+            && (int) session('guest_discount_expires_at') > now()->timestamp;
     }
 
     public function bookings(): HasMany

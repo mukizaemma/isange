@@ -6,6 +6,7 @@ use App\Models\HotelAmenityOption;
 use App\Models\Room;
 use App\Models\roomImage;
 use App\Models\RoomType;
+use App\Support\FrontendPageCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -72,15 +73,16 @@ class RoomsController extends Controller
         $roomName = trim($validated['roomName']);
         $slug = $this->uniqueRoomSlug(Str::slug($roomName));
 
+        $discountEnabled = $request->boolean('discount_enabled');
         $room = Room::create([
             'slug' => $slug,
             'roomName' => $roomName,
             'accommodation_type' => $validated['accommodation_type'],
             'price' => $validated['price'] ?? null,
             'price_rwf' => $validated['price_rwf'] ?? null,
-            'discount_enabled' => $request->boolean('discount_enabled'),
-            'discount_type' => $validated['discount_type'] ?? null,
-            'discount_value' => $validated['discount_value'] ?? null,
+            'discount_enabled' => $discountEnabled,
+            'discount_type' => $discountEnabled ? ($validated['discount_type'] ?? null) : null,
+            'discount_value' => $discountEnabled ? ($validated['discount_value'] ?? null) : null,
             'size' => $validated['size'] ?? null,
             'maxAdults' => $validated['maxAdults'] ?? null,
             'maxChildren' => $validated['maxChildren'] ?? null,
@@ -133,9 +135,10 @@ class RoomsController extends Controller
         $room->accommodation_type = $validated['accommodation_type'];
         $room->price = $validated['price'] ?? null;
         $room->price_rwf = $validated['price_rwf'] ?? null;
-        $room->discount_enabled = $request->boolean('discount_enabled');
-        $room->discount_type = $validated['discount_type'] ?? null;
-        $room->discount_value = $validated['discount_value'] ?? null;
+        $discountEnabled = $request->boolean('discount_enabled');
+        $room->discount_enabled = $discountEnabled;
+        $room->discount_type = $discountEnabled ? ($validated['discount_type'] ?? null) : null;
+        $room->discount_value = $discountEnabled ? ($validated['discount_value'] ?? null) : null;
         $room->size = $validated['size'] ?? null;
         $room->maxAdults = $validated['maxAdults'] ?? null;
         $room->maxChildren = $validated['maxChildren'] ?? null;
@@ -146,6 +149,59 @@ class RoomsController extends Controller
         $room->amenityOptions()->sync($request->input('amenity_options', []));
 
         return redirect('getRooms')->with('success', 'Room has been updated successfuly');
+    }
+
+    public function bulkDiscount(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:apply,remove'],
+            'bulk_discount_type' => ['required_if:action,apply', 'nullable', 'in:'.Room::DISCOUNT_PERCENT.','.Room::DISCOUNT_FIXED],
+            'bulk_discount_value' => ['required_if:action,apply', 'nullable', 'numeric', 'min:0.01'],
+        ]);
+
+        if ($validated['action'] === 'remove') {
+            $updated = Room::query()->where('discount_enabled', true)->update([
+                'discount_enabled' => false,
+                'discount_type' => null,
+                'discount_value' => null,
+            ]);
+            FrontendPageCache::forgetHomePage();
+
+            return back()->with('success', "Discount removed from {$updated} room(s).");
+        }
+
+        $type = $validated['bulk_discount_type'];
+        $value = (float) $validated['bulk_discount_value'];
+        if ($type === Room::DISCOUNT_PERCENT && $value > 100) {
+            return back()->withErrors(['bulk_discount_value' => 'Percentage discount cannot exceed 100%.'])->withInput();
+        }
+
+        $pricedRooms = Room::query()->whereNotNull('price')->where('price', '>', 0);
+        $pricedCount = (clone $pricedRooms)->count();
+        if ($pricedCount === 0) {
+            return back()->withErrors(['bulk_discount_value' => 'Add a USD price to at least one room before applying a discount.'])->withInput();
+        }
+
+        if ($type === Room::DISCOUNT_FIXED && (clone $pricedRooms)->where('price', '<=', $value)->exists()) {
+            return back()->withErrors([
+                'bulk_discount_value' => 'The fixed discount must be lower than every priced room. Change the amount or override cheaper rooms individually.',
+            ])->withInput();
+        }
+
+        $updated = $pricedRooms->update([
+            'discount_enabled' => true,
+            'discount_type' => $type,
+            'discount_value' => $value,
+        ]);
+        FrontendPageCache::forgetHomePage();
+
+        $skipped = Room::query()->whereNull('price')->orWhere('price', '<=', 0)->count();
+        $message = "Discount applied to {$updated} priced room(s).";
+        if ($skipped > 0) {
+            $message .= " {$skipped} room(s) without a USD price were skipped.";
+        }
+
+        return back()->with('success', $message);
     }
 
     public function destroy($id)
@@ -242,7 +298,7 @@ class RoomsController extends Controller
             'image' => ($needsImage ? 'required' : 'nullable').'|image|mimes:jpeg,jpg,png,gif,webp|max:10240',
             'roomName' => 'required|string|max:255',
             'accommodation_type' => 'required|in:'.Room::TYPE_ROOM.','.Room::TYPE_APARTMENT,
-            'price' => 'nullable|string|max:64',
+            'price' => 'nullable|numeric|min:0',
             'price_rwf' => 'nullable|numeric|min:0',
             'discount_enabled' => 'sometimes|boolean',
             'discount_type' => [$discountOn ? 'required' : 'nullable', 'in:'.Room::DISCOUNT_PERCENT.','.Room::DISCOUNT_FIXED],

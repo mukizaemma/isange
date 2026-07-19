@@ -37,6 +37,48 @@
                         @include('admin.includes.validation-alert')
                     </div>
 
+                    <div class="card mb-4 border-success">
+                        <div class="card-header bg-light">
+                            <strong><i class="fas fa-tags me-1"></i> Discount all rooms</strong>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">
+                                Apply one discount to every room with a USD price. You can still edit any room afterward to change or remove its discount.
+                            </p>
+                            <form method="POST" action="{{ route('rooms.bulkDiscount') }}" class="row g-3 align-items-end"
+                                onsubmit="return confirm(event.submitter && event.submitter.value === 'remove' ? 'Remove discounts from all rooms?' : 'Apply this discount to all priced rooms?');">
+                                @csrf
+                                <div class="col-md-4">
+                                    <label for="bulk_discount_type" class="form-label">Discount type</label>
+                                    <select name="bulk_discount_type" id="bulk_discount_type" class="form-select @error('bulk_discount_type') is-invalid @enderror">
+                                        <option value="percent" @selected(old('bulk_discount_type', 'percent') === 'percent')>Percentage (%)</option>
+                                        <option value="fixed" @selected(old('bulk_discount_type') === 'fixed')>Fixed amount (USD)</option>
+                                    </select>
+                                    @error('bulk_discount_type')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="bulk_discount_value" class="form-label">Discount value</label>
+                                    <input type="number" step="0.01" min="0.01" name="bulk_discount_value" id="bulk_discount_value"
+                                        class="form-control @error('bulk_discount_value') is-invalid @enderror"
+                                        value="{{ old('bulk_discount_value') }}" placeholder="e.g. 20">
+                                    @error('bulk_discount_value')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-5 d-flex flex-wrap gap-2">
+                                    <button type="submit" name="action" value="apply" class="btn btn-success">
+                                        <i class="fas fa-check me-1"></i> Apply to all priced rooms
+                                    </button>
+                                    <button type="submit" name="action" value="remove" class="btn btn-outline-danger" formnovalidate>
+                                        Remove all discounts
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <div class="card mb-4">
                         <div class="card-header">
                             <button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#RoomModal"><i

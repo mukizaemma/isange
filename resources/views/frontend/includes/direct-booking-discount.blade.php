@@ -1,9 +1,10 @@
 @php
     $discountUnlocked = (bool) auth()->user()?->hasUnlockedDiscount();
     $bookUrl = $bookUrl ?? ($discountUnlocked ? route('room.booking').'#checkout-flow' : route('guest.discount'));
-    $discountPercent = $discountPercent ?? 30;
+    $discountPercent = $discountPercent ?? \App\Support\RoomDiscountPromotion::formattedMaximumPercent();
 @endphp
 
+@if ($discountPercent !== null)
 <section class="isange-direct-discount" aria-label="Direct booking savings">
     <div class="container">
         <div class="isange-direct-discount__row">
@@ -55,3 +56,4 @@
         </div>
     </div>
 </section>
+@endif

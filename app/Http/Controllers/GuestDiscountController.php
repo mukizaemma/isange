@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\ExpireGuestSession;
 use App\Models\GuestBookingRequest;
 use App\Models\User;
 use App\Support\GuestEmailSender;
@@ -17,6 +18,8 @@ use Illuminate\View\View;
 class GuestDiscountController extends Controller
 {
     private const MAX_OTP_ATTEMPTS = 3;
+
+    private const RETURN_COUNT_COOLDOWN_HOURS = 24;
 
     public function requestCode(Request $request): JsonResponse
     {
@@ -152,8 +155,8 @@ class GuestDiscountController extends Controller
 
             $user = $existing;
             if ($user->email_verified_at) {
-                Auth::login($user, true);
-                $request->session()->put('guest_discount_unlocked_user_id', $user->id);
+                Auth::login($user, false);
+                $this->activateGuestSession($request, $user);
 
                 return redirect()->route('booking.checkout')->with('success', 'Your direct-booking discount is unlocked.');
             }
@@ -169,7 +172,8 @@ class GuestDiscountController extends Controller
             ]);
         }
 
-        Auth::login($user, true);
+        Auth::login($user, false);
+        $request->session()->put('guest_session_expires_at', now()->addMinutes(ExpireGuestSession::LIFETIME_MINUTES)->timestamp);
         $sent = $this->issueOtp($user);
 
         return redirect()->route('guest.discount.verify')
@@ -185,7 +189,7 @@ class GuestDiscountController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        if (! Auth::attempt(['email' => strtolower(trim($credentials['email'])), 'password' => $credentials['password']], true)) {
+        if (! Auth::attempt(['email' => strtolower(trim($credentials['email'])), 'password' => $credentials['password']], false)) {
             return back()->withErrors(['email' => 'The email or password is incorrect.'])->withInput();
         }
 
@@ -196,6 +200,7 @@ class GuestDiscountController extends Controller
 
             return back()->withErrors(['email' => 'Use the staff login page for this account.']);
         }
+        $request->session()->put('guest_session_expires_at', now()->addMinutes(ExpireGuestSession::LIFETIME_MINUTES)->timestamp);
 
         if ($user->hasUnlockedDiscount()) {
             return redirect()->route('booking.checkout')->with('success', 'Your direct-booking discount is unlocked.');
@@ -276,14 +281,15 @@ class GuestDiscountController extends Controller
 
     private function completeVerification(Request $request, User $user): void
     {
-        $isNewVisit = (int) $request->session()->get('guest_discount_unlocked_user_id') !== (int) $user->id;
+        $countsAsReturn = $user->last_discount_unlocked_at === null
+            || $user->last_discount_unlocked_at->lte(now()->subHours(self::RETURN_COUNT_COOLDOWN_HOURS));
 
         $user->forceFill([
             'email_verified_at' => $user->email_verified_at ?? now(),
             'email_otp_hash' => null,
             'email_otp_expires_at' => null,
             'email_otp_attempts' => 0,
-            'discount_unlock_count' => (int) $user->discount_unlock_count + ($isNewVisit ? 1 : 0),
+            'discount_unlock_count' => (int) $user->discount_unlock_count + ($countsAsReturn ? 1 : 0),
             'last_discount_unlocked_at' => now(),
         ])->save();
 
@@ -292,11 +298,19 @@ class GuestDiscountController extends Controller
             ->whereRaw('LOWER(guest_email) = ?', [strtolower($user->email)])
             ->update(['user_id' => $user->id]);
 
-        // Persist unlock before login so session regenerate keeps the flag.
-        $request->session()->put('guest_discount_unlocked_user_id', $user->id);
         $request->session()->forget('guest_discount_pending_user_id');
-        Auth::login($user, true);
-        $request->session()->put('guest_discount_unlocked_user_id', $user->id);
+        Auth::login($user, false);
+        $this->activateGuestSession($request, $user);
+    }
+
+    private function activateGuestSession(Request $request, User $user): void
+    {
+        $expiresAt = now()->addMinutes(ExpireGuestSession::LIFETIME_MINUTES)->timestamp;
+        $request->session()->put([
+            'guest_session_expires_at' => $expiresAt,
+            'guest_discount_unlocked_user_id' => $user->id,
+            'guest_discount_expires_at' => $expiresAt,
+        ]);
     }
 
     private function maskEmail(string $email): string
