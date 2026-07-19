@@ -38,9 +38,13 @@
             <span class="price-suffix text-muted"> / night</span>
         </div>
         @if ($room->hasActiveDiscount())
-            <a class="small fw-bold text-success d-inline-block mb-2" href="{{ route('guest.discount') }}">
-                <i class="fas fa-lock me-1" aria-hidden="true"></i> Unlock {{ $room->discountBadgeLabel() }}
-            </a>
+            <div class="mb-2">
+                @include('frontend.includes.unlock-discount-link', [
+                    'discountUnlocked' => $discountEligible,
+                    'room' => $room,
+                    'class' => 'isange-unlock-discount--room',
+                ])
+            </div>
         @endif
     @endif
 @elseif ($showOnRequest)

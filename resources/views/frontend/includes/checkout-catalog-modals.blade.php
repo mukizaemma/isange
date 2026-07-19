@@ -27,6 +27,13 @@
                                             </p>
                                         @else
                                             <p class="ma-checkout-pick-item__meta small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->bookingPriceUsd(false), $r->bookingPriceRwf(false)) !!} / night</p>
+                                            @if ($r->hasActiveDiscount())
+                                                @include('frontend.includes.unlock-discount-link', [
+                                                    'discountUnlocked' => false,
+                                                    'room' => $r,
+                                                    'class' => 'isange-unlock-discount--pick',
+                                                ])
+                                            @endif
                                         @endif
                                     @else
                                         <p class="ma-checkout-pick-item__meta small text-muted mb-0">Rate on request</p>

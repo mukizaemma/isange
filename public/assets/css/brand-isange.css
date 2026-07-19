@@ -4636,6 +4636,48 @@ body.is-checkout-page {
   font-size: 0.72rem;
 }
 
+.isange-unlock-discount {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--eco-green, #106b38) !important;
+  text-decoration: none !important;
+}
+
+.isange-unlock-discount:hover,
+.isange-unlock-discount:focus {
+  color: var(--primary-color, #e85e26) !important;
+  text-decoration: underline !important;
+}
+
+.isange-unlock-discount--done {
+  color: var(--eco-green, #106b38) !important;
+  cursor: default;
+}
+
+.isange-unlock-discount--done:hover,
+.isange-unlock-discount--done:focus {
+  color: var(--eco-green, #106b38) !important;
+  text-decoration: none !important;
+}
+
+.isange-unlock-discount--summary,
+.isange-unlock-discount--nav,
+.isange-unlock-discount--card,
+.isange-unlock-discount--room,
+.isange-unlock-discount--pick {
+  margin-top: 0.2rem;
+}
+
+.isange-unlock-discount--nav {
+  display: block;
+  margin: 0.15rem 0 0.1rem;
+  font-size: 0.75rem;
+}
+
 @media (max-width: 991px) {
   .isange-direct-discount__row {
     grid-template-columns: 1fr;

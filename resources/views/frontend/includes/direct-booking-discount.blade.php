@@ -45,6 +45,11 @@
                     <p class="isange-direct-discount__text isange-direct-discount__text--emphasis">
                         Exclusive Perks Reserved For Direct Guests
                     </p>
+                    @include('frontend.includes.unlock-discount-link', [
+                        'discountUnlocked' => $discountUnlocked,
+                        'discountPercent' => $discountPercent,
+                        'class' => 'isange-unlock-discount--card',
+                    ])
                 </div>
             </div>
         </div>

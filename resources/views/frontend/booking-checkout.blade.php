@@ -319,6 +319,13 @@
                             <span class="text-muted small" id="checkout-pay-label">Estimated total</span>
                             <strong class="ma-checkout-summary__total" id="checkout-summary-total">$0.00</strong>
                         </div>
+                        <div class="ma-checkout-summary__unlock mt-2 text-end">
+                            @include('frontend.includes.unlock-discount-link', [
+                                'discountUnlocked' => $discountUnlocked,
+                                'rooms' => $rooms,
+                                'class' => 'isange-unlock-discount--summary',
+                            ])
+                        </div>
                     </div>
                 </div>
             </aside>
@@ -329,6 +336,11 @@
                 </button>
                 <div class="ma-checkout-step-nav__meta">
                     <span class="ma-checkout-step-nav__total" id="checkout-nav-total">$0.00</span>
+                    @include('frontend.includes.unlock-discount-link', [
+                        'discountUnlocked' => $discountUnlocked,
+                        'rooms' => $rooms,
+                        'class' => 'isange-unlock-discount--nav',
+                    ])
                     <span class="ma-checkout-step-nav__step-label" id="checkout-nav-step">Step 1 of 3</span>
                 </div>
                 <button type="button" class="theme-btn ma-checkout-step-nav__next" id="checkout-step-next" onclick="if(window.__checkoutRunNext){window.__checkoutRunNext(event);}">
