@@ -6,9 +6,9 @@ use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
+use App\Support\BookingEmailSender;
 use App\Support\ExperienceCatalog;
 use App\Support\SpamProtection;
-use App\Support\BookingEmailSender;
 use App\Support\StayBookingMessageBuilder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +35,7 @@ class StayBookingController extends Controller
             'discount_enabled', 'discount_type', 'discount_value',
         ]);
         $experiences = ExperienceCatalog::items($request->attributes->get('page_headers'));
+        $discountUnlocked = (bool) $request->user()?->hasUnlockedDiscount();
 
         $prefillRoom = null;
         if ($request->filled('room')) {
@@ -57,6 +58,7 @@ class StayBookingController extends Controller
             'hotelWhatsappReady',
             'hotelEmailReady',
             'prefillPayAtHotelChannel',
+            'discountUnlocked',
         ), 'Confirm booking');
     }
 
@@ -92,7 +94,8 @@ class StayBookingController extends Controller
         }
 
         $rawItemCount = count($cart['rooms'] ?? []) + count($cart['experiences'] ?? []);
-        $cart = self::sanitizeCart($cart);
+        $discountUnlocked = (bool) $request->user()?->hasUnlockedDiscount();
+        $cart = self::sanitizeCart($cart, $discountUnlocked);
 
         if (! self::cartHasItems($cart)) {
             return back()->withErrors([
@@ -140,6 +143,9 @@ class StayBookingController extends Controller
         $stay = StayBookingMessageBuilder::primaryStayFromCart($cart);
         $totalUsd = StayBookingMessageBuilder::estimateTotalUsd($cart);
         $firstRoom = $cart['rooms'][0] ?? null;
+        $discountApplied = collect($cart['rooms'] ?? [])->contains(
+            fn (array $roomLine) => ! empty($roomLine['discount_applied'])
+        );
 
         $guestPhone = trim((string) ($validated['guest_phone'] ?? ''));
         $guestEmail = trim((string) ($validated['guest_email'] ?? ''));
@@ -165,6 +171,7 @@ class StayBookingController extends Controller
         );
 
         $record = GuestBookingRequest::create([
+            'user_id' => $request->user()?->isGuest() ? $request->user()->id : null,
             'room_id' => $stay['room_id'],
             'cart_items' => $cart,
             'check_in' => $stay['check_in'],
@@ -178,6 +185,7 @@ class StayBookingController extends Controller
             'guest_country' => $guestCountry,
             'payment_method' => $validated['payment_method'],
             'total_usd' => $totalUsd > 0 ? $totalUsd : null,
+            'discount_applied' => $discountApplied,
             'adults' => isset($firstRoom['adults']) ? (int) $firstRoom['adults'] : null,
             'children' => isset($firstRoom['children']) ? (int) $firstRoom['children'] : null,
             'fulfillment_choice' => $fulfillment,
@@ -240,16 +248,17 @@ class StayBookingController extends Controller
             'discount_enabled', 'discount_type', 'discount_value',
         ]);
         $experiences = ExperienceCatalog::items();
+        $discountUnlocked = (bool) $request->user()?->hasUnlockedDiscount();
 
         return response()->json([
             'rooms' => $rooms->map(fn (Room $r) => [
                 'room_id' => $r->id,
                 'slug' => $r->slug,
                 'name' => $r->roomName,
-                'price' => $r->salePriceUsd(),
+                'price' => $r->bookingPriceUsd($discountUnlocked),
                 'list_price' => $r->listPriceUsd(),
-                'price_rwf' => $r->salePriceRwf(),
-                'discount' => $r->hasActiveDiscount() ? [
+                'price_rwf' => $r->bookingPriceRwf($discountUnlocked),
+                'discount' => $discountUnlocked && $r->hasActiveDiscount() ? [
                     'badge' => $r->discountBadgeLabel(),
                     'type' => $r->discount_type,
                     'value' => $r->discount_value,
@@ -265,6 +274,7 @@ class StayBookingController extends Controller
             'checkout_url' => route('booking.checkout'),
             'hotel_whatsapp_ready' => self::hotelWhatsappReady(Setting::first()),
             'hotel_email_ready' => self::hotelEmailReady(Setting::first()),
+            'discount_unlocked' => $discountUnlocked,
         ]);
     }
 
@@ -280,7 +290,7 @@ class StayBookingController extends Controller
      * @param  array<string, mixed>  $cart
      * @return array{rooms: list<array<string, mixed>>, experiences: list<array<string, mixed>>}
      */
-    private static function sanitizeCart(array $cart): array
+    private static function sanitizeCart(array $cart, bool $discountUnlocked): array
     {
         $rooms = [];
         foreach ($cart['rooms'] ?? [] as $line) {
@@ -288,7 +298,8 @@ class StayBookingController extends Controller
                 continue;
             }
             $roomId = isset($line['room_id']) ? (int) $line['room_id'] : null;
-            if ($roomId && ! Room::whereKey($roomId)->exists()) {
+            $room = $roomId ? Room::find($roomId) : null;
+            if (! $room) {
                 continue;
             }
             $checkIn = $line['check_in'] ?? null;
@@ -305,9 +316,11 @@ class StayBookingController extends Controller
             $rooms[] = [
                 'room_id' => $roomId,
                 'slug' => $line['slug'] ?? null,
-                'name' => substr((string) ($line['name'] ?? 'Room'), 0, 255),
-                'image' => $line['image'] ?? null,
-                'price' => $line['price'] ?? null,
+                'name' => $room->roomName,
+                'image' => $room->image,
+                'price' => $room->bookingPriceUsd($discountUnlocked),
+                'list_price' => $room->listPriceUsd(),
+                'discount_applied' => $discountUnlocked && $room->hasActiveDiscount(),
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
                 'nights' => $nights,

@@ -27,6 +27,7 @@ class GuestBookingRequest extends Model
 
     protected $fillable = [
         'public_id',
+        'user_id',
         'room_id',
         'cart_items',
         'check_in',
@@ -40,6 +41,7 @@ class GuestBookingRequest extends Model
         'guest_country',
         'payment_method',
         'total_usd',
+        'discount_applied',
         'adults',
         'children',
         'fulfillment_choice',
@@ -58,6 +60,7 @@ class GuestBookingRequest extends Model
         'airport_pickup' => 'boolean',
         'airport_dropoff' => 'boolean',
         'total_usd' => 'decimal:2',
+        'discount_applied' => 'boolean',
         'confirmed_at' => 'datetime',
         'reviewed_at' => 'datetime',
     ];
@@ -169,5 +172,10 @@ class GuestBookingRequest extends Model
     public function room(): BelongsTo
     {
         return $this->belongsTo(Room::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

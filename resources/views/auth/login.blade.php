@@ -14,7 +14,7 @@
 
         <div class="mb-6">
             <h2 class="auth-shell__form-title text-xl font-semibold text-neutral-900">{{ __('Welcome back') }}</h2>
-            <p class="mt-1 text-sm text-neutral-500">{{ __('Sign in to manage your hotel dashboard.') }}</p>
+            <p class="mt-1 text-sm text-neutral-500">{{ __('Sign in to your account.') }}</p>
         </div>
 
         <form method="POST" action="{{ route('login') }}" class="space-y-5">

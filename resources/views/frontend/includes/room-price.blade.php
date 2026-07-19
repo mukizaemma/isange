@@ -3,10 +3,11 @@
 
     $room = $room ?? null;
     $showOnRequest = $showOnRequest ?? true;
+    $discountEligible = (bool) auth()->user()?->hasUnlockedDiscount();
 @endphp
 
 @if ($room && $room->listPriceUsd() !== null)
-    @if ($room->hasActiveDiscount())
+    @if ($discountEligible && $room->hasActiveDiscount())
         @php
             $listUsd = $room->listPriceUsd();
             $saleUsd = $room->salePriceUsd();
@@ -33,9 +34,14 @@
         </div>
     @else
         <div class="price mb-2">
-            {!! Currency::formatUsdWithLocal($room->price, $room->price_rwf) !!}
+            {!! Currency::formatUsdWithLocal($room->bookingPriceUsd(false), $room->bookingPriceRwf(false)) !!}
             <span class="price-suffix text-muted"> / night</span>
         </div>
+        @if ($room->hasActiveDiscount())
+            <a class="small fw-bold text-success d-inline-block mb-2" href="{{ route('guest.discount') }}">
+                <i class="fas fa-lock me-1" aria-hidden="true"></i> Unlock {{ $room->discountBadgeLabel() }}
+            </a>
+        @endif
     @endif
 @elseif ($showOnRequest)
     <div class="price mb-2 small text-muted">Price on request</div>

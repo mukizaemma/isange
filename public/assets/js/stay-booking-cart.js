@@ -261,6 +261,28 @@
             return true;
         },
 
+        repriceRooms: function (prices) {
+            if (!prices || typeof prices !== 'object') {
+                return false;
+            }
+            var cart = load();
+            var changed = false;
+            cart.rooms.forEach(function (room) {
+                var current = prices[String(room.room_id)];
+                if (!current) {
+                    return;
+                }
+                room.price = current.price;
+                room.list_price = current.list_price;
+                room.discount_applied = !!current.discount_applied;
+                changed = true;
+            });
+            if (changed) {
+                save(cart);
+            }
+            return changed;
+        },
+
         getStay: function () {
             return normalizeStay(load());
         },

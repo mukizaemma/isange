@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -22,6 +22,8 @@ class User extends Authenticatable
 
     public const ROLE_ADMIN = '1';
 
+    public const ROLE_GUEST = 'guest';
+
     public const SUPER_ADMIN_EMAIL = 'admin@iremetech.com';
 
     protected $fillable = [
@@ -30,6 +32,12 @@ class User extends Authenticatable
         'password',
         'role',
         'email_verified_at',
+        'marketing_opt_in',
+        'marketing_consented_at',
+        'marketing_unsubscribe_token',
+        'email_otp_hash',
+        'email_otp_expires_at',
+        'email_otp_attempts',
     ];
 
     protected $hidden = [
@@ -37,10 +45,14 @@ class User extends Authenticatable
         'remember_token',
         'two_factor_recovery_codes',
         'two_factor_secret',
+        'email_otp_hash',
     ];
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'marketing_opt_in' => 'boolean',
+        'marketing_consented_at' => 'datetime',
+        'email_otp_expires_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -62,6 +74,26 @@ class User extends Authenticatable
         return (string) $this->role === self::ROLE_ADMIN;
     }
 
+    public function isGuest(): bool
+    {
+        return (string) $this->role === self::ROLE_GUEST;
+    }
+
+    public function hasUnlockedDiscount(): bool
+    {
+        return $this->isGuest() && $this->email_verified_at !== null;
+    }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(GuestBookingRequest::class);
+    }
+
+    public function updateRecipients(): HasMany
+    {
+        return $this->hasMany(GuestUpdateRecipient::class);
+    }
+
     public function canManageUsers(): bool
     {
         return $this->isSuperAdmin();
@@ -69,6 +101,6 @@ class User extends Authenticatable
 
     public function roleLabel(): string
     {
-        return $this->isAdmin() ? 'Admin' : 'Staff';
+        return $this->isAdmin() ? 'Admin' : ($this->isGuest() ? 'Guest' : 'Staff');
     }
 }

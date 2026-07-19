@@ -27,11 +27,21 @@
 
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Confirm booking'])
 
-@include('frontend.includes.direct-booking-discount', ['bookUrl' => '#checkout-flow'])
+@include('frontend.includes.direct-booking-discount')
 
 @php
     $termsUrl = route('terms');
     $prefillPayAtHotelChannel = $prefillPayAtHotelChannel ?? (in_array(request('channel'), ['whatsapp', 'email'], true) ? request('channel') : null);
+    $discountUnlocked = (bool) ($discountUnlocked ?? false);
+    $guestAccount = auth()->user()?->isGuest() ? auth()->user() : null;
+    $guestNameParts = preg_split('/\s+/', trim((string) ($guestAccount?->name ?? '')), 2);
+    $roomPriceMap = $rooms->mapWithKeys(function ($room) use ($discountUnlocked) {
+        return [(string) $room->id => [
+            'price' => $room->bookingPriceUsd((bool) $discountUnlocked),
+            'list_price' => $room->listPriceUsd(),
+            'discount_applied' => (bool) $discountUnlocked && $room->hasActiveDiscount(),
+        ]];
+    });
 @endphp
 
 <section class="ma-stay-checkout py-80 rpy-60">
@@ -39,6 +49,23 @@
         <div class="ma-stay-checkout__top d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
             <a href="{{ route('home') }}" class="text-muted small"><i class="fas fa-arrow-left me-1"></i> Back to home</a>
         </div>
+
+        @if (session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if (session('error'))
+            <div class="alert alert-warning">{{ session('error') }}</div>
+        @endif
+
+        @auth
+            @if (auth()->user()->isGuest())
+                <nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Guest account">
+                    <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
+                    <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
+                    <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
+                </nav>
+            @endif
+        @endauth
 
         @include('frontend.includes.booking-benefits')
 
@@ -156,11 +183,11 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label" for="guest_first_name">First name</label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_first_name" name="guest_first_name" value="{{ old('guest_first_name') }}" maxlength="120">
+                                <input type="text" class="form-control ma-checkout-input" id="guest_first_name" name="guest_first_name" value="{{ old('guest_first_name', $guestNameParts[0] ?? '') }}" maxlength="120">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="guest_last_name">Last name</label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_last_name" name="guest_last_name" value="{{ old('guest_last_name') }}" maxlength="120">
+                                <input type="text" class="form-control ma-checkout-input" id="guest_last_name" name="guest_last_name" value="{{ old('guest_last_name', $guestNameParts[1] ?? '') }}" maxlength="120">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="guest_phone">Mobile (WhatsApp) <span class="text-danger" id="guest_phone-required">*</span></label>
@@ -168,7 +195,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="guest_email">Email <span class="text-danger" id="guest_email-required">*</span></label>
-                                <input type="email" class="form-control ma-checkout-input" id="guest_email" name="guest_email" value="{{ old('guest_email') }}" maxlength="255" autocomplete="email">
+                                <input type="email" class="form-control ma-checkout-input" id="guest_email" name="guest_email" value="{{ old('guest_email', $guestAccount?->email) }}" maxlength="255" autocomplete="email">
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="guest_country">Country / region</label>
@@ -409,6 +436,11 @@
             }
         } catch (e) {}
         @endif
+
+        if (form.dataset.pricesSynced !== '1') {
+            form.dataset.pricesSynced = '1';
+            window.IsangeStayCart.repriceRooms(@json($roomPriceMap));
+        }
 
         var cartInput = document.getElementById('stay-checkout-cart-json');
         var linesEl = document.getElementById('checkout-summary-lines');

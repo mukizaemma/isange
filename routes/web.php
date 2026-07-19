@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\Admin\GuestController as AdminGuestController;
 use App\Http\Controllers\Admin\GuestInsightsController;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BlogCommentController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\BookingController;
@@ -10,17 +11,19 @@ use App\Http\Controllers\DiningController;
 use App\Http\Controllers\DirectPayPlaceholderController;
 use App\Http\Controllers\FacilitiesController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\GuestAccountController;
 use App\Http\Controllers\GuestBookingController;
-use App\Http\Controllers\StayBookingController;
 use App\Http\Controllers\GuestDiningSubmissionController;
+use App\Http\Controllers\GuestDiscountController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\SiteContentController;
 use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\RoomsController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\SiteAnalyticsController;
+use App\Http\Controllers\SiteContentController;
 use App\Http\Controllers\SlidesController;
+use App\Http\Controllers\StayBookingController;
 use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +68,11 @@ Route::get('/pay/dpo', DirectPayPlaceholderController::class)->name('pay.dpo');
 Route::post('/track/analytics', [SiteAnalyticsController::class, 'store'])->middleware('throttle:180,1')->name('track.analytics');
 Route::post('/guest/dining-submission', [GuestDiningSubmissionController::class, 'store'])->middleware('throttle:60,1')->name('guest.dining.store');
 
+Route::get('/unlock-booking-discount', [GuestDiscountController::class, 'show'])->name('guest.discount');
+Route::post('/unlock-booking-discount/register', [GuestDiscountController::class, 'register'])->middleware('throttle:5,1')->name('guest.discount.register');
+Route::post('/unlock-booking-discount/login', [GuestDiscountController::class, 'login'])->middleware('throttle:5,1')->name('guest.discount.login');
+Route::get('/guest-updates/unsubscribe/{token}', [GuestAccountController::class, 'unsubscribe'])->name('guest.updates.unsubscribe');
+
 Route::get('/facilities/{slug}', [HomeController::class, 'facilitySingle'])->name('facilitySingle');
 Route::get('/restaurant', [HomeController::class, 'restaurant'])->name('restaurant');
 Route::get('/gallery', [HomeController::class, 'gallery'])->name('gallery');
@@ -91,6 +99,11 @@ Route::post('confirmOrder', [HomeController::class, 'confirmOrder'])->name('conf
 Route::middleware(['auth'])->group(function () {
     Route::get('/account/password', [AccountController::class, 'editPassword'])->name('account.password');
     Route::put('/account/password', [AccountController::class, 'updatePassword'])->name('account.password.update');
+    Route::get('/unlock-booking-discount/verify', [GuestDiscountController::class, 'verifyForm'])->name('guest.discount.verify');
+    Route::post('/unlock-booking-discount/verify', [GuestDiscountController::class, 'verify'])->middleware('throttle:10,1')->name('guest.discount.verify.store');
+    Route::post('/unlock-booking-discount/resend', [GuestDiscountController::class, 'resend'])->middleware('throttle:2,1')->name('guest.discount.resend');
+    Route::get('/my-bookings', [GuestAccountController::class, 'bookings'])->name('guest.bookings');
+    Route::get('/my-updates', [GuestAccountController::class, 'updates'])->name('guest.updates');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
@@ -99,6 +112,8 @@ Route::middleware(['auth', 'admin'])->group(function () {
 
     Route::get('/guest-insights', [GuestInsightsController::class, 'index'])->name('guestInsights');
     Route::post('/guest-insights/bookings/{publicId}/status', [GuestInsightsController::class, 'updateBookingStatus'])->name('guestInsights.booking.status');
+    Route::get('/guests', [AdminGuestController::class, 'index'])->name('admin.guests.index');
+    Route::post('/guests/updates', [AdminGuestController::class, 'sendUpdate'])->name('admin.guests.updates.send');
 
     Route::get('/updates', [BlogController::class, 'index'])->name('admin.blogs.index');
     Route::get('/updates/create', [BlogController::class, 'create'])->name('admin.blogs.create');

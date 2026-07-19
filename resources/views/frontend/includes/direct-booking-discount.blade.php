@@ -1,5 +1,6 @@
 @php
-    $bookUrl = $bookUrl ?? route('room.booking');
+    $discountUnlocked = (bool) auth()->user()?->hasUnlockedDiscount();
+    $bookUrl = $bookUrl ?? ($discountUnlocked ? route('room.booking').'#checkout-flow' : route('guest.discount'));
     $discountPercent = $discountPercent ?? 30;
 @endphp
 
@@ -15,8 +16,8 @@
                         Save Up to <strong>{{ $discountPercent }}%</strong> When You Book Direct
                     </p>
                     <a href="{{ $bookUrl }}" class="isange-direct-discount__btn">
-                        <i class="fas fa-lock" aria-hidden="true"></i>
-                        Unlock Now
+                        <i class="fas {{ $discountUnlocked ? 'fa-check-circle' : 'fa-lock' }}" aria-hidden="true"></i>
+                        {{ $discountUnlocked ? 'Discount Unlocked' : 'Unlock Discount' }}
                     </a>
                 </div>
             </div>
@@ -30,7 +31,7 @@
                         Up to <strong>{{ $discountPercent }}%</strong> Lower Than OTA Prices
                     </p>
                     <a href="{{ $bookUrl }}" class="isange-direct-discount__btn">
-                        Check Now
+                        {{ $discountUnlocked ? 'Book Now' : 'Check Now' }}
                         <i class="fas fa-arrow-right" aria-hidden="true"></i>
                     </a>
                 </div>

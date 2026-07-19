@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Providers\RouteServiceProvider;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Fortify\Features;
 use Laravel\Jetstream\Jetstream;
@@ -55,6 +55,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(RouteServiceProvider::HOME);
+        $response->assertRedirect(route('guest.discount'));
+        $this->assertSame(User::ROLE_GUEST, auth()->user()->role);
     }
 }

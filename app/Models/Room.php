@@ -131,6 +131,11 @@ class Room extends Model
         return round(max(0, $sale), 2);
     }
 
+    public function bookingPriceUsd(bool $discountEligible): ?float
+    {
+        return $discountEligible ? $this->salePriceUsd() : $this->listPriceUsd();
+    }
+
     public function salePriceRwf(): ?float
     {
         $sale = $this->salePriceUsd();
@@ -150,6 +155,21 @@ class Room extends Model
         }
 
         return Currency::usdToRwf($sale);
+    }
+
+    public function bookingPriceRwf(bool $discountEligible): ?float
+    {
+        if ($discountEligible) {
+            return $this->salePriceRwf();
+        }
+
+        if ($this->price_rwf !== null && (float) $this->price_rwf > 0) {
+            return round((float) $this->price_rwf, 0);
+        }
+
+        $list = $this->listPriceUsd();
+
+        return $list === null ? null : Currency::usdToRwf($list);
     }
 
     public function savingsUsd(): ?float

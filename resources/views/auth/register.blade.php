@@ -8,7 +8,7 @@
 
         <div class="mb-6">
             <h2 class="auth-shell__form-title text-xl font-semibold text-neutral-900">{{ __('Create account') }}</h2>
-            <p class="mt-1 text-sm text-neutral-500">{{ __('Register for staff access to the dashboard.') }}</p>
+            <p class="mt-1 text-sm text-neutral-500">{{ __('Create a guest account for bookings and direct-booking discounts.') }}</p>
         </div>
 
         <form method="POST" action="{{ route('register') }}" class="space-y-4">
@@ -18,6 +18,12 @@
                 <x-label for="name" value="{{ __('Name') }}" class="text-neutral-700" />
                 <x-input id="name" class="mt-2 block w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
             </div>
+
+            <label class="flex items-start gap-2 text-sm text-neutral-600">
+                <input type="hidden" name="marketing_opt_in" value="0">
+                <x-checkbox name="marketing_opt_in" value="1" class="mt-0.5 rounded border-neutral-300 text-[#106b38] focus:ring-[#106b38]" />
+                <span>{{ __('Send me occasional hotel news and offers by email. I can unsubscribe at any time.') }}</span>
+            </label>
 
             <div>
                 <x-label for="email" value="{{ __('Email') }}" class="text-neutral-700" />
