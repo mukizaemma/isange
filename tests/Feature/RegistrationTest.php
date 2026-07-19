@@ -55,7 +55,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('guest.discount'));
+        $response->assertRedirect(route('booking.checkout'));
         $this->assertSame(User::ROLE_GUEST, auth()->user()->role);
     }
 }

@@ -5046,3 +5046,202 @@ body.is-checkout-page {
   }
 }
 
+/* Passwordless discount unlock modal */
+.isange-discount-modal {
+  z-index: 1080;
+}
+
+.isange-discount-modal__content {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  box-shadow: 0 26px 80px rgba(8, 55, 29, 0.24);
+}
+
+.isange-discount-modal__close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.55rem;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.88);
+}
+
+.isange-discount-modal__hero {
+  padding: 2rem 2rem 1.55rem;
+  text-align: center;
+  background:
+    radial-gradient(circle at top right, rgba(232, 94, 38, 0.22), transparent 38%),
+    linear-gradient(145deg, #f1f8f3 0%, #fff 100%);
+  border-bottom: 1px solid rgba(16, 107, 56, 0.1);
+}
+
+.isange-discount-modal__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  margin: 0 auto 0.85rem;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--eco-green, #106b38);
+  box-shadow: 0 8px 24px rgba(16, 107, 56, 0.22);
+}
+
+.isange-discount-modal__hero h2 {
+  margin: 0 0 0.55rem;
+  color: var(--eco-green, #106b38);
+  font-size: clamp(1.55rem, 4vw, 2rem);
+}
+
+.isange-discount-modal__hero p {
+  max-width: 430px;
+  margin: 0 auto;
+  color: #526159;
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+
+.isange-discount-modal__body {
+  padding: 1.55rem 2rem 1.75rem;
+}
+
+.isange-discount-modal__status {
+  padding: 0.7rem 0.85rem;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+#discount-email-form > label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #31433a;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.isange-discount-modal__input-wrap {
+  position: relative;
+}
+
+.isange-discount-modal__input-wrap > i {
+  position: absolute;
+  top: 50%;
+  left: 0.95rem;
+  transform: translateY(-50%);
+  color: var(--eco-green, #106b38);
+}
+
+.isange-discount-modal__input-wrap input {
+  width: 100%;
+  padding: 0.85rem 0.9rem 0.85rem 2.65rem;
+  border: 1.5px solid rgba(16, 107, 56, 0.2);
+  border-radius: 11px;
+  background: #fafcfb;
+  color: #1a2420;
+}
+
+.isange-discount-modal__input-wrap input:focus,
+.isange-discount-modal__code:focus {
+  outline: none;
+  border-color: var(--eco-green, #106b38);
+  box-shadow: 0 0 0 4px rgba(16, 107, 56, 0.11);
+  background: #fff;
+}
+
+.isange-discount-modal__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+  color: #5b6a62;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.isange-discount-modal__consent input {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  margin-top: 0.05rem;
+  accent-color: var(--eco-green, #106b38);
+}
+
+.isange-discount-modal__submit {
+  width: 100%;
+  justify-content: center;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+}
+
+.isange-discount-modal__submit.is-loading {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.isange-discount-modal__sent {
+  margin: 0 0 1rem;
+  text-align: center;
+  color: #526159;
+}
+
+.isange-discount-modal__code {
+  display: block;
+  width: min(100%, 250px);
+  margin: 0 auto;
+  padding: 0.75rem;
+  text-align: center;
+  border: 2px solid rgba(16, 107, 56, 0.22);
+  border-radius: 14px;
+  background: #f7faf8;
+  color: var(--eco-green, #106b38);
+  font-size: 2.15rem;
+  font-weight: 800;
+  letter-spacing: 0.6rem;
+}
+
+.isange-discount-modal__attempts {
+  margin: 0.6rem 0 0;
+  text-align: center;
+  color: #738078;
+  font-size: 0.8rem;
+}
+
+.isange-discount-modal__resend {
+  display: block;
+  margin: 0.85rem auto 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--eco-green, #106b38);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.isange-discount-modal__continue {
+  display: block;
+  margin-top: 1rem;
+  text-align: center;
+  color: #68766e;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 575px) {
+  .isange-discount-modal__hero {
+    padding: 1.65rem 1.2rem 1.25rem;
+  }
+
+  .isange-discount-modal__body {
+    padding: 1.25rem 1.2rem 1.4rem;
+  }
+}
+

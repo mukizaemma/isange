@@ -58,7 +58,7 @@
                         <div class="card-header d-flex justify-content-between"><span>Guest accounts — newest first</span><label><input type="checkbox" id="select-all-guests"> Select page</label></div>
                         <div class="card-body table-responsive">
                             <table class="table table-hover align-middle">
-                                <thead><tr><th></th><th>Guest</th><th>Joined</th><th>Verified</th><th>Updates consent</th><th class="text-end">Bookings in range</th></tr></thead>
+                                <thead><tr><th></th><th>Guest</th><th>Joined</th><th>Verified</th><th>Updates consent</th><th>Discount visits</th><th class="text-end">Bookings in range</th></tr></thead>
                                 <tbody>
                                 @forelse ($guests as $guest)
                                     <tr>
@@ -67,10 +67,15 @@
                                         <td>{{ $guest->created_at->format('M j, Y') }}</td>
                                         <td>{!! $guest->email_verified_at ? '<span class="badge bg-success">Verified</span>' : '<span class="badge bg-secondary">Pending</span>' !!}</td>
                                         <td>{!! $guest->marketing_opt_in ? '<span class="badge bg-success">Opted in</span>' : '<span class="badge bg-light text-dark">Not opted in</span>' !!}</td>
+                                        <td>
+                                            <strong>{{ number_format($guest->discount_unlock_count) }}</strong>
+                                            @if($guest->discount_unlock_count >= 2) <span class="badge bg-info text-dark">Returned</span>@endif
+                                            @if($guest->last_discount_unlocked_at)<br><small class="text-muted">{{ $guest->last_discount_unlocked_at->format('M j, Y H:i') }}</small>@endif
+                                        </td>
                                         <td class="text-end"><strong>{{ $guest->booking_count }}</strong>@if($guest->booking_count >= 2) <span class="badge bg-info text-dark">Returning</span>@endif</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="6" class="text-center text-muted py-4">No guest accounts found.</td></tr>
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No guest accounts found.</td></tr>
                                 @endforelse
                                 </tbody>
                             </table>

@@ -17,9 +17,7 @@ class GuestAuthResponse implements LoginResponse, RegisterResponse
 
         $user = $request->user();
         if ($user?->isGuest()) {
-            return redirect()->route(
-                $user->hasUnlockedDiscount() ? 'booking.checkout' : 'guest.discount'
-            );
+            return redirect()->route('booking.checkout');
         }
 
         return redirect()->intended('/dashboard');

@@ -38,6 +38,8 @@ class User extends Authenticatable
         'email_otp_hash',
         'email_otp_expires_at',
         'email_otp_attempts',
+        'discount_unlock_count',
+        'last_discount_unlocked_at',
     ];
 
     protected $hidden = [
@@ -53,6 +55,7 @@ class User extends Authenticatable
         'marketing_opt_in' => 'boolean',
         'marketing_consented_at' => 'datetime',
         'email_otp_expires_at' => 'datetime',
+        'last_discount_unlocked_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -81,7 +84,9 @@ class User extends Authenticatable
 
     public function hasUnlockedDiscount(): bool
     {
-        return $this->isGuest() && $this->email_verified_at !== null;
+        return $this->isGuest()
+            && $this->email_verified_at !== null
+            && (int) session('guest_discount_unlocked_user_id') === (int) $this->id;
     }
 
     public function bookings(): HasMany

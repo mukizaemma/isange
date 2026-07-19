@@ -69,6 +69,8 @@ Route::post('/track/analytics', [SiteAnalyticsController::class, 'store'])->midd
 Route::post('/guest/dining-submission', [GuestDiningSubmissionController::class, 'store'])->middleware('throttle:60,1')->name('guest.dining.store');
 
 Route::get('/unlock-booking-discount', [GuestDiscountController::class, 'show'])->name('guest.discount');
+Route::post('/unlock-booking-discount/request-code', [GuestDiscountController::class, 'requestCode'])->middleware('throttle:5,1')->name('guest.discount.code.request');
+Route::post('/unlock-booking-discount/verify-code', [GuestDiscountController::class, 'verifyCode'])->middleware('throttle:10,1')->name('guest.discount.code.verify');
 Route::post('/unlock-booking-discount/register', [GuestDiscountController::class, 'register'])->middleware('throttle:5,1')->name('guest.discount.register');
 Route::post('/unlock-booking-discount/login', [GuestDiscountController::class, 'login'])->middleware('throttle:5,1')->name('guest.discount.login');
 Route::get('/guest-updates/unsubscribe/{token}', [GuestAccountController::class, 'unsubscribe'])->name('guest.updates.unsubscribe');
