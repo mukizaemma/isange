@@ -30,7 +30,10 @@ class HomeController extends Controller
         $data = Cache::remember(FrontendPageCache::HOME_PAGE_DATA, 120, function () {
             $slides = Slide::query()->ordered()->get();
             $rooms = Room::query()
-                ->select(['id', 'roomName', 'slug', 'price', 'price_rwf', 'image'])
+                ->select([
+                    'id', 'roomName', 'slug', 'price', 'price_rwf', 'image', 'description',
+                    'discount_enabled', 'discount_type', 'discount_value',
+                ])
                 ->oldest()
                 ->get();
 

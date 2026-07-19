@@ -113,6 +113,24 @@
             return '$' + (Number(n) || 0).toFixed(2);
         }
 
+        function roomCardPriceHtml(room, nights) {
+            nights = nights || 1;
+            var price = parseFloat(String(room.price || '').replace(/[^0-9.]/g, '')) || 0;
+            var list = parseFloat(String(room.list_price || '').replace(/[^0-9.]/g, '')) || 0;
+            var lineTotal = price * nights;
+            var listTotal = list * nights;
+            if (lineTotal <= 0) {
+                return '<p class="stay-cart-modal__card-price mb-0 text-muted small">Rate on request</p>';
+            }
+            if (room.discount_applied && listTotal > lineTotal) {
+                return '<p class="stay-cart-modal__card-price mb-0">' +
+                    '<span class="small text-muted text-decoration-line-through d-block">' + formatMoney(listTotal) + '</span>' +
+                    '<span class="text-success">' + formatMoney(lineTotal) + '</span>' +
+                    '</p>';
+            }
+            return '<p class="stay-cart-modal__card-price mb-0">' + formatMoney(lineTotal) + '</p>';
+        }
+
         function formatDateShort(iso) {
             if (!iso) return '';
             try {
@@ -202,7 +220,6 @@
                 linesEl.innerHTML = '';
                 cart.rooms.forEach(function (room, idx) {
                     var nights = room.nights || 1;
-                    var lineTotal = (parseFloat(String(room.price || '').replace(/[^0-9.]/g, '')) || 0) * nights;
                     var card = document.createElement('article');
                     card.className = 'stay-cart-modal__card';
                     card.innerHTML =
@@ -220,9 +237,7 @@
                         (room.adults || 1) + ' Adult' + ((room.adults || 1) !== 1 ? 's' : '') +
                         ', ' + (room.children || 0) + ' Child' + ((room.children || 0) !== 1 ? 'ren' : '') +
                         '</p>' +
-                        (lineTotal > 0
-                            ? '<p class="stay-cart-modal__card-price mb-0">' + formatMoney(lineTotal) + '</p>'
-                            : '<p class="stay-cart-modal__card-price mb-0 text-muted small">Rate on request</p>');
+                        roomCardPriceHtml(room, nights);
                     linesEl.appendChild(card);
                 });
 
@@ -303,6 +318,8 @@
                     name: addRoom.getAttribute('data-room-name') || 'Room',
                     image: addRoom.getAttribute('data-room-image') || '',
                     price: addRoom.getAttribute('data-room-price') || '',
+                    list_price: addRoom.getAttribute('data-room-list-price') || '',
+                    discount_applied: addRoom.getAttribute('data-room-discount-applied') === '1',
                     check_in: null,
                     check_out: null,
                     adults: 2,

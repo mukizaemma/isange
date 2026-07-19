@@ -153,6 +153,7 @@ class GuestDiscountController extends Controller
             $user = $existing;
             if ($user->email_verified_at) {
                 Auth::login($user, true);
+                $request->session()->put('guest_discount_unlocked_user_id', $user->id);
 
                 return redirect()->route('booking.checkout')->with('success', 'Your direct-booking discount is unlocked.');
             }
@@ -291,9 +292,11 @@ class GuestDiscountController extends Controller
             ->whereRaw('LOWER(guest_email) = ?', [strtolower($user->email)])
             ->update(['user_id' => $user->id]);
 
-        Auth::login($user, true);
+        // Persist unlock before login so session regenerate keeps the flag.
         $request->session()->put('guest_discount_unlocked_user_id', $user->id);
         $request->session()->forget('guest_discount_pending_user_id');
+        Auth::login($user, true);
+        $request->session()->put('guest_discount_unlocked_user_id', $user->id);
     }
 
     private function maskEmail(string $email): string

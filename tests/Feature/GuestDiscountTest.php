@@ -203,6 +203,52 @@ class GuestDiscountTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_home_page_shows_was_and_now_prices_after_discount_unlock(): void
+    {
+        config([
+            'services.resend.key' => 'test-key',
+            'mail.from.address' => 'bookings@example.com',
+            'mail.from.name' => 'Isange Paradise',
+        ]);
+        Http::fake(['api.resend.com/*' => Http::response(['id' => 'email-home'], 200)]);
+
+        Room::create([
+            'roomName' => 'Garden Suite',
+            'category' => 'double',
+            'slug' => 'garden-suite',
+            'image' => 'room.jpg',
+            'description' => 'A garden suite.',
+            'price' => 100,
+            'price_rwf' => 130000,
+            'discount_enabled' => true,
+            'discount_type' => Room::DISCOUNT_PERCENT,
+            'discount_value' => 30,
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('$100')
+            ->assertDontSee('Was');
+
+        $this->postJson(route('guest.discount.code.request'), [
+            'email' => 'home-guest@example.com',
+        ])->assertOk();
+
+        $email = Http::recorded()->last()[0];
+        preg_match('/>(\d{4})</', (string) $email['html'], $code);
+        $this->postJson(route('guest.discount.code.verify'), ['code' => $code[1]])
+            ->assertOk()
+            ->assertJsonPath('discount_unlocked', true);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('Was')
+            ->assertSee('Now')
+            ->assertSee('$100')
+            ->assertSee('$70')
+            ->assertSee('30% off');
+    }
+
     public function test_verified_guest_login_returns_to_public_booking_page(): void
     {
         $guest = User::factory()->create([

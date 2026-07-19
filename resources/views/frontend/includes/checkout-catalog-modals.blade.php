@@ -45,6 +45,8 @@
                                     data-room-slug="{{ $r->slug }}"
                                     data-room-name="{{ $r->roomName }}"
                                     data-room-price="{{ $r->bookingPriceUsd((bool) ($discountUnlocked ?? false)) }}"
+                                    data-room-list-price="{{ $r->listPriceUsd() }}"
+                                    data-room-discount-applied="{{ ($discountUnlocked ?? false) && $r->hasActiveDiscount() ? '1' : '0' }}"
                                     data-room-image="{{ $r->image ? asset('storage/images/rooms/'.$r->image) : '' }}">
                                     Add
                                 </button>

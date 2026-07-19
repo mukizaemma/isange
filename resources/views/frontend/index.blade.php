@@ -190,6 +190,8 @@
                                     data-room-slug="{{ $room->slug }}"
                                     data-room-name="{{ $room->roomName }}"
                                     data-room-price="{{ $room->bookingPriceUsd((bool) auth()->user()?->hasUnlockedDiscount()) }}"
+                                    data-room-list-price="{{ $room->listPriceUsd() }}"
+                                    data-room-discount-applied="{{ auth()->user()?->hasUnlockedDiscount() && $room->hasActiveDiscount() ? '1' : '0' }}"
                                     data-room-image="{{ asset('storage/images/rooms/' . $room->image) }}">
                                     <span data-add-room-label>Book Now</span>
                                 </button>

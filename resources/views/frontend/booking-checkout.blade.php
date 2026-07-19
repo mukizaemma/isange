@@ -57,17 +57,19 @@
             <div class="alert alert-warning">{{ session('error') }}</div>
         @endif
 
-        @auth
-            @if (auth()->user()->isGuest())
-                <nav class="d-flex flex-wrap gap-2 mb-4" aria-label="Guest account">
-                    <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
-                    <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
-                    <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
-                </nav>
-            @endif
-        @endauth
+        <div class="ma-booking-benefits-row{{ auth()->user()?->isGuest() ? ' ma-booking-benefits-row--with-nav' : '' }}">
+            @auth
+                @if (auth()->user()->isGuest())
+                    <nav class="ma-guest-account-nav" aria-label="Guest account">
+                        <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
+                        <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
+                        <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
+                    </nav>
+                @endif
+            @endauth
 
-        @include('frontend.includes.booking-benefits')
+            @include('frontend.includes.booking-benefits')
+        </div>
 
         <div id="checkout-flow">
 
@@ -621,6 +623,23 @@
             return '$' + (Number(n) || 0).toFixed(2);
         }
 
+        function roomLinePriceHtml(room, nights) {
+            nights = nights || 1;
+            var price = parseFloat(String(room.price || '').replace(/[^0-9.]/g, '')) || 0;
+            var list = parseFloat(String(room.list_price || '').replace(/[^0-9.]/g, '')) || 0;
+            var lineTotal = price * nights;
+            var listTotal = list * nights;
+            if (lineTotal <= 0) {
+                return '<div class="small text-muted">Rate on request</div>';
+            }
+            if (room.discount_applied && listTotal > lineTotal) {
+                return '<div class="small text-muted text-decoration-line-through">' + formatMoney(listTotal) + '</div>' +
+                    '<div class="fw-semibold text-success">' + formatMoney(lineTotal) + '</div>' +
+                    '<div class="small text-success">Discounted</div>';
+            }
+            return '<div class="fw-semibold">' + formatMoney(lineTotal) + '</div>';
+        }
+
         function formatDateShort(iso) {
             if (!iso) return '';
             try {
@@ -893,7 +912,6 @@
 
             cart.rooms.forEach(function (room, idx) {
                 var nights = room.nights || 1;
-                var lineTotal = (parseFloat(String(room.price || '').replace(/[^0-9.]/g, '')) || 0) * nights;
                 var el = document.createElement('div');
                 el.className = 'ma-stay-summary__line px-3 py-3 border-bottom';
                 el.innerHTML =
@@ -904,7 +922,7 @@
                     '</div>' +
                     '<div class="text-end text-nowrap">' +
                     '<button type="button" class="btn btn-link btn-sm text-danger p-0 mb-1" data-rm-room="' + idx + '">Remove</button>' +
-                    (lineTotal > 0 ? '<div class="fw-semibold">' + formatMoney(lineTotal) + '</div>' : '<div class="small text-muted">Rate on request</div>') +
+                    roomLinePriceHtml(room, nights) +
                     '</div></div>';
                 linesEl.appendChild(el);
             });
@@ -1070,6 +1088,8 @@
                     name: btn.getAttribute('data-room-name') || 'Room',
                     image: btn.getAttribute('data-room-image') || '',
                     price: btn.getAttribute('data-room-price') || '',
+                    list_price: btn.getAttribute('data-room-list-price') || '',
+                    discount_applied: btn.getAttribute('data-room-discount-applied') === '1',
                     check_in: null,
                     check_out: null,
                     adults: stayAdults ? stayAdults.value : 2,
