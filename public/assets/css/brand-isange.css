@@ -3835,7 +3835,8 @@ body.spa-loading::before {
   grid-template-areas:
     "main"
     "aside"
-    "footer";
+    "footer"
+    "benefits";
   gap: 1.5rem;
   align-items: start;
 }
@@ -3854,12 +3855,18 @@ body.spa-loading::before {
   grid-area: footer;
 }
 
+.ma-stay-checkout__grid > .ma-booking-benefits-row {
+  grid-area: benefits;
+  margin-top: 0;
+}
+
 @media (min-width: 992px) {
   .ma-stay-checkout__grid {
     grid-template-columns: 1fr 380px;
     grid-template-areas:
       "main aside"
-      "footer footer";
+      "footer footer"
+      "benefits benefits";
   }
 
   .ma-stay-checkout__aside .ma-stay-summary {
