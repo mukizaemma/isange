@@ -57,20 +57,6 @@
             <div class="alert alert-warning">{{ session('error') }}</div>
         @endif
 
-        <div class="ma-booking-benefits-row{{ auth()->user()?->isGuest() ? ' ma-booking-benefits-row--with-nav' : '' }}">
-            @auth
-                @if (auth()->user()->isGuest())
-                    <nav class="ma-guest-account-nav" aria-label="Guest account">
-                        <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
-                        <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
-                        <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
-                    </nav>
-                @endif
-            @endauth
-
-            @include('frontend.includes.booking-benefits')
-        </div>
-
         <div id="checkout-flow">
 
         <nav class="ma-checkout-wizard mb-4" id="checkout-wizard" aria-label="Booking steps">
@@ -168,6 +154,20 @@
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div class="ma-booking-benefits-row mt-4{{ auth()->user()?->isGuest() ? ' ma-booking-benefits-row--with-nav' : '' }}">
+                    @auth
+                        @if (auth()->user()->isGuest())
+                            <nav class="ma-guest-account-nav" aria-label="Guest account">
+                                <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
+                                <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
+                                <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
+                            </nav>
+                        @endif
+                    @endauth
+
+                    @include('frontend.includes.booking-benefits')
                 </div>
                 </div>{{-- step 1 --}}
 

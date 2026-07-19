@@ -3009,8 +3009,8 @@ body.spa-loading::before {
   display: flex;
   align-items: stretch;
   gap: 1.25rem;
-  max-width: 980px;
-  margin: 0 auto 2.5rem;
+  max-width: none;
+  margin: 0 0 0.5rem;
 }
 
 .ma-booking-benefits-row .ma-booking-benefits {
