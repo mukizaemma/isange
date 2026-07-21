@@ -7,7 +7,10 @@
     <div class="container">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div><span class="isange-section__eyebrow">Guest account</span><h2 class="mb-0">Recent updates</h2></div>
-            <a class="theme-btn style-three" href="{{ route('booking.checkout') }}">Book on Discount</a>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a class="theme-btn style-three" href="{{ route('booking.checkout') }}">Book on Discount</a>
+                @include('frontend.includes.guest-logout')
+            </div>
         </div>
         <div class="row g-4">
             @forelse ($updates as $recipient)

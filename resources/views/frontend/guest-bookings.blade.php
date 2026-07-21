@@ -7,7 +7,10 @@
     <div class="container">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div><span class="isange-section__eyebrow">Guest account</span><h2 class="mb-0">My bookings</h2></div>
-            <a class="theme-btn" href="{{ route('booking.checkout') }}">Book another stay</a>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a class="theme-btn" href="{{ route('booking.checkout') }}">Book another stay</a>
+                @include('frontend.includes.guest-logout')
+            </div>
         </div>
         <div class="table-responsive bg-white rounded shadow-sm">
             <table class="table align-middle mb-0">

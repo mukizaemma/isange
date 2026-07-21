@@ -151,6 +151,12 @@
                         
                         <!-- Menu Button -->
                         <div class="menu-btns">
+                           @auth
+                               @if (auth()->user()->isGuest())
+                                   <a href="{{ route('guest.bookings') }}" class="ma-guest-header-link" title="My bookings">My Bookings</a>
+                                   @include('frontend.includes.guest-logout', ['variant' => 'icon', 'class' => 'ma-guest-logout--header'])
+                               @endif
+                           @endauth
                            <a href="{{ route('booking.checkout') }}" class="theme-btn style-three">Book Your Stay <i class="far fa-angle-right"></i></a>
                            
                             <!-- menu sidbar -->

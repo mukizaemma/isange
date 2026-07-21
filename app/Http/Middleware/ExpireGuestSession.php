@@ -24,12 +24,8 @@ class ExpireGuestSession
             $expiresAt = (int) $request->session()->get('guest_session_expires_at', 0);
             if ($expiresAt > 0 && $expiresAt <= now()->timestamp) {
                 Auth::logout();
-                $request->session()->forget([
-                    'guest_session_expires_at',
-                    'guest_discount_unlocked_user_id',
-                    'guest_discount_expires_at',
-                    'guest_discount_pending_user_id',
-                ]);
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
             }
         }
 

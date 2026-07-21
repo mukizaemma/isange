@@ -209,6 +209,31 @@ class GuestDiscountTest extends TestCase
         $this->assertNull(session('guest_discount_expires_at'));
     }
 
+    public function test_guest_can_log_out_from_the_frontend(): void
+    {
+        $guest = User::factory()->create([
+            'role' => User::ROLE_GUEST,
+            'email_verified_at' => now(),
+        ]);
+
+        $this->actingAs($guest)
+            ->withSession([
+                'guest_session_expires_at' => now()->addHours(2)->timestamp,
+                'guest_discount_unlocked_user_id' => $guest->id,
+                'guest_discount_expires_at' => now()->addHours(2)->timestamp,
+            ])
+            ->get(route('booking.checkout'))
+            ->assertOk()
+            ->assertSee('Log out', false)
+            ->assertSee('fa-sign-out-alt', false);
+
+        $this->post(route('logout'))
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+        $this->assertNull(session('guest_discount_unlocked_user_id'));
+    }
+
     public function test_admin_can_open_latest_guest_reporting_page(): void
     {
         $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
