@@ -269,7 +269,9 @@
 
     {{-- Modals outside .page-wrapper — avoids overflow:hidden clipping and backdrop stacking issues --}}
     @stack('body-modals')
-    @include('frontend.includes.discount-unlock-modal')
+    @if (\App\Support\RoomDiscountPromotion::hasActivePromotion())
+        @include('frontend.includes.discount-unlock-modal')
+    @endif
 
     {{-- Outside .page-wrapper so overflow:hidden does not clip the fixed cart bar --}}
     @include('frontend.includes.stay-cart-dock')

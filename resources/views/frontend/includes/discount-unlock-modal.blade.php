@@ -1,4 +1,7 @@
 @unless (auth()->user()?->hasUnlockedDiscount())
+@php
+    $modalDiscountPercent = \App\Support\RoomDiscountPromotion::formattedMaximumPercent();
+@endphp
 <div class="modal fade isange-discount-modal" id="unlockDiscountModal" tabindex="-1" aria-labelledby="unlockDiscountModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content isange-discount-modal__content">
@@ -7,7 +10,13 @@
             <div class="isange-discount-modal__hero">
                 <span class="isange-discount-modal__icon"><i class="fas fa-tag" aria-hidden="true"></i></span>
                 <span class="isange-section__eyebrow">Direct booking reward</span>
-                <h2 id="unlockDiscountModalLabel">Unlock your room discount</h2>
+                <h2 id="unlockDiscountModalLabel">
+                    @if ($modalDiscountPercent)
+                        Unlock up to {{ $modalDiscountPercent }}% off
+                    @else
+                        Unlock your room discount
+                    @endif
+                </h2>
                 <p>Enter your email and we’ll send a secure 4-digit code. New and returning guests use the same quick process.</p>
             </div>
 

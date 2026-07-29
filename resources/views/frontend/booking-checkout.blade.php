@@ -342,7 +342,9 @@
                         <nav class="ma-guest-account-nav" aria-label="Guest account">
                             <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
                             <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
-                            <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
+                            @if (\App\Support\RoomDiscountPromotion::hasActivePromotion())
+                                <a class="theme-btn btn-sm" href="{{ auth()->user()->hasUnlockedDiscount() ? '#checkout-flow' : route('guest.discount') }}"><i class="fas fa-tag me-1"></i> Book on Discount</a>
+                            @endif
                             @include('frontend.includes.guest-logout')
                         </nav>
                     @endif

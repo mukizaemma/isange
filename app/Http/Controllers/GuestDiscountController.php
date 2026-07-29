@@ -6,6 +6,7 @@ use App\Http\Middleware\ExpireGuestSession;
 use App\Models\GuestBookingRequest;
 use App\Models\User;
 use App\Support\GuestEmailSender;
+use App\Support\RoomDiscountPromotion;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -23,6 +24,12 @@ class GuestDiscountController extends Controller
 
     public function requestCode(Request $request): JsonResponse
     {
+        if (! RoomDiscountPromotion::hasActivePromotion()) {
+            return response()->json([
+                'message' => 'There is no active room discount right now. You can continue booking at the regular price.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'marketing_opt_in' => ['nullable', 'boolean'],
@@ -73,6 +80,12 @@ class GuestDiscountController extends Controller
 
     public function verifyCode(Request $request): JsonResponse
     {
+        if (! RoomDiscountPromotion::hasActivePromotion()) {
+            return response()->json([
+                'message' => 'There is no active room discount right now. You can continue booking at the regular price.',
+            ], 422);
+        }
+
         $validated = $request->validate([
             'code' => ['required', 'digits:4'],
         ]);
@@ -120,6 +133,10 @@ class GuestDiscountController extends Controller
 
     public function show(Request $request): View|RedirectResponse
     {
+        if ($redirect = $this->redirectWhenNoPromotion()) {
+            return $redirect;
+        }
+
         $request->session()->put('guest_discount_return', route('booking.checkout'));
 
         if ($request->user()?->hasUnlockedDiscount()) {
@@ -134,11 +151,17 @@ class GuestDiscountController extends Controller
             return redirect()->route('guest.discount.verify');
         }
 
-        return view('frontend.guest-discount');
+        return view('frontend.guest-discount', [
+            'discountPercent' => RoomDiscountPromotion::formattedMaximumPercent(),
+        ]);
     }
 
     public function register(Request $request): RedirectResponse
     {
+        if ($redirect = $this->redirectWhenNoPromotion()) {
+            return $redirect;
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
@@ -184,6 +207,10 @@ class GuestDiscountController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
+        if ($redirect = $this->redirectWhenNoPromotion()) {
+            return $redirect;
+        }
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -216,6 +243,10 @@ class GuestDiscountController extends Controller
 
     public function verifyForm(Request $request): View|RedirectResponse
     {
+        if ($redirect = $this->redirectWhenNoPromotion()) {
+            return $redirect;
+        }
+
         if (! $request->user()?->isGuest()) {
             return redirect()->route('guest.discount');
         }
@@ -223,11 +254,17 @@ class GuestDiscountController extends Controller
             return redirect()->route('booking.checkout');
         }
 
-        return view('frontend.guest-discount-verify');
+        return view('frontend.guest-discount-verify', [
+            'discountPercent' => RoomDiscountPromotion::formattedMaximumPercent(),
+        ]);
     }
 
     public function verify(Request $request): RedirectResponse
     {
+        if ($redirect = $this->redirectWhenNoPromotion()) {
+            return $redirect;
+        }
+
         $validated = $request->validate([
             'code' => ['required', 'digits:4'],
         ]);
@@ -256,6 +293,10 @@ class GuestDiscountController extends Controller
 
     public function resend(Request $request): RedirectResponse
     {
+        if ($redirect = $this->redirectWhenNoPromotion()) {
+            return $redirect;
+        }
+
         $user = $request->user();
         if (! $user?->isGuest() || $user->hasUnlockedDiscount()) {
             return redirect()->route('booking.checkout');
@@ -265,6 +306,16 @@ class GuestDiscountController extends Controller
             $this->issueOtp($user) ? 'success' : 'error',
             'A new verification code has been requested.'
         );
+    }
+
+    private function redirectWhenNoPromotion(): ?RedirectResponse
+    {
+        if (RoomDiscountPromotion::hasActivePromotion()) {
+            return null;
+        }
+
+        return redirect()->route('booking.checkout')
+            ->with('error', 'There is no active room discount right now. You can continue booking at the regular price.');
     }
 
     private function issueOtp(User $user): bool

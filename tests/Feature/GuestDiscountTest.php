@@ -14,6 +14,24 @@ class GuestDiscountTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Room::create([
+            'roomName' => 'Promo Room',
+            'category' => 'double',
+            'accommodation_type' => Room::TYPE_ROOM,
+            'slug' => 'promo-room',
+            'image' => 'room.jpg',
+            'description' => 'A promo room.',
+            'price' => 100,
+            'discount_enabled' => true,
+            'discount_type' => Room::DISCOUNT_PERCENT,
+            'discount_value' => 20,
+        ]);
+    }
+
     public function test_guest_can_register_and_verify_with_a_four_digit_code(): void
     {
         config([

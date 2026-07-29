@@ -8,7 +8,9 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
             <div><span class="isange-section__eyebrow">Guest account</span><h2 class="mb-0">Recent updates</h2></div>
             <div class="d-flex flex-wrap align-items-center gap-2">
-                <a class="theme-btn style-three" href="{{ route('booking.checkout') }}">Book on Discount</a>
+                @if (\App\Support\RoomDiscountPromotion::hasActivePromotion())
+                    <a class="theme-btn style-three" href="{{ route('booking.checkout') }}">Book on Discount</a>
+                @endif
                 @include('frontend.includes.guest-logout')
             </div>
         </div>

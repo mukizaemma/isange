@@ -27,6 +27,11 @@ final class RoomDiscountPromotion
         });
     }
 
+    public static function hasActivePromotion(): bool
+    {
+        return self::maximumPercent() !== null;
+    }
+
     public static function formattedMaximumPercent(): ?string
     {
         $percent = self::maximumPercent();

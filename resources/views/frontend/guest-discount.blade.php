@@ -3,16 +3,31 @@
 @section('body_class', 'is-guest-auth-page')
 
 @section('content')
+@php
+    $discountPercent = $discountPercent ?? \App\Support\RoomDiscountPromotion::formattedMaximumPercent();
+@endphp
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Unlock your booking discount'])
 
 <section class="isange-guest-auth">
     <div class="container">
         <div class="isange-guest-auth__intro text-center mx-auto">
             <span class="isange-section__eyebrow">Direct booking benefit</span>
-            <h2>Unlock discounted room rates</h2>
+            <h2>
+                @if ($discountPercent)
+                    Unlock up to {{ $discountPercent }}% off room rates
+                @else
+                    Unlock discounted room rates
+                @endif
+            </h2>
             <p>Create a guest account, confirm your email with a 4-digit code, and keep your cart while we apply the savings.</p>
             <ul class="isange-guest-auth__perks" aria-label="What you unlock">
-                <li><i class="fas fa-tag" aria-hidden="true"></i> Room discounts activated</li>
+                <li><i class="fas fa-tag" aria-hidden="true"></i>
+                    @if ($discountPercent)
+                        Up to {{ $discountPercent }}% room discount activated
+                    @else
+                        Room discounts activated
+                    @endif
+                </li>
                 <li><i class="fas fa-shopping-bag" aria-hidden="true"></i> Cart stays saved</li>
                 <li><i class="fas fa-shield-alt" aria-hidden="true"></i> Secure email OTP</li>
             </ul>

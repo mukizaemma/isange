@@ -94,6 +94,54 @@ class RoomDiscountAdminTest extends TestCase
             ->assertDontSee('Save Up to <strong>30%</strong>', false);
     }
 
+    public function test_promotion_strip_and_unlock_flow_are_hidden_when_no_discount_is_set(): void
+    {
+        $this->room('Full Price Room', 100);
+
+        $this->get(route('aboutUs'))
+            ->assertOk()
+            ->assertDontSee('Save Up to', false)
+            ->assertDontSee('Lower Than OTA Prices', false)
+            ->assertDontSee('id="unlockDiscountModal"', false);
+
+        $this->get(route('booking.checkout'))
+            ->assertOk()
+            ->assertDontSee('Save Up to', false)
+            ->assertDontSee('Book on Discount', false)
+            ->assertDontSee('id="unlockDiscountModal"', false);
+
+        $this->get(route('guest.discount'))
+            ->assertRedirect(route('booking.checkout'));
+
+        $this->postJson(route('guest.discount.code.request'), [
+            'email' => 'nodiscount@example.com',
+        ])->assertStatus(422);
+    }
+
+    public function test_bulk_percent_discount_drives_the_public_promotion_percent(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $this->room('Garden Room', 100);
+        $this->room('Family Room', 200);
+
+        $this->actingAs($admin)->post(route('rooms.bulkDiscount'), [
+            'action' => 'apply',
+            'bulk_discount_type' => Room::DISCOUNT_PERCENT,
+            'bulk_discount_value' => 18,
+        ])->assertRedirect();
+
+        $this->assertSame(18.0, RoomDiscountPromotion::maximumPercent());
+
+        $this->get(route('aboutUs'))
+            ->assertOk()
+            ->assertSee('Save Up to <strong>18%</strong>', false)
+            ->assertSee('Up to <strong>18%</strong> Lower Than OTA Prices', false);
+
+        $this->get(route('guest.discount'))
+            ->assertOk()
+            ->assertSee('Unlock up to 18% off room rates', false);
+    }
+
     private function room(string $name, ?float $price, ?float $discount = null): Room
     {
         return Room::create([
