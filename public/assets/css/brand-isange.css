@@ -4864,8 +4864,10 @@ body.is-checkout-page {
   font-weight: 800;
 }
 
-.isange-direct-discount__text--emphasis {
-  font-weight: 800;
+.isange-direct-discount__dates {
+  color: var(--eco-green, #106b38);
+  opacity: 0.85;
+  font-weight: 600;
 }
 
 .isange-direct-discount__btn {

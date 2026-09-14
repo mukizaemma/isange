@@ -286,6 +286,7 @@ class StayBookingController extends Controller
             'promotion_configured' => $promotionConfigured,
             'discount_open' => $stayOpen,
             'dates_provided' => $datesProvided,
+            'discount_period' => RoomDiscountPromotion::periodLabel(),
         ]);
     }
 

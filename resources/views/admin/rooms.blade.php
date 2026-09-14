@@ -39,43 +39,74 @@
 
                     <div class="card mb-4 border-success">
                         <div class="card-header bg-light">
-                            <strong><i class="fas fa-tags me-1"></i> Discount all rooms</strong>
+                            <strong><i class="fas fa-tags me-1"></i> Direct-booking discount</strong>
                         </div>
                         <div class="card-body">
-                            <p class="text-muted small mb-3">
-                                Apply one discount to every room with a USD price. You can still edit any room afterward to change or remove its discount.
+                            @php
+                                $window = $discountWindow ?? \App\Support\RoomDiscountPromotion::window();
+                                $defaultFrom = old('discount_from', $window ? $window['start']->toDateString() : '');
+                                $defaultTo = old('discount_to', $window ? $window['end']->toDateString() : '');
+                                $defaultType = old('bulk_discount_type', $bulkDiscountType ?? 'percent');
+                                $defaultValue = old('bulk_discount_value', $bulkDiscountValue ?? '');
+                            @endphp
+                            <p class="small mb-3">
+                                Set the amount and the nights guests can use it. Saving this updates the calendar to match those dates.
+                                After that, use the calendar only for busy nights you want at full rate.
                             </p>
                             <form method="POST" action="{{ route('rooms.bulkDiscount') }}" class="row g-3 align-items-end"
-                                onsubmit="return confirm(event.submitter && event.submitter.value === 'remove' ? 'Remove discounts from all rooms?' : 'Apply this discount to all priced rooms?');">
+                                onsubmit="return confirm(event.submitter && event.submitter.value === 'remove' ? 'Remove discounts from all rooms and clear promo dates?' : 'Apply this discount and promo dates to all priced rooms? The calendar will match these dates.');">
                                 @csrf
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="bulk_discount_type" class="form-label">Discount type</label>
                                     <select name="bulk_discount_type" id="bulk_discount_type" class="form-select @error('bulk_discount_type') is-invalid @enderror">
-                                        <option value="percent" @selected(old('bulk_discount_type', 'percent') === 'percent')>Percentage (%)</option>
-                                        <option value="fixed" @selected(old('bulk_discount_type') === 'fixed')>Fixed amount (USD)</option>
+                                        <option value="percent" @selected($defaultType === 'percent')>Percentage (%)</option>
+                                        <option value="fixed" @selected($defaultType === 'fixed')>Fixed amount (USD)</option>
                                     </select>
                                     @error('bulk_discount_type')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <div class="col-md-3">
-                                    <label for="bulk_discount_value" class="form-label">Discount value</label>
+                                <div class="col-md-2">
+                                    <label for="bulk_discount_value" class="form-label">Value</label>
                                     <input type="number" step="0.01" min="0.01" name="bulk_discount_value" id="bulk_discount_value"
                                         class="form-control @error('bulk_discount_value') is-invalid @enderror"
-                                        value="{{ old('bulk_discount_value') }}" placeholder="e.g. 20">
+                                        value="{{ $defaultValue }}" placeholder="e.g. 10">
                                     @error('bulk_discount_value')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <div class="col-md-5 d-flex flex-wrap gap-2">
+                                <div class="col-md-3">
+                                    <label for="discount_from" class="form-label">Promo from</label>
+                                    <input type="date" class="form-control @error('discount_from') is-invalid @enderror" id="discount_from" name="discount_from" value="{{ $defaultFrom }}">
+                                    @error('discount_from')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="discount_to" class="form-label">Promo to</label>
+                                    <input type="date" class="form-control @error('discount_to') is-invalid @enderror" id="discount_to" name="discount_to" value="{{ $defaultTo }}">
+                                    @error('discount_to')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <div class="col-12 d-flex flex-wrap gap-2">
                                     <button type="submit" name="action" value="apply" class="btn btn-success">
-                                        <i class="fas fa-check me-1"></i> Apply to all priced rooms
+                                        <i class="fas fa-check me-1"></i> Save discount &amp; dates
                                     </button>
                                     <button type="submit" name="action" value="remove" class="btn btn-outline-danger" formnovalidate>
                                         Remove all discounts
                                     </button>
                                 </div>
                             </form>
+                            @if ($window)
+                                <p class="small text-muted mb-0 mt-3">
+                                    Public site currently offers this promo for stays covering
+                                    <strong>{{ $window['start']->format('j M Y') }}</strong>
+                                    to
+                                    <strong>{{ $window['end']->format('j M Y') }}</strong>
+                                    (unless a night is turned off below).
+                                </p>
+                            @endif
                         </div>
                     </div>
 

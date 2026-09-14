@@ -9,6 +9,7 @@ use App\Models\roomImage;
 use App\Models\RoomType;
 use App\Support\DiscountStayAvailability;
 use App\Support\FrontendPageCache;
+use App\Support\RoomDiscountPromotion;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,8 @@ class RoomsController extends Controller
             ->map(fn ($date) => Carbon::parse($date)->toDateString())
             ->all();
         $occupancyByNight = DiscountStayAvailability::occupancyByNight($month, $monthEnd);
+        $discountWindow = RoomDiscountPromotion::window();
+        $pricedWithDiscount = $rooms->first(fn (Room $room) => $room->hasActiveDiscount());
 
         return view('admin.rooms', [
             'rooms' => $rooms,
@@ -72,6 +75,9 @@ class RoomsController extends Controller
             'discountCalendarMonth' => $month,
             'discountClosedDates' => $closedDates,
             'discountOccupancyByNight' => $occupancyByNight,
+            'discountWindow' => $discountWindow,
+            'bulkDiscountType' => $pricedWithDiscount?->discount_type ?? 'percent',
+            'bulkDiscountValue' => $pricedWithDiscount?->discount_value,
         ]);
     }
 
@@ -172,6 +178,8 @@ class RoomsController extends Controller
             'action' => ['required', 'in:apply,remove'],
             'bulk_discount_type' => ['required_if:action,apply', 'nullable', 'in:'.Room::DISCOUNT_PERCENT.','.Room::DISCOUNT_FIXED],
             'bulk_discount_value' => ['required_if:action,apply', 'nullable', 'numeric', 'min:0.01'],
+            'discount_from' => ['nullable', 'date', 'required_with:discount_to'],
+            'discount_to' => ['nullable', 'date', 'after_or_equal:discount_from', 'required_with:discount_from'],
         ]);
 
         if ($validated['action'] === 'remove') {
@@ -180,6 +188,8 @@ class RoomsController extends Controller
                 'discount_type' => null,
                 'discount_value' => null,
             ]);
+            RoomDiscountPromotion::clearWindow();
+            DiscountClosedDate::query()->delete();
             FrontendPageCache::forgetHomePage();
 
             return back()->with('success', "Discount removed from {$updated} room(s).");
@@ -208,10 +218,20 @@ class RoomsController extends Controller
             'discount_type' => $type,
             'discount_value' => $value,
         ]);
+
+        $from = $validated['discount_from'] ?? null;
+        $to = $validated['discount_to'] ?? null;
+        RoomDiscountPromotion::saveWindow($from, $to);
+        if ($from && $to) {
+            DiscountStayAvailability::openDates(DiscountStayAvailability::dateRange($from, $to));
+        }
         FrontendPageCache::forgetHomePage();
 
         $skipped = Room::query()->whereNull('price')->orWhere('price', '<=', 0)->count();
         $message = "Discount applied to {$updated} priced room(s).";
+        if ($from && $to) {
+            $message .= ' Promo nights are '.$from.' to '.$to.'. The calendar matches this range; you can still turn off busy nights.';
+        }
         if ($skipped > 0) {
             $message .= " {$skipped} room(s) without a USD price were skipped.";
         }
@@ -231,6 +251,10 @@ class RoomsController extends Controller
         $monthQuery = $request->input('month');
 
         if ($validated['action'] === 'toggle') {
+            if (! RoomDiscountPromotion::isNightInWindow($validated['date'])) {
+                return redirect()->route('getRooms', array_filter(['month' => $monthQuery]))
+                    ->with('error', 'That night is outside the promo dates. Change the dates above first, then use the calendar for busy nights.');
+            }
             DiscountStayAvailability::toggleNight($validated['date']);
             $closed = DiscountStayAvailability::isNightClosed($validated['date']);
             $label = Carbon::parse($validated['date'])->format('j M Y');
@@ -242,8 +266,12 @@ class RoomsController extends Controller
         }
 
         $dates = DiscountStayAvailability::dateRange($validated['range_from'], $validated['range_to']);
+        $dates = array_values(array_filter(
+            $dates,
+            fn (string $date) => RoomDiscountPromotion::isNightInWindow($date)
+        ));
         if ($dates === []) {
-            return back()->withErrors(['range_from' => 'Choose a valid date range.'])->withInput();
+            return back()->withErrors(['range_from' => 'Choose dates inside the promo period set above.'])->withInput();
         }
 
         if ($validated['action'] === 'close_range') {

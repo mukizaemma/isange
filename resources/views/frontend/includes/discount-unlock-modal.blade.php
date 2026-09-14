@@ -1,6 +1,7 @@
 @unless (auth()->user()?->hasUnlockedDiscount())
 @php
     $modalDiscountPercent = \App\Support\RoomDiscountPromotion::formattedMaximumPercent();
+    $modalDiscountPeriod = \App\Support\RoomDiscountPromotion::periodLabel();
 @endphp
 <div class="modal fade isange-discount-modal" id="unlockDiscountModal" tabindex="-1" aria-labelledby="unlockDiscountModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -17,7 +18,12 @@
                         Unlock your room discount
                     @endif
                 </h2>
-                <p>Enter your email and we’ll send a secure 4-digit code. New and returning guests use the same quick process.</p>
+                <p>
+                    Enter your email and we’ll send a secure 4-digit code. New and returning guests use the same quick process.
+                    @if ($modalDiscountPeriod)
+                        Offer applies to stays {{ $modalDiscountPeriod }}.
+                    @endif
+                </p>
             </div>
 
             <div class="isange-discount-modal__body">

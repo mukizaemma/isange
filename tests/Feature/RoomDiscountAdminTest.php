@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\DiscountClosedDate;
 use App\Models\GuestBookingRequest;
 use App\Models\Room;
+use App\Models\Setting;
 use App\Models\User;
 use App\Support\DiscountStayAvailability;
 use App\Support\RoomDiscountPromotion;
@@ -234,8 +235,52 @@ class RoomDiscountAdminTest extends TestCase
         $this->actingAs($admin)
             ->get(route('getRooms', ['month' => '2026-11']))
             ->assertOk()
-            ->assertSee('Discount nights')
+            ->assertSee('Busy nights')
             ->assertSee('1 bk');
+    }
+
+    public function test_promo_dates_on_the_discount_form_limit_public_stays_and_the_calendar(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        Setting::query()->create(['title' => 'Isange']);
+        $this->room('Garden Room', 100);
+
+        $this->actingAs($admin)->post(route('rooms.bulkDiscount'), [
+            'action' => 'apply',
+            'bulk_discount_type' => Room::DISCOUNT_PERCENT,
+            'bulk_discount_value' => 10,
+            'discount_from' => '2026-09-14',
+            'discount_to' => '2026-09-20',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->assertSame('2026-09-14', optional(Setting::query()->first()->discount_starts_on)->toDateString());
+        $this->assertSame('14–20 Sep 2026', RoomDiscountPromotion::periodLabel());
+        $this->assertTrue(DiscountStayAvailability::isOpenForStay('2026-09-14', '2026-09-16'));
+        $this->assertFalse(DiscountStayAvailability::isOpenForStay('2026-09-10', '2026-09-12'));
+        $this->assertFalse(DiscountStayAvailability::isNightOff('2026-09-14'));
+        $this->assertTrue(DiscountStayAvailability::isNightOff('2026-09-21'));
+
+        $this->get(route('aboutUs'))
+            ->assertOk()
+            ->assertSee('Save Up to <strong>10%</strong>', false)
+            ->assertSee('For stays 14–20 Sep 2026', false);
+
+        $this->actingAs($admin)
+            ->post(route('rooms.discountNights'), [
+                'action' => 'toggle',
+                'date' => '2026-09-15',
+            ])
+            ->assertRedirect();
+        $this->assertTrue(DiscountStayAvailability::isNightClosed('2026-09-15'));
+        $this->assertFalse(DiscountStayAvailability::isOpenForStay('2026-09-14', '2026-09-16'));
+
+        $this->actingAs($admin)
+            ->post(route('rooms.discountNights'), [
+                'action' => 'toggle',
+                'date' => '2026-09-22',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('error');
     }
 
     private function room(string $name, ?float $price, ?float $discount = null): Room

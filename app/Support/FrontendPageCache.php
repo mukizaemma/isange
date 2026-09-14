@@ -15,7 +15,7 @@ final class FrontendPageCache
 
     public const FOOTER_FACILITIES = 'frontend.footer_facilities_v1';
 
-    public const ROOM_DISCOUNT_PROMOTION = 'frontend.room_discount_promotion_v1';
+    public const ROOM_DISCOUNT_PROMOTION = 'frontend.room_discount_promotion_v2';
 
     public static function forgetHomePage(): void
     {

@@ -5,6 +5,7 @@
 @section('content')
 @php
     $discountPercent = $discountPercent ?? \App\Support\RoomDiscountPromotion::formattedMaximumPercent();
+    $discountPeriod = $discountPeriod ?? \App\Support\RoomDiscountPromotion::periodLabel();
 @endphp
 @include('frontend.includes.page-header', ['pageKey' => 'booking', 'title' => 'Unlock your booking discount'])
 
@@ -19,7 +20,12 @@
                     Unlock discounted room rates
                 @endif
             </h2>
-            <p>Create a guest account, confirm your email with a 4-digit code, and keep your cart while we apply the savings.</p>
+            <p>
+                Create a guest account, confirm your email with a 4-digit code, and keep your cart while we apply the savings.
+                @if ($discountPeriod)
+                    This rate is for stays {{ $discountPeriod }}.
+                @endif
+            </p>
             <ul class="isange-guest-auth__perks" aria-label="What you unlock">
                 <li><i class="fas fa-tag" aria-hidden="true"></i>
                     @if ($discountPercent)

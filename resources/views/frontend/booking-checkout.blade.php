@@ -686,6 +686,11 @@
             }
             var stayClosed = !!(data.dates_provided && data.promotion_configured && !data.discount_open);
             if (discountDatesNote) {
+                var msg = 'Direct-booking discount is not available for these dates. The stay is priced at the regular rate.';
+                if (data.discount_period) {
+                    msg += ' Promo nights: ' + data.discount_period + '.';
+                }
+                discountDatesNote.textContent = msg;
                 discountDatesNote.classList.toggle('d-none', !stayClosed);
             }
             document.querySelectorAll('.js-checkout-discount-cta').forEach(function (el) {

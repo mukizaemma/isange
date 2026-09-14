@@ -36,7 +36,8 @@ final class DiscountStayAvailability
     }
 
     /**
-     * Promo applies only when every night of the stay is still open.
+     * Promo applies only when every night of the stay is still open:
+     * inside the promotion window (if set) and not calendar-closed.
      */
     public static function isOpenForStay(mixed $checkIn, mixed $checkOut): bool
     {
@@ -45,7 +46,21 @@ final class DiscountStayAvailability
             return false;
         }
 
-        return ! DiscountClosedDate::query()->whereIn('closed_on', $nights)->exists();
+        foreach ($nights as $night) {
+            if (self::isNightOff($night)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Full-rate night: outside the promotion dates, or turned off on the calendar.
+     */
+    public static function isNightOff(mixed $date): bool
+    {
+        return ! RoomDiscountPromotion::isNightInWindow($date) || self::isNightClosed($date);
     }
 
     /**

@@ -2,6 +2,7 @@
     $discountUnlocked = (bool) auth()->user()?->hasUnlockedDiscount();
     $bookUrl = $bookUrl ?? ($discountUnlocked ? route('room.booking').'#checkout-flow' : route('guest.discount'));
     $discountPercent = $discountPercent ?? \App\Support\RoomDiscountPromotion::formattedMaximumPercent();
+    $discountPeriod = $discountPeriod ?? \App\Support\RoomDiscountPromotion::periodLabel();
 @endphp
 
 @if ($discountPercent !== null)
@@ -16,6 +17,9 @@
                     <p class="isange-direct-discount__text">
                         Save Up to <strong>{{ $discountPercent }}%</strong> When You Book Direct
                     </p>
+                    @if ($discountPeriod)
+                        <p class="isange-direct-discount__dates small mb-2">For stays {{ $discountPeriod }}</p>
+                    @endif
                     <a href="{{ $bookUrl }}" class="isange-direct-discount__btn">
                         <i class="fas {{ $discountUnlocked ? 'fa-check-circle' : 'fa-lock' }}" aria-hidden="true"></i>
                         {{ $discountUnlocked ? 'Discount Unlocked' : 'Unlock Discount' }}
