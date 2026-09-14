@@ -90,16 +90,19 @@ final class RoomDiscountPromotion
         $start = $window['start'];
         $end = $window['end'];
         if ($start->equalTo($end)) {
-            return $start->format('j M Y');
-        }
-        if ($start->year === $end->year && $start->month === $end->month) {
-            return $start->format('j').'–'.$end->format('j M Y');
-        }
-        if ($start->year === $end->year) {
-            return $start->format('j M').' – '.$end->format('j M Y');
+            return 'from '.self::formatPromoDay($start, true);
         }
 
-        return $start->format('j M Y').' – '.$end->format('j M Y');
+        $startHasYear = $start->year !== $end->year;
+
+        return 'from '.self::formatPromoDay($start, $startHasYear).' to '.self::formatPromoDay($end, true);
+    }
+
+    private static function formatPromoDay(Carbon $date, bool $withYear): string
+    {
+        $month = $date->format('M') === 'Sep' ? 'Sept' : $date->format('M');
+
+        return $date->format('j').' '.$month.($withYear ? ' '.$date->format('Y') : '');
     }
 
     public static function saveWindow(mixed $from, mixed $to): void

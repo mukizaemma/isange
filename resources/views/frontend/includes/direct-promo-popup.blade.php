@@ -14,7 +14,6 @@
             <div class="isange-promo-popup__hero">
                 <p class="isange-promo-popup__kicker">Special rate · website only</p>
                 <h2 id="directPromoModalLabel">Save up to {{ $percent }}% when you book with us</h2>
-                <p class="isange-promo-popup__lead">This price is for guests who reserve on our site — not Booking.com or Expedia.</p>
                 @if ($period)
                     <p class="isange-promo-popup__dates">
                         <i class="far fa-calendar-alt" aria-hidden="true"></i>
@@ -25,7 +24,6 @@
             <div class="isange-promo-popup__body">
                 <ul class="isange-promo-popup__points">
                     <li>Lower than typical OTA rates</li>
-                    <li>Same rooms, confirmed with the hotel</li>
                     <li>Unlock once, then book at the sale price</li>
                 </ul>
                 <a class="theme-btn isange-promo-popup__cta" href="{{ $bookUrl }}">

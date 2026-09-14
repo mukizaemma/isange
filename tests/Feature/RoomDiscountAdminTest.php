@@ -256,7 +256,7 @@ class RoomDiscountAdminTest extends TestCase
         ])->assertRedirect()->assertSessionHas('success');
 
         $this->assertSame('2026-09-14', optional(Setting::query()->first()->discount_starts_on)->toDateString());
-        $this->assertSame('14–20 Sep 2026', RoomDiscountPromotion::periodLabel());
+        $this->assertSame('from 14 Sept to 20 Sept 2026', RoomDiscountPromotion::periodLabel());
         $this->assertTrue(DiscountStayAvailability::isOpenForStay('2026-09-14', '2026-09-16'));
         $this->assertFalse(DiscountStayAvailability::isOpenForStay('2026-09-10', '2026-09-12'));
         $this->assertFalse(DiscountStayAvailability::isNightOff('2026-09-14'));
@@ -265,7 +265,7 @@ class RoomDiscountAdminTest extends TestCase
         $this->get(route('aboutUs'))
             ->assertOk()
             ->assertSee('Save Up to <strong>10%</strong>', false)
-            ->assertSee('For stays 14–20 Sep 2026', false)
+            ->assertSee('For stays from 14 Sept to 20 Sept 2026', false)
             ->assertSee('id="directPromoModal"', false)
             ->assertSee('Book now', false);
 
