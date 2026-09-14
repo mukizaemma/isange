@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\GuestBookingRequest;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class AdminController extends Controller
 {
-    public function index()
+    public function index(Request $request): View
     {
-        $bookings = GuestBookingRequest::with('room')->latest()->get();
-
-        return view('admin.dashboard', ['bookings' => $bookings]);
+        return app(BookingController::class)->index($request);
     }
 }
