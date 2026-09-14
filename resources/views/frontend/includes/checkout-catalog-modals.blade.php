@@ -19,19 +19,19 @@
                                 <div class="ma-checkout-pick-item__body">
                                     <h6 class="ma-checkout-pick-item__title">{{ $r->roomName }}</h6>
                                     @if ($r->listPriceUsd() !== null)
-                                        @if (($discountUnlocked ?? false) && $r->hasActiveDiscount())
-                                            <p class="ma-checkout-pick-item__meta small text-muted mb-0">
+                                        @if (($discountUnlocked ?? false) && $r->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
+                                            <p class="ma-checkout-pick-item__meta js-checkout-room-price small text-muted mb-0">
                                                 From <span class="text-decoration-line-through">{{ \App\Support\Currency::formatRoomPriceLabel($r->listPriceUsd()) }}</span>
                                                 {!! \App\Support\Currency::formatUsdWithLocal($r->salePriceUsd(), $r->salePriceRwf()) !!} / night
                                                 <span class="badge bg-success">{{ $r->discountBadgeLabel() }}</span>
                                             </p>
                                         @else
-                                            <p class="ma-checkout-pick-item__meta small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->bookingPriceUsd(false), $r->bookingPriceRwf(false)) !!} / night</p>
-                                            @if ($r->hasActiveDiscount())
+                                            <p class="ma-checkout-pick-item__meta js-checkout-room-price small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->bookingPriceUsd(false), $r->bookingPriceRwf(false)) !!} / night</p>
+                                            @if ($r->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
                                                 @include('frontend.includes.unlock-discount-link', [
                                                     'discountUnlocked' => false,
                                                     'room' => $r,
-                                                    'class' => 'isange-unlock-discount--pick',
+                                                    'class' => 'isange-unlock-discount--pick js-checkout-discount-cta',
                                                 ])
                                             @endif
                                         @endif
@@ -44,9 +44,9 @@
                                     data-room-id="{{ $r->id }}"
                                     data-room-slug="{{ $r->slug }}"
                                     data-room-name="{{ $r->roomName }}"
-                                    data-room-price="{{ $r->bookingPriceUsd((bool) ($discountUnlocked ?? false)) }}"
+                                    data-room-price="{{ $r->listPriceUsd() }}"
                                     data-room-list-price="{{ $r->listPriceUsd() }}"
-                                    data-room-discount-applied="{{ ($discountUnlocked ?? false) && $r->hasActiveDiscount() ? '1' : '0' }}"
+                                    data-room-discount-applied="0"
                                     data-room-image="{{ $r->image ? asset('storage/images/rooms/'.$r->image) : '' }}">
                                     Add
                                 </button>

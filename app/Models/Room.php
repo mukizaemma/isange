@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Currency;
+use App\Support\DiscountStayAvailability;
 use App\Support\FrontendPageCache;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -134,6 +135,37 @@ class Room extends Model
     public function bookingPriceUsd(bool $discountEligible): ?float
     {
         return $discountEligible ? $this->salePriceUsd() : $this->listPriceUsd();
+    }
+
+    /**
+     * Sale price applies only when the guest is eligible, this room has a
+     * configured discount, and every night of the stay is still open.
+     */
+    public function discountAppliesForStay(bool $discountEligible, mixed $checkIn, mixed $checkOut): bool
+    {
+        return $discountEligible
+            && $this->hasActiveDiscount()
+            && DiscountStayAvailability::isOpenForStay($checkIn, $checkOut);
+    }
+
+    /**
+     * @return array{price: float|null, list_price: float|null, price_rwf: float|null, discount_applied: bool, discount: array{badge: string|null, type: string|null, value: mixed}|null}
+     */
+    public function pricingForStay(bool $discountEligible, mixed $checkIn = null, mixed $checkOut = null): array
+    {
+        $apply = $this->discountAppliesForStay($discountEligible, $checkIn, $checkOut);
+
+        return [
+            'price' => $this->bookingPriceUsd($apply),
+            'list_price' => $this->listPriceUsd(),
+            'price_rwf' => $this->bookingPriceRwf($apply),
+            'discount_applied' => $apply,
+            'discount' => $apply ? [
+                'badge' => $this->discountBadgeLabel(),
+                'type' => $this->discount_type,
+                'value' => $this->discount_value,
+            ] : null,
+        ];
     }
 
     public function salePriceRwf(): ?float

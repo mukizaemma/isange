@@ -71,9 +71,18 @@
                 <button onclick="printPage()" class="btn btn-primary">Print</button>
             </div>
             <div class="card-body">
-                @if (isset($start_date) && isset($end_date))
+                @if (($start_date ?? null) || ($end_date ?? null))
                     <div class="alert alert-info mt-2">
-                        Reservations from: {{ $start_date }} to {{ $end_date }}
+                        Reservations
+                        @if ($start_date ?? null) from {{ $start_date }} @endif
+                        @if ($end_date ?? null) to {{ $end_date }} @endif
+                        — {{ ($summary['total'] ?? $bookings->count()) }} request(s),
+                        ${{ number_format((float) ($summary['amount_usd'] ?? 0), 2) }} total
+                    </div>
+                @else
+                    <div class="alert alert-info mt-2">
+                        All reservations — {{ ($summary['total'] ?? $bookings->count()) }} request(s),
+                        ${{ number_format((float) ($summary['amount_usd'] ?? 0), 2) }} total
                     </div>
                 @endif
     
@@ -81,31 +90,47 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Names</th>
-                            <th>Phone</th>
+                            <th>Guest</th>
+                            <th>Stay</th>
                             <th>Room</th>
-                            <th>CheckIn</th>
-                            <th>CheckOut</th>
-                            <th>Adults</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Channel</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($bookings as $rs)
                             <tr>
                                 <td>{{ $rs->created_at?->format('Y-m-d H:i') }}</td>
-                                <td>{{ $rs->guest_name }}</td>
-                                <td>{{ $rs->guest_phone }}</td>
-                                <td>{{ $rs->room->roomName ?? '—' }}</td>
-                                <td>{{ $rs->check_in?->format('Y-m-d') }}</td>
-                                <td>{{ $rs->check_out?->format('Y-m-d') }}</td>
-                                <td>{{ $rs->adults }}</td>
+                                <td>
+                                    {{ $rs->guest_name }}<br>
+                                    {{ $rs->guest_email }}<br>
+                                    {{ $rs->guest_phone }}
+                                </td>
+                                <td>
+                                    {{ $rs->check_in?->format('Y-m-d') }} → {{ $rs->check_out?->format('Y-m-d') }}
+                                    ({{ $rs->nightsCount() }} night(s))
+                                </td>
+                                <td>{{ $rs->roomSummary() }}</td>
+                                <td>{{ $rs->formattedTotalUsd() }}</td>
+                                <td>{{ \App\Models\GuestBookingRequest::paymentLabel($rs->payment_method) }}</td>
+                                <td>{{ \App\Models\GuestBookingRequest::channelLabel($rs->fulfillment_choice) }}</td>
+                                <td>{{ \App\Models\GuestBookingRequest::statusLabel($rs->status) }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-muted text-center">No reservations found for this period.</td>
+                                <td colspan="8" class="text-muted text-center">No reservations found for this period.</td>
                             </tr>
                         @endforelse
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4">Range total</th>
+                            <th>${{ number_format((float) ($summary['amount_usd'] ?? 0), 2) }}</th>
+                            <th colspan="3"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>

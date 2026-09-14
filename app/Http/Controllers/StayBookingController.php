@@ -7,7 +7,9 @@ use App\Models\Room;
 use App\Models\Setting;
 use App\Models\SiteAnalyticsEvent;
 use App\Support\BookingEmailSender;
+use App\Support\DiscountStayAvailability;
 use App\Support\ExperienceCatalog;
+use App\Support\RoomDiscountPromotion;
 use App\Support\SpamProtection;
 use App\Support\StayBookingMessageBuilder;
 use Illuminate\Http\JsonResponse;
@@ -249,22 +251,28 @@ class StayBookingController extends Controller
         ]);
         $experiences = ExperienceCatalog::items();
         $discountUnlocked = (bool) $request->user()?->hasUnlockedDiscount();
+        $checkIn = $request->query('check_in');
+        $checkOut = $request->query('check_out');
+        $datesProvided = DiscountStayAvailability::hasValidStay($checkIn, $checkOut);
+        $stayOpen = $datesProvided && DiscountStayAvailability::isOpenForStay($checkIn, $checkOut);
+        $promotionConfigured = RoomDiscountPromotion::hasActivePromotion();
 
         return response()->json([
-            'rooms' => $rooms->map(fn (Room $r) => [
-                'room_id' => $r->id,
-                'slug' => $r->slug,
-                'name' => $r->roomName,
-                'price' => $r->bookingPriceUsd($discountUnlocked),
-                'list_price' => $r->listPriceUsd(),
-                'price_rwf' => $r->bookingPriceRwf($discountUnlocked),
-                'discount' => $discountUnlocked && $r->hasActiveDiscount() ? [
-                    'badge' => $r->discountBadgeLabel(),
-                    'type' => $r->discount_type,
-                    'value' => $r->discount_value,
-                ] : null,
-                'image' => $r->image ? asset('storage/images/rooms/'.$r->image) : null,
-            ]),
+            'rooms' => $rooms->map(function (Room $r) use ($discountUnlocked, $checkIn, $checkOut) {
+                $pricing = $r->pricingForStay($discountUnlocked, $checkIn, $checkOut);
+
+                return [
+                    'room_id' => $r->id,
+                    'slug' => $r->slug,
+                    'name' => $r->roomName,
+                    'price' => $pricing['price'],
+                    'list_price' => $pricing['list_price'],
+                    'price_rwf' => $pricing['price_rwf'],
+                    'discount_applied' => $pricing['discount_applied'],
+                    'discount' => $pricing['discount'],
+                    'image' => $r->image ? asset('storage/images/rooms/'.$r->image) : null,
+                ];
+            }),
             'experiences' => collect($experiences)->map(fn ($e) => [
                 'id' => $e['id'] ?? '',
                 'title' => $e['title'] ?? '',
@@ -275,6 +283,9 @@ class StayBookingController extends Controller
             'hotel_whatsapp_ready' => self::hotelWhatsappReady(Setting::first()),
             'hotel_email_ready' => self::hotelEmailReady(Setting::first()),
             'discount_unlocked' => $discountUnlocked,
+            'promotion_configured' => $promotionConfigured,
+            'discount_open' => $stayOpen,
+            'dates_provided' => $datesProvided,
         ]);
     }
 
@@ -313,14 +324,16 @@ class StayBookingController extends Controller
                 }
             }
 
+            $pricing = $room->pricingForStay($discountUnlocked, $checkIn, $checkOut);
+
             $rooms[] = [
                 'room_id' => $roomId,
                 'slug' => $line['slug'] ?? null,
                 'name' => $room->roomName,
                 'image' => $room->image,
-                'price' => $room->bookingPriceUsd($discountUnlocked),
-                'list_price' => $room->listPriceUsd(),
-                'discount_applied' => $discountUnlocked && $room->hasActiveDiscount(),
+                'price' => $pricing['price'],
+                'list_price' => $pricing['list_price'],
+                'discount_applied' => $pricing['discount_applied'],
                 'check_in' => $checkIn,
                 'check_out' => $checkOut,
                 'nights' => $nights,

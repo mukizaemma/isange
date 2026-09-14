@@ -7,7 +7,7 @@
 @endphp
 
 @if ($room && $room->listPriceUsd() !== null)
-    @if ($discountEligible && $room->hasActiveDiscount())
+    @if ($discountEligible && $room->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
         @php
             $listUsd = $room->listPriceUsd();
             $saleUsd = $room->salePriceUsd();
@@ -38,7 +38,7 @@
             {!! Currency::formatUsdWithLocal($room->bookingPriceUsd(false), $room->bookingPriceRwf(false)) !!}
             <span class="price-suffix text-muted"> / night</span>
         </div>
-        @if ($room->hasActiveDiscount())
+        @if ($room->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
             <div class="mb-2">
                 @include('frontend.includes.unlock-discount-link', [
                     'discountUnlocked' => $discountEligible,

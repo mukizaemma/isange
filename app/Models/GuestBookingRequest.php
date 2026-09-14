@@ -96,6 +96,63 @@ class GuestBookingRequest extends Model
         };
     }
 
+    public static function paymentLabel(?string $method): string
+    {
+        return match ($method) {
+            'pay_at_hotel', null, '' => 'Pay at hotel',
+            'pay_directly', 'pay_direct', 'direct' => 'Pay directly',
+            'card', 'pay_by_card' => 'Via card',
+            default => ucfirst(str_replace('_', ' ', (string) $method)),
+        };
+    }
+
+    public function nightsCount(): int
+    {
+        if (! $this->check_in || ! $this->check_out) {
+            return 0;
+        }
+
+        return max(1, (int) $this->check_in->diffInDays($this->check_out));
+    }
+
+    public function stayGuestsLabel(): string
+    {
+        $adults = (int) ($this->adults ?? 0);
+        $children = (int) ($this->children ?? 0);
+        $parts = [];
+        if ($adults > 0) {
+            $parts[] = $adults.' adult'.($adults === 1 ? '' : 's');
+        }
+        if ($children > 0) {
+            $parts[] = $children.' child'.($children === 1 ? '' : 'ren');
+        }
+
+        return $parts !== [] ? implode(', ', $parts) : '—';
+    }
+
+    public function roomSummary(): string
+    {
+        $cartRooms = is_array($this->cart_items) ? ($this->cart_items['rooms'] ?? []) : [];
+        if (is_array($cartRooms) && count($cartRooms) > 1) {
+            return count($cartRooms).' rooms';
+        }
+        if ($this->room?->roomName) {
+            return $this->room->roomName;
+        }
+        $first = is_array($cartRooms) ? ($cartRooms[0]['name'] ?? null) : null;
+
+        return $first ? (string) $first : '—';
+    }
+
+    public function formattedTotalUsd(): string
+    {
+        if ($this->total_usd === null || (float) $this->total_usd <= 0) {
+            return '—';
+        }
+
+        return '$'.number_format((float) $this->total_usd, 2);
+    }
+
     public static function channelLabel(?string $channel): string
     {
         return match ($channel) {

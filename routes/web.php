@@ -186,6 +186,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/getRooms', [RoomsController::class, 'index'])->name('getRooms');
     Route::post('/saveRoom', [RoomsController::class, 'store'])->name('saveRoom');
     Route::post('/rooms/bulk-discount', [RoomsController::class, 'bulkDiscount'])->name('rooms.bulkDiscount');
+    Route::post('/rooms/discount-nights', [RoomsController::class, 'discountNights'])->name('rooms.discountNights');
     Route::get('/editRoom/{id}', [RoomsController::class, 'edit'])->name('editRoom');
     Route::post('/updateRoom/{id}', [RoomsController::class, 'update'])->name('updateRoom');
     Route::get('/destroyRoom/{id}', [RoomsController::class, 'destroy'])->name('destroyRoom');
@@ -220,6 +221,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     // Bookings
     Route::get('/bookings', [BookingController::class, 'index'])->name('bookings');
     Route::get('/bookings/search', [BookingController::class, 'search'])->name('searchBookings');
+    Route::get('/bookings/print', [BookingController::class, 'export'])->name('bookings.print');
     Route::post('/bookings/{id}/status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
     Route::get('/TablesBookings', [BookingController::class, 'TablesBookings'])->name('TablesBookings');
     Route::get('/testBooking', [BookingController::class, 'create'])->name('testBooking');

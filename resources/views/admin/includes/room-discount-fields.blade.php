@@ -15,7 +15,7 @@
                 Show a discounted rate on this room
             </label>
         </div>
-        <p class="small text-muted mb-2">Only rooms with this enabled display the promotional price (original struck through + sale price). Leave off for rooms at full rate.</p>
+        <p class="small text-muted mb-2">Only rooms with this enabled can show a promotional price. You can still close busy nights on the Rooms calendar so the promo does not apply when the hotel is filling up.</p>
     </div>
     <div class="col-md-4" data-discount-controls @style([ 'display: none' => ! $discountEnabled ])>
         <label for="discount_type_{{ $discountFieldId ?? 'create' }}">Discount type</label>

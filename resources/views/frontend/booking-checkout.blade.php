@@ -35,11 +35,12 @@
     $discountUnlocked = (bool) ($discountUnlocked ?? false);
     $guestAccount = auth()->user()?->isGuest() ? auth()->user() : null;
     $guestNameParts = preg_split('/\s+/', trim((string) ($guestAccount?->name ?? '')), 2);
-    $roomPriceMap = $rooms->mapWithKeys(function ($room) use ($discountUnlocked) {
+    $promotionConfigured = \App\Support\RoomDiscountPromotion::hasActivePromotion();
+    $roomPriceMap = $rooms->mapWithKeys(function ($room) {
         return [(string) $room->id => [
-            'price' => $room->bookingPriceUsd((bool) $discountUnlocked),
+            'price' => $room->listPriceUsd(),
             'list_price' => $room->listPriceUsd(),
-            'discount_applied' => (bool) $discountUnlocked && $room->hasActiveDiscount(),
+            'discount_applied' => false,
         ]];
     });
 @endphp
@@ -136,6 +137,9 @@
                         <div class="ma-checkout-stay-nights mt-2 d-none" id="stay-nights-badge">
                             <i class="fas fa-moon" aria-hidden="true"></i>
                             <span id="stay-nights-text">0 nights</span>
+                        </div>
+                        <div id="stay-discount-dates-note" class="alert alert-warning py-2 px-3 mt-2 mb-0 d-none" role="status">
+                            Direct-booking discount is not available for these dates. The stay is priced at the regular rate.
                         </div>
 
                         <div class="ma-checkout-cart-block mt-3">
@@ -307,7 +311,7 @@
                             <span class="text-muted small" id="checkout-pay-label">Estimated total</span>
                             <strong class="ma-checkout-summary__total" id="checkout-summary-total">$0.00</strong>
                         </div>
-                        <div class="ma-checkout-summary__unlock mt-2 text-end">
+                        <div class="ma-checkout-summary__unlock mt-2 text-end js-checkout-discount-cta">
                             @include('frontend.includes.unlock-discount-link', [
                                 'discountUnlocked' => $discountUnlocked,
                                 'rooms' => $rooms,
@@ -327,7 +331,7 @@
                     @include('frontend.includes.unlock-discount-link', [
                         'discountUnlocked' => $discountUnlocked,
                         'rooms' => $rooms,
-                        'class' => 'isange-unlock-discount--nav',
+                        'class' => 'isange-unlock-discount--nav js-checkout-discount-cta',
                     ])
                     <span class="ma-checkout-step-nav__step-label" id="checkout-nav-step">Step 1 of 3</span>
                 </div>
@@ -456,7 +460,9 @@
 
         if (form.dataset.pricesSynced !== '1') {
             form.dataset.pricesSynced = '1';
-            window.IsangeStayCart.repriceRooms(@json($roomPriceMap));
+            if (window.IsangeStayCart) {
+                window.IsangeStayCart.repriceRooms(@json($roomPriceMap));
+            }
         }
 
         var cartInput = document.getElementById('stay-checkout-cart-json');
@@ -622,8 +628,83 @@
             return d.innerHTML;
         }
 
-        function formatMoney(n) {
-            return '$' + (Number(n) || 0).toFixed(2);
+        var catalogUrl = @json(route('booking.catalog'));
+        var discountDatesNote = document.getElementById('stay-discount-dates-note');
+
+        function catalogRequestUrl(stay) {
+            var url = catalogUrl;
+            var params = [];
+            if (stay && stay.check_in && stay.check_out) {
+                params.push('check_in=' + encodeURIComponent(stay.check_in));
+                params.push('check_out=' + encodeURIComponent(stay.check_out));
+            }
+            return params.length ? url + (url.indexOf('?') >= 0 ? '&' : '?') + params.join('&') : url;
+        }
+
+        function formatUsdLabel(n) {
+            var num = Number(n);
+            if (!num) {
+                return '';
+            }
+            return '$' + (num === Math.floor(num) ? String(Math.floor(num)) : num.toFixed(2));
+        }
+
+        function applyCatalogToUi(data) {
+            if (!data || !data.rooms) {
+                return;
+            }
+            var map = {};
+            data.rooms.forEach(function (room) {
+                map[String(room.room_id)] = {
+                    price: room.price,
+                    list_price: room.list_price,
+                    discount_applied: !!room.discount_applied,
+                };
+                var item = document.querySelector('[data-checkout-room-id="' + room.room_id + '"]');
+                if (!item) {
+                    return;
+                }
+                var btn = item.querySelector('[data-checkout-add-room]');
+                if (btn) {
+                    btn.setAttribute('data-room-price', room.price != null ? room.price : '');
+                    btn.setAttribute('data-room-list-price', room.list_price != null ? room.list_price : '');
+                    btn.setAttribute('data-room-discount-applied', room.discount_applied ? '1' : '0');
+                }
+                var meta = item.querySelector('.js-checkout-room-price');
+                if (meta && room.list_price) {
+                    if (room.discount_applied && room.price && Number(room.price) < Number(room.list_price)) {
+                        meta.innerHTML = 'From <span class="text-decoration-line-through">' + formatUsdLabel(room.list_price) + '</span> ' +
+                            formatUsdLabel(room.price) + ' / night' +
+                            (room.discount && room.discount.badge ? ' <span class="badge bg-success">' + escapeHtml(room.discount.badge) + '</span>' : '');
+                    } else {
+                        meta.textContent = 'From ' + formatUsdLabel(room.list_price) + ' / night';
+                    }
+                }
+            });
+            if (window.IsangeStayCart) {
+                window.IsangeStayCart.repriceRooms(map);
+            }
+            var stayClosed = !!(data.dates_provided && data.promotion_configured && !data.discount_open);
+            if (discountDatesNote) {
+                discountDatesNote.classList.toggle('d-none', !stayClosed);
+            }
+            document.querySelectorAll('.js-checkout-discount-cta').forEach(function (el) {
+                el.classList.toggle('d-none', stayClosed);
+            });
+        }
+
+        function refreshStayPrices() {
+            var stay = readStayFields();
+            fetch(catalogRequestUrl(stay), {
+                credentials: 'same-origin',
+                headers: { Accept: 'application/json' },
+            }).then(function (res) {
+                return res.ok ? res.json() : null;
+            }).then(function (data) {
+                if (data) {
+                    applyCatalogToUi(data);
+                }
+            }).catch(function () {});
         }
 
         function roomLinePriceHtml(room, nights) {
@@ -965,6 +1046,9 @@
             el.addEventListener('change', function () {
                 updateNightsBadge();
                 pushStayToCart();
+                if (el === stayCheckIn || el === stayCheckOut) {
+                    refreshStayPrices();
+                }
             });
         });
 
@@ -983,6 +1067,7 @@
             updateNightsBadge();
             pushStayToCart();
         }
+        refreshStayPrices();
 
         function advanceCheckoutStep() {
             if (validateStep(currentStep)) {

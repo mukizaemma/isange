@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DiscountClosedDate;
 use App\Models\HotelAmenityOption;
 use App\Models\Room;
 use App\Models\roomImage;
 use App\Models\RoomType;
+use App\Support\DiscountStayAvailability;
 use App\Support\FrontendPageCache;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -47,16 +50,28 @@ class RoomsController extends Controller
         return redirect()->route('getRooms')->with('success', 'Amenity option added.');
     }
 
-    public function index()
+    public function index(Request $request)
     {
         $rooms = Room::with('amenityOptions')->get();
         $amenityOptions = HotelAmenityOption::orderBy('sort_order')->orderBy('label')->get();
         $accommodationTypes = [Room::TYPE_ROOM, Room::TYPE_APARTMENT];
 
+        $month = self::calendarMonth($request->query('month'));
+        $monthEnd = $month->copy()->endOfMonth();
+        $closedDates = DiscountClosedDate::query()
+            ->whereBetween('closed_on', [$month->toDateString(), $monthEnd->toDateString()])
+            ->pluck('closed_on')
+            ->map(fn ($date) => Carbon::parse($date)->toDateString())
+            ->all();
+        $occupancyByNight = DiscountStayAvailability::occupancyByNight($month, $monthEnd);
+
         return view('admin.rooms', [
             'rooms' => $rooms,
             'amenityOptions' => $amenityOptions,
             'accommodationTypes' => $accommodationTypes,
+            'discountCalendarMonth' => $month,
+            'discountClosedDates' => $closedDates,
+            'discountOccupancyByNight' => $occupancyByNight,
         ]);
     }
 
@@ -202,6 +217,55 @@ class RoomsController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    public function discountNights(Request $request)
+    {
+        $validated = $request->validate([
+            'action' => ['required', 'in:toggle,close_range,open_range'],
+            'date' => ['required_if:action,toggle', 'nullable', 'date'],
+            'range_from' => ['required_if:action,close_range,open_range', 'nullable', 'date'],
+            'range_to' => ['required_if:action,close_range,open_range', 'nullable', 'date', 'after_or_equal:range_from'],
+        ]);
+
+        $monthQuery = $request->input('month');
+
+        if ($validated['action'] === 'toggle') {
+            DiscountStayAvailability::toggleNight($validated['date']);
+            $closed = DiscountStayAvailability::isNightClosed($validated['date']);
+            $label = Carbon::parse($validated['date'])->format('j M Y');
+            $message = $closed
+                ? "Discount closed on {$label} (full rate)."
+                : "Discount opened on {$label}.";
+
+            return redirect()->route('getRooms', array_filter(['month' => $monthQuery]))->with('success', $message);
+        }
+
+        $dates = DiscountStayAvailability::dateRange($validated['range_from'], $validated['range_to']);
+        if ($dates === []) {
+            return back()->withErrors(['range_from' => 'Choose a valid date range.'])->withInput();
+        }
+
+        if ($validated['action'] === 'close_range') {
+            $updated = DiscountStayAvailability::closeDates($dates);
+            $message = "Discount closed on {$updated} night(s).";
+        } else {
+            $updated = DiscountStayAvailability::openDates($dates);
+            $message = "Discount reopened on {$updated} night(s).";
+        }
+
+        return redirect()->route('getRooms', array_filter(['month' => $monthQuery]))->with('success', $message);
+    }
+
+    private static function calendarMonth(?string $month): Carbon
+    {
+        try {
+            $parsed = $month ? Carbon::parse($month.'-01') : now();
+        } catch (\Throwable) {
+            $parsed = now();
+        }
+
+        return $parsed->copy()->startOfMonth();
     }
 
     public function destroy($id)

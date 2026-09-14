@@ -20,17 +20,14 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(Request $request): View
     {
-        return $this->renderBookingsList();
+        return $this->renderBookingsList($request);
     }
 
     public function search(Request $request): View
     {
-        return $this->renderBookingsList(
-            $request->input('start_date'),
-            $request->input('end_date')
-        );
+        return $this->renderBookingsList($request);
     }
 
     public function TablesBookings()
@@ -160,17 +157,15 @@ class BookingController extends Controller
 
     public function export(Request $request)
     {
-        $start_date = $request->input('start_date');
-        $end_date = $request->input('end_date');
-
-        $query = GuestBookingRequest::with('room')->latest();
-        $this->applyDateFilter($query, $start_date, $end_date);
-        $bookings = $query->get();
+        $filters = $this->filtersFromRequest($request);
+        $bookings = $this->filteredBookingsQuery($filters)->get();
 
         return view('admin.pages.printBookings', [
             'bookings' => $bookings,
-            'start_date' => $start_date,
-            'end_date' => $end_date,
+            'summary' => $this->buildSummary($bookings),
+            'filters' => $filters,
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
         ]);
     }
 
@@ -179,28 +174,98 @@ class BookingController extends Controller
         return view('frontend.print.bookings');
     }
 
-    private function renderBookingsList(?string $startDate = null, ?string $endDate = null): View
+    private function renderBookingsList(Request $request): View
     {
-        $query = GuestBookingRequest::with('room')->latest();
-        $this->applyDateFilter($query, $startDate, $endDate);
-        $bookings = $query->get();
+        $filters = $this->filtersFromRequest($request);
+        $bookings = $this->filteredBookingsQuery($filters)->get();
 
         return view('admin.bookings', [
             'bookings' => $bookings,
             'summary' => $this->buildSummary($bookings),
-            'start_date' => $startDate,
-            'end_date' => $endDate,
+            'filters' => $filters,
+            'start_date' => $filters['start_date'],
+            'end_date' => $filters['end_date'],
         ]);
     }
 
     /**
+     * @return array{start_date: ?string, end_date: ?string, channel: ?string, payment: ?string, status: ?string}
+     */
+    private function filtersFromRequest(Request $request): array
+    {
+        $channel = $request->input('channel');
+        $payment = $request->input('payment');
+        $status = $request->input('status');
+
+        return [
+            'start_date' => self::validDate($request->input('start_date')),
+            'end_date' => self::validDate($request->input('end_date')),
+            'channel' => in_array($channel, ['whatsapp', 'email'], true) ? $channel : null,
+            'payment' => in_array($payment, ['pay_at_hotel', 'pay_directly', 'card'], true) ? $payment : null,
+            'status' => in_array($status, [
+                GuestBookingRequest::STATUS_PENDING,
+                GuestBookingRequest::STATUS_CONFIRMED,
+                GuestBookingRequest::STATUS_UNFORTUNATE,
+                GuestBookingRequest::STATUS_REJECTED,
+                GuestBookingRequest::STATUS_NO_SHOW,
+            ], true) ? $status : null,
+        ];
+    }
+
+    /**
+     * @param  array{start_date: ?string, end_date: ?string, channel: ?string, payment: ?string, status: ?string}  $filters
+     */
+    private function filteredBookingsQuery(array $filters): Builder
+    {
+        $query = GuestBookingRequest::with('room')->latest();
+        $this->applyDateFilter($query, $filters['start_date'], $filters['end_date']);
+
+        if ($filters['channel']) {
+            $query->where('fulfillment_choice', $filters['channel']);
+        }
+
+        if ($filters['status']) {
+            $query->where('status', $filters['status']);
+        }
+
+        if ($filters['payment'] === 'pay_at_hotel') {
+            $query->where(function (Builder $inner) {
+                $inner->where('payment_method', 'pay_at_hotel')
+                    ->orWhereNull('payment_method')
+                    ->orWhere('payment_method', '');
+            });
+        } elseif ($filters['payment'] === 'pay_directly') {
+            $query->whereIn('payment_method', ['pay_directly', 'pay_direct', 'direct']);
+        } elseif ($filters['payment'] === 'card') {
+            $query->whereIn('payment_method', ['card', 'pay_by_card']);
+        }
+
+        return $query;
+    }
+
+    /**
      * @param  \Illuminate\Support\Collection<int, GuestBookingRequest>  $bookings
-     * @return array{total: int, whatsapp: int, email: int, confirmed: int, pending: int, fully_booked: int, rejected: int, no_show: int}
+     * @return array{total: int, pay_at_hotel: int, pay_directly: int, card: int, whatsapp: int, email: int, confirmed: int, pending: int, fully_booked: int, rejected: int, no_show: int, amount_usd: float}
      */
     private function buildSummary($bookings): array
     {
+        $payAtHotel = $bookings->filter(function (GuestBookingRequest $booking) {
+            $method = (string) ($booking->payment_method ?? '');
+
+            return $method === '' || $method === 'pay_at_hotel';
+        })->count();
+        $payDirectly = $bookings->filter(function (GuestBookingRequest $booking) {
+            return in_array((string) $booking->payment_method, ['pay_directly', 'pay_direct', 'direct'], true);
+        })->count();
+        $card = $bookings->filter(function (GuestBookingRequest $booking) {
+            return in_array((string) $booking->payment_method, ['card', 'pay_by_card'], true);
+        })->count();
+
         return [
             'total' => $bookings->count(),
+            'pay_at_hotel' => $payAtHotel,
+            'pay_directly' => $payDirectly,
+            'card' => $card,
             'whatsapp' => $bookings->where('fulfillment_choice', 'whatsapp')->count(),
             'email' => $bookings->where('fulfillment_choice', 'email')->count(),
             'confirmed' => $bookings->where('status', GuestBookingRequest::STATUS_CONFIRMED)->count(),
@@ -208,16 +273,27 @@ class BookingController extends Controller
             'fully_booked' => $bookings->where('status', GuestBookingRequest::STATUS_UNFORTUNATE)->count(),
             'rejected' => $bookings->where('status', GuestBookingRequest::STATUS_REJECTED)->count(),
             'no_show' => $bookings->where('status', GuestBookingRequest::STATUS_NO_SHOW)->count(),
+            'amount_usd' => round((float) $bookings->sum(fn (GuestBookingRequest $booking) => (float) ($booking->total_usd ?? 0)), 2),
         ];
     }
 
     private function applyDateFilter(Builder $query, ?string $startDate, ?string $endDate): void
     {
-        if ($startDate && $endDate) {
-            $query->whereBetween('created_at', [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay(),
-            ]);
+        if ($startDate) {
+            $query->where('created_at', '>=', Carbon::parse($startDate)->startOfDay());
         }
+        if ($endDate) {
+            $query->where('created_at', '<=', Carbon::parse($endDate)->endOfDay());
+        }
+    }
+
+    private static function validDate(mixed $value): ?string
+    {
+        $raw = is_string($value) ? trim($value) : '';
+        if ($raw === '' || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+            return null;
+        }
+
+        return $raw;
     }
 }

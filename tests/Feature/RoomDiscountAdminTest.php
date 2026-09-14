@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\DiscountClosedDate;
+use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\User;
+use App\Support\DiscountStayAvailability;
 use App\Support\RoomDiscountPromotion;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -140,6 +143,99 @@ class RoomDiscountAdminTest extends TestCase
         $this->get(route('guest.discount'))
             ->assertOk()
             ->assertSee('Unlock up to 18% off room rates', false);
+    }
+
+    public function test_admin_can_close_and_open_discount_nights(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $this->room('Garden Room', 100, 20);
+
+        $this->actingAs($admin)
+            ->post(route('rooms.discountNights'), [
+                'action' => 'close_range',
+                'range_from' => '2026-09-20',
+                'range_to' => '2026-09-21',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertTrue(DiscountStayAvailability::isNightClosed('2026-09-20'));
+        $this->assertTrue(DiscountStayAvailability::isNightClosed('2026-09-21'));
+        $this->assertFalse(DiscountStayAvailability::isOpenForStay('2026-09-20', '2026-09-22'));
+        $this->assertTrue(DiscountStayAvailability::isOpenForStay('2026-09-22', '2026-09-24'));
+
+        $this->actingAs($admin)
+            ->post(route('rooms.discountNights'), [
+                'action' => 'toggle',
+                'date' => '2026-09-20',
+            ])
+            ->assertRedirect();
+
+        $this->assertFalse(DiscountStayAvailability::isNightClosed('2026-09-20'));
+        $this->assertFalse(DiscountStayAvailability::isOpenForStay('2026-09-20', '2026-09-22'));
+    }
+
+    public function test_closed_night_blocks_discount_for_the_whole_stay(): void
+    {
+        $room = $this->room('Garden Room', 100, 25);
+        $guest = User::factory()->create([
+            'role' => User::ROLE_GUEST,
+            'email_verified_at' => now(),
+        ]);
+        DiscountClosedDate::query()->create(['closed_on' => '2026-10-02']);
+
+        $this->assertTrue($room->discountAppliesForStay(true, '2026-10-04', '2026-10-06'));
+        $this->assertFalse($room->discountAppliesForStay(true, '2026-10-01', '2026-10-04'));
+        $this->assertSame(75.0, $room->pricingForStay(true, '2026-10-04', '2026-10-06')['price']);
+        $this->assertSame(100.0, $room->pricingForStay(true, '2026-10-01', '2026-10-04')['price']);
+
+        $this->actingAs($guest)->withSession([
+            'guest_discount_unlocked_user_id' => $guest->id,
+            'guest_discount_expires_at' => now()->addHours(2)->timestamp,
+        ]);
+
+        $this->getJson(route('booking.catalog', [
+            'check_in' => '2026-10-01',
+            'check_out' => '2026-10-04',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('discount_open', false)
+            ->assertJsonPath('rooms.0.discount_applied', false)
+            ->assertJsonPath('rooms.0.price', 100);
+
+        $this->getJson(route('booking.catalog', [
+            'check_in' => '2026-10-04',
+            'check_out' => '2026-10-06',
+        ]))
+            ->assertOk()
+            ->assertJsonPath('discount_open', true)
+            ->assertJsonPath('rooms.0.discount_applied', true)
+            ->assertJsonPath('rooms.0.price', 75);
+    }
+
+    public function test_discount_nights_calendar_shows_overlapping_bookings(): void
+    {
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        $room = $this->room('Garden Room', 100, 15);
+
+        GuestBookingRequest::query()->create([
+            'room_id' => $room->id,
+            'check_in' => '2026-11-10',
+            'check_out' => '2026-11-12',
+            'guest_name' => 'Busy Guest',
+            'guest_phone' => '250780000000',
+            'guest_email' => 'busy@example.com',
+            'guest_country' => 'Rwanda',
+            'fulfillment_choice' => 'email',
+            'message_body' => 'Test booking',
+            'status' => GuestBookingRequest::STATUS_CONFIRMED,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('getRooms', ['month' => '2026-11']))
+            ->assertOk()
+            ->assertSee('Discount nights')
+            ->assertSee('1 bk');
     }
 
     private function room(string $name, ?float $price, ?float $discount = null): Room

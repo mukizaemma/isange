@@ -79,6 +79,8 @@
                         </div>
                     </div>
 
+                    @include('admin.includes.discount-nights-calendar')
+
                     <div class="card mb-4">
                         <div class="card-header">
                             <button class="btn btn-primary float-right" data-bs-toggle="modal" data-bs-target="#RoomModal"><i
