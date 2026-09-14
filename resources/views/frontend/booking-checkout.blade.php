@@ -672,12 +672,14 @@
                 }
                 var meta = item.querySelector('.js-checkout-room-price');
                 if (meta && room.list_price) {
-                    if (room.discount_applied && room.price && Number(room.price) < Number(room.list_price)) {
-                        meta.innerHTML = 'From <span class="text-decoration-line-through">' + formatUsdLabel(room.list_price) + '</span> ' +
-                            formatUsdLabel(room.price) + ' / night' +
+                    var sale = room.sale_price || room.price;
+                    var showSale = data.promotion_configured && sale && Number(sale) < Number(room.list_price);
+                    if (showSale) {
+                        meta.innerHTML = '<span class="text-success fw-semibold">' + formatUsdLabel(sale) + '</span> ' +
+                            '<span class="text-decoration-line-through text-muted">' + formatUsdLabel(room.list_price) + '</span> / night' +
                             (room.discount && room.discount.badge ? ' <span class="badge bg-success">' + escapeHtml(room.discount.badge) + '</span>' : '');
                     } else {
-                        meta.textContent = 'From ' + formatUsdLabel(room.list_price) + ' / night';
+                        meta.textContent = formatUsdLabel(room.list_price) + ' / night';
                     }
                 }
             });

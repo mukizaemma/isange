@@ -18,23 +18,17 @@
                                 @endif
                                 <div class="ma-checkout-pick-item__body">
                                     <h6 class="ma-checkout-pick-item__title">{{ $r->roomName }}</h6>
-                                    @if ($r->listPriceUsd() !== null)
-                                        @if (($discountUnlocked ?? false) && $r->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
-                                            <p class="ma-checkout-pick-item__meta js-checkout-room-price small text-muted mb-0">
-                                                From <span class="text-decoration-line-through">{{ \App\Support\Currency::formatRoomPriceLabel($r->listPriceUsd()) }}</span>
-                                                {!! \App\Support\Currency::formatUsdWithLocal($r->salePriceUsd(), $r->salePriceRwf()) !!} / night
-                                                <span class="badge bg-success">{{ $r->discountBadgeLabel() }}</span>
-                                            </p>
-                                        @else
-                                            <p class="ma-checkout-pick-item__meta js-checkout-room-price small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->bookingPriceUsd(false), $r->bookingPriceRwf(false)) !!} / night</p>
+                                        @if ($r->listPriceUsd() !== null)
                                             @if ($r->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
-                                                @include('frontend.includes.unlock-discount-link', [
-                                                    'discountUnlocked' => false,
-                                                    'room' => $r,
-                                                    'class' => 'isange-unlock-discount--pick js-checkout-discount-cta',
-                                                ])
+                                                <p class="ma-checkout-pick-item__meta js-checkout-room-price small mb-0">
+                                                    <span class="text-success fw-semibold">{!! \App\Support\Currency::formatUsdWithLocal($r->salePriceUsd(), $r->salePriceRwf()) !!}</span>
+                                                    <span class="text-decoration-line-through text-muted">{{ \App\Support\Currency::formatRoomPriceLabel($r->listPriceUsd()) }}</span>
+                                                    / night
+                                                    <span class="badge bg-success">{{ $r->discountBadgeLabel() }}</span>
+                                                </p>
+                                            @else
+                                                <p class="ma-checkout-pick-item__meta js-checkout-room-price small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->bookingPriceUsd(false), $r->bookingPriceRwf(false)) !!} / night</p>
                                             @endif
-                                        @endif
                                     @else
                                         <p class="ma-checkout-pick-item__meta small text-muted mb-0">Rate on request</p>
                                     @endif

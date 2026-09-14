@@ -327,7 +327,9 @@ class GuestDiscountTest extends TestCase
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('$100')
-            ->assertDontSee('Was');
+            ->assertSee('$70')
+            ->assertSee('30% off')
+            ->assertSee('id="directPromoModal"', false);
 
         $this->postJson(route('guest.discount.code.request'), [
             'email' => 'home-guest@example.com',
@@ -341,8 +343,6 @@ class GuestDiscountTest extends TestCase
 
         $this->get(route('home'))
             ->assertOk()
-            ->assertSee('Was')
-            ->assertSee('Now')
             ->assertSee('$100')
             ->assertSee('$70')
             ->assertSee('30% off');

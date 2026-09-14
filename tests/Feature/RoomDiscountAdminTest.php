@@ -106,13 +106,15 @@ class RoomDiscountAdminTest extends TestCase
             ->assertOk()
             ->assertDontSee('Save Up to', false)
             ->assertDontSee('Lower Than OTA Prices', false)
-            ->assertDontSee('id="unlockDiscountModal"', false);
+            ->assertDontSee('id="unlockDiscountModal"', false)
+            ->assertDontSee('id="directPromoModal"', false);
 
         $this->get(route('booking.checkout'))
             ->assertOk()
             ->assertDontSee('Save Up to', false)
             ->assertDontSee('Book on Discount', false)
-            ->assertDontSee('id="unlockDiscountModal"', false);
+            ->assertDontSee('id="unlockDiscountModal"', false)
+            ->assertDontSee('id="directPromoModal"', false);
 
         $this->get(route('guest.discount'))
             ->assertRedirect(route('booking.checkout'));
@@ -263,7 +265,9 @@ class RoomDiscountAdminTest extends TestCase
         $this->get(route('aboutUs'))
             ->assertOk()
             ->assertSee('Save Up to <strong>10%</strong>', false)
-            ->assertSee('For stays 14–20 Sep 2026', false);
+            ->assertSee('For stays 14–20 Sep 2026', false)
+            ->assertSee('id="directPromoModal"', false)
+            ->assertSee('Book now', false);
 
         $this->actingAs($admin)
             ->post(route('rooms.discountNights'), [

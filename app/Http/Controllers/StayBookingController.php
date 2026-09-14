@@ -267,9 +267,14 @@ class StayBookingController extends Controller
                     'name' => $r->roomName,
                     'price' => $pricing['price'],
                     'list_price' => $pricing['list_price'],
+                    'sale_price' => $r->hasActiveDiscount() ? $r->salePriceUsd() : $pricing['list_price'],
                     'price_rwf' => $pricing['price_rwf'],
                     'discount_applied' => $pricing['discount_applied'],
-                    'discount' => $pricing['discount'],
+                    'discount' => $pricing['discount'] ?? ($r->hasActiveDiscount() ? [
+                        'badge' => $r->discountBadgeLabel(),
+                        'type' => $r->discount_type,
+                        'value' => $r->discount_value,
+                    ] : null),
                     'image' => $r->image ? asset('storage/images/rooms/'.$r->image) : null,
                 ];
             }),

@@ -2942,10 +2942,29 @@ body.spa-loading::before {
 /* Room promotional / sale price */
 .room-price--sale {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.2rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.55rem;
   line-height: 1.25;
+}
+
+.room-price--inline .room-price__now {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--eco-green, #106b38);
+}
+
+.room-price--inline .room-price__was {
+  font-size: 1rem;
+  color: #6b7280;
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
+
+.room-price--inline .price-suffix {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #5a6b62;
 }
 
 .room-price__compare {
@@ -5495,6 +5514,168 @@ body.is-checkout-page {
   text-align: center;
   color: #68766e;
   font-size: 0.86rem;
+}
+
+/* Site-wide direct-booking promo popup */
+.isange-promo-popup {
+  z-index: 1085;
+}
+
+.isange-promo-popup__content {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 28px 80px rgba(8, 55, 29, 0.28);
+}
+
+.isange-promo-popup__close {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  z-index: 3;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0.55rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.isange-promo-popup__ribbon {
+  background: var(--primary-color, #e85e26);
+  color: #fff;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.55rem 2.5rem;
+}
+
+.isange-promo-popup__hero {
+  padding: 1.6rem 1.8rem 0.4rem;
+  text-align: center;
+  background:
+    radial-gradient(circle at 12% 0, rgba(232, 94, 38, 0.18), transparent 42%),
+    linear-gradient(165deg, #edf8f1 0%, #fff 58%);
+}
+
+.isange-promo-popup__kicker {
+  margin: 0 0 0.4rem;
+  color: var(--eco-green, #106b38);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.isange-promo-popup__hero h2 {
+  margin: 0 0 0.55rem;
+  color: #143528;
+  font-size: clamp(1.45rem, 4vw, 1.9rem);
+  line-height: 1.2;
+}
+
+.isange-promo-popup__lead {
+  margin: 0 auto 0.85rem;
+  max-width: 24rem;
+  color: #526159;
+  font-size: 0.95rem;
+}
+
+.isange-promo-popup__dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.4rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(16, 107, 56, 0.1);
+  color: var(--eco-green, #106b38);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.isange-promo-popup__body {
+  padding: 1rem 1.8rem 1.6rem;
+  text-align: center;
+}
+
+.isange-promo-popup__points {
+  list-style: none;
+  margin: 0 0 1.15rem;
+  padding: 0;
+  color: #3f4d46;
+  font-size: 0.92rem;
+}
+
+.isange-promo-popup__points li {
+  margin: 0.3rem 0;
+}
+
+.isange-promo-popup__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 12rem;
+}
+
+.isange-promo-popup__dismiss {
+  display: block;
+  width: 100%;
+  margin-top: 0.7rem;
+  border: 0;
+  background: none;
+  color: #6b7280;
+  font-size: 0.86rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.isange-promo-badge {
+  position: fixed;
+  left: 1rem;
+  bottom: 5.5rem;
+  z-index: 1040;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem 0.45rem 0.4rem;
+  background: var(--eco-green, #106b38);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(16, 107, 56, 0.28);
+  cursor: pointer;
+}
+
+.isange-promo-badge__pct {
+  background: var(--primary-color, #e85e26);
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.isange-promo-badge__txt {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+@media (max-width: 575px) {
+  .isange-promo-popup__hero,
+  .isange-promo-popup__body {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .isange-promo-badge {
+    left: 0.7rem;
+    bottom: 4.75rem;
+  }
 }
 
 @media (max-width: 575px) {

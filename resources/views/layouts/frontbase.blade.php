@@ -271,6 +271,7 @@
     @stack('body-modals')
     @if (\App\Support\RoomDiscountPromotion::hasActivePromotion())
         @include('frontend.includes.discount-unlock-modal')
+        @include('frontend.includes.direct-promo-popup')
     @endif
 
     {{-- Outside .page-wrapper so overflow:hidden does not clip the fixed cart bar --}}
