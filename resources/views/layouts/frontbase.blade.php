@@ -26,6 +26,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap">
+    </noscript>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#106b38">
     <meta name="spa-site-name" content="{{ e($setting->company ?? config('app.name')) }}">
@@ -35,26 +39,28 @@
     <!-- Favicon Icon -->
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.png') }}" type="image/x-icon">
     
-    <!-- Flaticon -->
-    <link rel="stylesheet" href="{{ asset('assets/css/flaticon.min.css') }}">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="{{ asset('assets/css/fontawesome-5.14.0.min.css') }}">
-    <!-- Bootstrap -->
+    {{-- Needed before the header and first section can paint --}}
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
-    <!-- Magnific Popup -->
-    <link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.min.css') }}">
-    <!-- Nice Select -->
-    <link rel="stylesheet" href="{{ asset('assets/css/nice-select.min.css') }}">
-    <!-- Type Writer -->
-    <link rel="stylesheet" href="{{ asset('assets/css/jquery.animatedheadline.css') }}">
-    <!-- Animate -->
-    <link rel="stylesheet" href="{{ asset('assets/css/animate.min.css') }}">
-    <!-- Slick -->
-    <link rel="stylesheet" href="{{ asset('assets/css/slick.min.css') }}">
-    <!-- Main Style -->
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/brand-isange.css') }}?v={{ @filemtime(public_path('assets/css/brand-isange.css')) ?: 1 }}">
     <link rel="stylesheet" href="{{ asset('assets/css/isange-home.css') }}?v={{ @filemtime(public_path('assets/css/isange-home.css')) ?: 1 }}">
+    {{-- Icons, sliders, and animation styles load without holding back the first paint --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/fontawesome-5.14.0.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/flaticon.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/nice-select.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/jquery.animatedheadline.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/animate.min.css') }}" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="{{ asset('assets/css/slick.min.css') }}" media="print" onload="this.media='all'">
+    <noscript>
+        <link rel="stylesheet" href="{{ asset('assets/css/fontawesome-5.14.0.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/flaticon.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/nice-select.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/jquery.animatedheadline.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/animate.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/slick.min.css') }}">
+    </noscript>
 
     @stack('head')
 
@@ -282,22 +288,10 @@
     <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}" defer></script>
     <!-- Bootstrap -->
     <script src="{{ asset('assets/js/bootstrap.min.js') }}" defer></script>
-    <!-- Appear Js -->
-    <script src="{{ asset('assets/js/appear.min.js') }}" defer></script>
-    <!-- Slick -->
-    <script src="{{ asset('assets/js/slick.min.js') }}" defer></script>
-    <!-- Magnific Popup -->
-    <script src="{{ asset('assets/js/jquery.magnific-popup.min.js') }}" defer></script>
     <!-- Nice Select -->
     <script src="{{ asset('assets/js/jquery.nice-select.min.js') }}" defer></script>
-    <!-- Image Loader -->
-    <script src="{{ asset('assets/js/imagesloaded.pkgd.min.js') }}" defer></script>
-    <!-- Calendar -->
-    <script src="{{ asset('assets/js/calendar.global.min.js') }}" defer></script>
-    <!-- Circle Progress -->
-    <script src="{{ asset('assets/js/circle-progress.min.js') }}" defer></script>
-    <!-- Isotope -->
-    <script src="{{ asset('assets/js/isotope.pkgd.min.js') }}" defer></script>
+    {{-- Sliders and galleries only, so the landing page does not download them --}}
+    @stack('vendor-scripts')
     <!--  WOW Animation -->
     <script src="{{ asset('assets/js/wow.min.js') }}" defer></script>
     <!-- Custom script -->

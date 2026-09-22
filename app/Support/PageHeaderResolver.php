@@ -48,6 +48,38 @@ class PageHeaderResolver
         return asset($base.ltrim($filename, '/'));
     }
 
+    /**
+     * Pixel size of a locally stored page or gallery image, when the file is readable.
+     *
+     * @return array{width: int, height: int}|null
+     */
+    public static function dimensions(?string $imageUrl): ?array
+    {
+        if ($imageUrl === null || trim($imageUrl) === '') {
+            return null;
+        }
+
+        $path = parse_url($imageUrl, PHP_URL_PATH) ?? '';
+        if (! preg_match('~/(storage/images/(?:pages|gallery)/[^/?#]+)$~', $path, $matches)) {
+            return null;
+        }
+
+        $full = public_path($matches[1]);
+        if (! is_file($full)) {
+            return null;
+        }
+
+        $size = @getimagesize($full);
+        if ($size === false || ($size[0] ?? 0) < 1 || ($size[1] ?? 0) < 1) {
+            return null;
+        }
+
+        return [
+            'width' => (int) $size[0],
+            'height' => (int) $size[1],
+        ];
+    }
+
     private static function fallback(string $pageKey, ?object $setting, ?object $about): array
     {
         $flexBg = $setting->flexible_stay_bg_image ?? null;

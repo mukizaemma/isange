@@ -1,3 +1,9 @@
+@once
+    @push('vendor-scripts')
+        <script src="{{ asset('assets/js/imagesloaded.pkgd.min.js') }}" defer></script>
+        <script src="{{ asset('assets/js/isotope.pkgd.min.js') }}" defer></script>
+    @endpush
+@endonce
 <section class="gallery-page-area pt-70 rpt-60 pb-100 rpb-0">
     <div class="container">
         <!-- Dynamic Filter Tabs -->
@@ -16,6 +22,8 @@
                             <img src="{{ asset('storage/images/gallery/'.$image->image) }}" 
                                  alt="{{ $image->category }}" 
                                  class="gallery-img"
+                                 loading="lazy"
+                                 decoding="async"
                                  data-index="{{ $loop->index }}"
                                  data-src="{{ asset('storage/images/gallery/'.$image->image) }}"
                                  style="height:300px; object-fit: cover; cursor: pointer;"

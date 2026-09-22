@@ -17,8 +17,8 @@
 
 <section class="who-we-are-area pb-60 rpb-40 rel z-1 isange-section--cream">
     <div class="container">
-        <div class="row justify-content-between align-items-center g-4">
-            <div class="col-xl-6 col-lg-7">
+        <div class="{{ ! empty($aboutSideImage) ? 'isange-about-split' : 'row' }}">
+            <div class="{{ ! empty($aboutSideImage) ? 'isange-about-copy' : 'col-12' }}">
                 <div class="who-we-are-content wow fadeInUp delay-0-2s">
                     @if (! empty($as['story_eyebrow']))
                         <span class="isange-section__eyebrow">{{ $as['story_eyebrow'] }}</span>
@@ -39,11 +39,11 @@
                 </div>
             </div>
             @if (! empty($aboutSideImage))
-            <div class="col-lg-5">
-                <div class="isange-about-media wow fadeInUp delay-0-4s">
-                    <img src="{{ $aboutSideImage }}" alt="Isange Paradise Eco Resort" loading="lazy">
-                </div>
-            </div>
+                @include('frontend.includes.about-media', [
+                    'src' => $aboutSideImage,
+                    'alt' => 'Isange Paradise Eco Resort',
+                    'class' => 'wow fadeInUp delay-0-4s',
+                ])
             @endif
         </div>
     </div>

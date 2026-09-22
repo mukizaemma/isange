@@ -1,3 +1,8 @@
+@once
+    @push('vendor-scripts')
+        <script src="{{ asset('assets/js/slick.min.js') }}" defer></script>
+    @endpush
+@endonce
 <section class="gallery-area mt-120 mb-130 rmb-30">
     <div class="gallery-active">
         @forelse (($gallery ?? collect()) as $index => $image)
@@ -5,6 +10,8 @@
             <div class="image">
                 <img src="{{ asset('storage/images/gallery/' . $image->image) }}"
                      alt="{{ $image->caption ?: 'Gallery' }}"
+                     loading="lazy"
+                     decoding="async"
                      style="height: 300px; object-fit:cover; cursor:pointer;"
                      data-index="{{ $index }}"
                      data-src="{{ asset('storage/images/gallery/' . $image->image) }}"

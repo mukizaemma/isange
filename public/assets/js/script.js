@@ -121,7 +121,7 @@
         
         
         // ## Video Popup
-        if ($('.video-play').length) {
+        if ($.fn.magnificPopup && $('.video-play').length) {
             $('.video-play').magnificPopup({
                 type: 'video',
             });
@@ -129,7 +129,7 @@
         
         
         // ## Video Btn with text
-        if ($('.video-play-text').length) {
+        if ($.fn.magnificPopup && $('.video-play-text').length) {
             $('.video-play-text').magnificPopup({
                 type: 'video',
             });
@@ -137,13 +137,15 @@
         
         
         // ## Instagram Image Popup Gallery
-        $('.instagram-item .instagram-gallery').magnificPopup({
-            type: 'image',
-            gallery: {
-                enabled: true,
-                navigateByImgClick: true,
-            },
-        });
+        if ($.fn.magnificPopup) {
+            $('.instagram-item .instagram-gallery').magnificPopup({
+                type: 'image',
+                gallery: {
+                    enabled: true,
+                    navigateByImgClick: true,
+                },
+            });
+        }
          
         
         // ## Main Slider
@@ -475,7 +477,7 @@
         
         
         // ## Skillbar
-        if ($('.skillbar').length) {
+        if ($.fn.appear && $('.skillbar').length) {
             $('.skillbar').appear(function () {
                 $('.skillbar').skillBars({
                     from: 0,
@@ -493,6 +495,9 @@
             $(this).addClass('current');
 
             var selector = $(this).attr('data-filter');
+            if (!$.fn.imagesLoaded || !$.fn.isotope) {
+                return;
+            }
             $('.gallery-masonry-active').imagesLoaded(function () {
                 $('.gallery-masonry-active').isotope({
                     itemSelector: '.item',
@@ -507,7 +512,7 @@
         
         
          /* ## Fact Counter + Text Count - Our Success */
-        if ($('.counter-text-wrap').length) {
+        if ($.fn.appear && $('.counter-text-wrap').length) {
             $('.counter-text-wrap').appear(function () {
                 
                 var $t = $(this),
@@ -553,10 +558,12 @@
         
         
         // ## Nice Select
-        $('select').niceSelect();
+        if ($.fn.niceSelect) {
+            $('select').niceSelect();
+        }
 
         window.maInitGalleryMasonryIfPresent = function () {
-            if (!$('.gallery-masonry-active').length) {
+            if (!$('.gallery-masonry-active').length || !$.fn.imagesLoaded || !$.fn.isotope) {
                 return;
             }
             var $g = $('.gallery-masonry-active');

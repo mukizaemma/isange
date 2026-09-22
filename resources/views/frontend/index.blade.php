@@ -34,11 +34,18 @@
     $welcomePreview = array_slice($welcomeParagraphs, 0, 2);
     $welcomeHasMore = count($welcomeParagraphs) > 2;
 
+    $homeHeroImage = $slides->first()?->imageUrl();
     $home = \App\Support\PageContent::get('home', $pageHeaders ?? collect());
     $hs = $home['sections'];
     $whyCards = $hs['why_cards'] ?? [];
     $eventTypes = $hs['events_types'] ?? [];
 @endphp
+
+@if (! empty($homeHeroImage))
+    @push('head')
+        <link rel="preload" as="image" href="{{ $homeHeroImage }}" fetchpriority="high">
+    @endpush
+@endif
 
 {{-- 1. HERO (full-width slides — header & caption from admin) --}}
 <section class="isange-hero isange-hero--full rel z-1">
@@ -66,7 +73,7 @@
                             @endif
                             <div class="isange-hero__overlay" aria-hidden="true"></div>
                             <div class="isange-hero__content-wrap">
-                                <div class="isange-hero__content wow fadeInUp delay-0-2s">
+                                <div class="isange-hero__content">
                                     @if (! empty($slide->heading))
                                         <h1 class="isange-hero__title">{{ $slide->heading }}</h1>
                                     @endif
@@ -124,15 +131,15 @@
 {{-- 2. ABOUT --}}
 <section class="isange-section isange-section--cream rel z-1">
     <div class="container">
-        <div class="row align-items-center g-4 g-lg-5">
+        <div class="{{ $welcomeImage ? 'isange-about-split' : 'row' }}">
             @if ($welcomeImage)
-            <div class="col-lg-5 wow fadeInLeft delay-0-2s">
-                <figure class="isange-about-media mb-0">
-                    <img src="{{ $welcomeImage }}" alt="Isange Paradise Eco Resort in Musanze" loading="lazy" width="640" height="480">
-                </figure>
-            </div>
+                @include('frontend.includes.about-media', [
+                    'src' => $welcomeImage,
+                    'alt' => 'Isange Paradise Eco Resort in Musanze',
+                    'class' => 'wow fadeInLeft delay-0-2s',
+                ])
             @endif
-            <div class="col-lg-{{ $welcomeImage ? '7' : '12' }} wow fadeInUp delay-0-2s">
+            <div class="{{ $welcomeImage ? 'isange-about-copy' : 'col-12' }} wow fadeInUp delay-0-2s">
                 {{-- <span class="isange-section__eyebrow">{{ $hs['about_eyebrow'] ?? 'About us' }}</span> --}}
                 <h2>{{ $hs['about_title'] ?? 'Welcome to Isange Paradise' }}</h2>
                 @if (count($welcomePreview) > 0)

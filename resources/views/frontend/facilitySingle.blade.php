@@ -48,10 +48,8 @@
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="product-details-content mt-35 rmt-55 wow fadeInRight delay-0-2s">
-                    <p>
-                        {!! $facility->description !!}
-                    </p>
+                <div class="product-details-content facility-detail__prose welcome-prose mt-35 rmt-55 wow fadeInRight delay-0-2s">
+                    {!! $facility->description !!}
                 </div>
             </div>
         </div>

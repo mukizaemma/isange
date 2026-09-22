@@ -1,33 +1,42 @@
-<!-- Facilities Start -->
-<div class="container-xxl py-5 mt-30">
+<section class="facility-grid-section isange-section">
     <div class="container">
         <div class="section-title text-center mb-5">
-            <h1 class="display-5">Our Facilities</h1>
-            <p class="text-muted">Eco-friendly spaces designed for comfort, events, and unforgettable stays near Volcanoes National Park</p>
+            <h2>Our Facilities</h2>
+            <p class="text-muted mb-0">Eco-friendly spaces designed for comfort, events, and unforgettable stays near Volcanoes National Park</p>
         </div>
-        <div class="row g-4">
-            @foreach($facilities as $rs)
-            <div class="col-lg-4 col-sm-12 wow fadeInUp" data-wow-delay="0.1s">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="position-relative overflow-hidden">
-                         <a href="{{ route('facilitySingle',['slug'=>$rs->slug]) }}">
-                            <img class="card-img-top" src="{{ asset('storage/images/facilities/' . $rs->image) }}" alt="{{ $rs->title }}" style="object-fit: cover; height: 250px;">
-                         </a>
-                        <div class="overlay bg-dark position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" style="opacity: 0; transition: opacity 0.4s;">
-                            <p class="text-white fw-bold"> <a href="{{ route('facilitySingle',['slug'=>$rs->slug]) }}">{{ $rs->title }}</a></p>
+        <div class="row g-4 align-items-stretch">
+            @foreach ($facilities as $rs)
+                @php
+                    $facilityPlain = trim(preg_replace(
+                        '/\s+/u',
+                        ' ',
+                        html_entity_decode(preg_replace('/<[^>]+>/', ' ', (string) ($rs->description ?? '')), ENT_QUOTES | ENT_HTML5, 'UTF-8')
+                    ));
+                    $facilityExcerpt = $facilityPlain !== ''
+                        ? \Illuminate\Support\Str::words($facilityPlain, 32, '…')
+                        : '';
+                @endphp
+                <div class="col-lg-4 col-md-6 d-flex">
+                    <article class="facility-card" @if (! empty($rs->slug)) id="{{ $rs->slug }}" @endif>
+                        <a class="facility-card__media" href="{{ route('facilitySingle', ['slug' => $rs->slug]) }}">
+                            @if (! empty($rs->image))
+                                <img src="{{ asset('storage/images/facilities/'.$rs->image) }}" alt="{{ $rs->title }}" loading="lazy">
+                            @endif
+                        </a>
+                        <div class="facility-card__body">
+                            <h3 class="facility-card__title">
+                                <a href="{{ route('facilitySingle', ['slug' => $rs->slug]) }}">{{ $rs->title }}</a>
+                            </h3>
+                            @if ($facilityExcerpt !== '')
+                                <p class="facility-card__excerpt">{{ $facilityExcerpt }}</p>
+                            @else
+                                <p class="facility-card__excerpt"></p>
+                            @endif
+                            <a href="{{ route('facilitySingle', ['slug' => $rs->slug]) }}" class="facility-card__more">Learn more</a>
                         </div>
-                    </div>
-                    <div class="card-body text-center">
-                        <h5 class="card-title mb-3">{{ $rs->title }}</h5>
-                        <p class="card-text text-muted" style="font-size: 1rem;">{!! $rs->description !!}</p>
-                    </div>
-                    <div class="card-footer text-center bg-light border-top-0">
-                        <a href="{{ route('facilitySingle',['slug'=>$rs->slug]) }}" class="btn btn-outline-primary btn-sm rounded-pill">Learn More</a>
-                    </div>
+                    </article>
                 </div>
-            </div>
             @endforeach
         </div>
     </div>
-</div>
-<!-- Facilities End -->
+</section>

@@ -36,14 +36,19 @@
         $__bannerClass .= $__fullHeight ? ' page-banner-area--fullscreen' : ' page-banner-area--banner';
     }
 @endphp
+@if (! empty($__img))
+    @push('head')
+        <link rel="preload" as="image" href="{{ $__img }}" fetchpriority="high">
+    @endpush
+@endif
 @if ($__img)
 <section class="{{ $__bannerClass }} bgs-cover" style="background-image: url('{{ $__img }}');">
     <div class="page-banner-area__overlay" aria-hidden="true"></div>
     <div class="container page-banner-area__content">
         <div class="banner-inner text-white">
-            <h1 class="page-title wow fadeInUp delay-0-2s">{{ $__title }}</h1>
+            <h1 class="page-title">{{ $__title }}</h1>
             @if ($__subtitle)
-                <p class="mb-0 wow fadeInUp delay-0-3s page-banner-area__subtitle">{{ $__subtitle }}</p>
+                <p class="mb-0 page-banner-area__subtitle">{{ $__subtitle }}</p>
             @endif
             @if (! empty($__highlights))
                 <div class="row g-3 justify-content-center mt-4">
@@ -71,9 +76,9 @@
 <section class="page-banner-area page-banner-area--solid pt-100 rpt-70 pb-100 rpb-70 rel z-1 bgc-black text-center text-white">
     <div class="container py-3">
         <div class="banner-inner text-white">
-            <h1 class="page-title wow fadeInUp delay-0-2s">{{ $__title }}</h1>
+            <h1 class="page-title">{{ $__title }}</h1>
             @if ($__subtitle)
-                <p class="mb-0 wow fadeInUp delay-0-3s page-banner-area__subtitle">{{ $__subtitle }}</p>
+                <p class="mb-0 page-banner-area__subtitle">{{ $__subtitle }}</p>
             @endif
             @if (! empty($__highlights))
                 <div class="row g-3 justify-content-center mt-4">
