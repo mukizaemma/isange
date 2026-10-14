@@ -174,20 +174,24 @@
                     <div class="ma-checkout-card__body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label" for="guest_first_name">First name</label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_first_name" name="guest_first_name" value="{{ old('guest_first_name', $guestNameParts[0] ?? '') }}" maxlength="120">
+                                <label class="form-label" for="guest_first_name">First name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control ma-checkout-input" id="guest_first_name" name="guest_first_name" value="{{ old('guest_first_name', $guestNameParts[0] ?? '') }}" maxlength="120" required autocomplete="given-name">
+                                <div class="invalid-feedback">First name is required.</div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" for="guest_last_name">Last name</label>
-                                <input type="text" class="form-control ma-checkout-input" id="guest_last_name" name="guest_last_name" value="{{ old('guest_last_name', $guestNameParts[1] ?? '') }}" maxlength="120">
+                                <label class="form-label" for="guest_last_name">Last name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control ma-checkout-input" id="guest_last_name" name="guest_last_name" value="{{ old('guest_last_name', $guestNameParts[1] ?? '') }}" maxlength="120" required autocomplete="family-name">
+                                <div class="invalid-feedback">Last name is required.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="guest_phone">Mobile (WhatsApp) <span class="text-danger" id="guest_phone-required">*</span></label>
                                 <input type="tel" class="form-control ma-checkout-input" id="guest_phone" name="guest_phone" value="{{ old('guest_phone') }}" maxlength="64" placeholder="+250 7XX XXX XXX" autocomplete="tel">
+                                <div class="invalid-feedback">Enter a valid WhatsApp mobile number.</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="guest_email">Email <span class="text-danger" id="guest_email-required">*</span></label>
                                 <input type="email" class="form-control ma-checkout-input" id="guest_email" name="guest_email" value="{{ old('guest_email', $guestAccount?->email) }}" maxlength="255" autocomplete="email">
+                                <div class="invalid-feedback">Enter a valid email address.</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="guest_country">Country / region</label>
@@ -388,7 +392,7 @@
         if (typeof window.__checkoutAdvance === 'function') {
             window.__checkoutAdvance();
         } else {
-            alert('Checkout is still loading. Please refresh the page and try again.');
+            alert('Please complete the required fields on this step (dates, room, and guest details) before continuing.');
         }
     }
 
@@ -542,15 +546,56 @@
             }
         }
 
+        function formatMoney(n) {
+            return '$' + (Number(n) || 0).toFixed(2);
+        }
+
+        function clearFieldErrors(scope) {
+            (scope || form).querySelectorAll('.is-invalid').forEach(function (el) {
+                el.classList.remove('is-invalid');
+                el.removeAttribute('aria-invalid');
+            });
+        }
+
+        function markFieldInvalid(el, message) {
+            if (!el) {
+                return;
+            }
+            el.classList.add('is-invalid');
+            el.setAttribute('aria-invalid', 'true');
+            var feedback = el.parentElement
+                ? el.parentElement.querySelector('.invalid-feedback')
+                : null;
+            if (feedback && message) {
+                feedback.textContent = message;
+            }
+        }
+
+        function focusFirstInvalid() {
+            var first = form.querySelector('.is-invalid');
+            if (first) {
+                first.focus({ preventScroll: false });
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
         function prepareStepOneCart(options) {
             options = options || {};
             pushStayToCart();
+            clearFieldErrors(document.getElementById('checkout-step-1'));
             var stay = readStayFields();
+            var adults = parseInt(stay.adults, 10);
             if (!stay.check_in || !stay.check_out || stay.check_out <= stay.check_in) {
+                markFieldInvalid(stayCheckIn, 'Choose a valid check-in date.');
+                markFieldInvalid(stayCheckOut, 'Check-out must be after check-in.');
                 alert('Please choose valid check-in and check-out dates.');
-                if (stayCheckIn) {
-                    stayCheckIn.focus();
-                }
+                focusFirstInvalid();
+                return false;
+            }
+            if (!adults || adults < 1) {
+                markFieldInvalid(stayAdults, 'At least 1 adult is required.');
+                alert('Please enter the number of adults (at least 1).');
+                focusFirstInvalid();
                 return false;
             }
             if (options.requireRoom && !IsangeStayCart.hasSelectedRoom()) {
@@ -567,22 +612,80 @@
             return true;
         }
 
+        function validateGuestDetails() {
+            clearFieldErrors(document.getElementById('checkout-step-2'));
+            var firstEl = form.querySelector('[name="guest_first_name"]');
+            var lastEl = form.querySelector('[name="guest_last_name"]');
+            var phoneEl = form.querySelector('[name="guest_phone"]');
+            var emailEl = form.querySelector('[name="guest_email"]');
+            var firstName = ((firstEl && firstEl.value) || '').trim();
+            var lastName = ((lastEl && lastEl.value) || '').trim();
+            var phoneDigits = (((phoneEl && phoneEl.value) || '').replace(/\D/g, ''));
+            var email = ((emailEl && emailEl.value) || '').trim();
+            var channel = getPayAtHotelChannel();
+            var phoneOk = phoneDigits.length >= 8;
+            var emailOk = !!email && email.indexOf('@') >= 1;
+            var missing = [];
+
+            if (!firstName) {
+                markFieldInvalid(firstEl, 'First name is required.');
+                missing.push('first name');
+            }
+            if (!lastName) {
+                markFieldInvalid(lastEl, 'Last name is required.');
+                missing.push('last name');
+            }
+
+            if (channel === 'whatsapp') {
+                if (!phoneOk) {
+                    markFieldInvalid(phoneEl, 'Enter a valid WhatsApp mobile number.');
+                    missing.push('mobile number');
+                }
+            } else if (channel === 'email') {
+                if (!emailOk) {
+                    markFieldInvalid(emailEl, 'Enter a valid email address.');
+                    missing.push('email');
+                }
+            } else if (!phoneOk && !emailOk) {
+                markFieldInvalid(phoneEl, 'Enter a mobile number or email so we can reach you.');
+                markFieldInvalid(emailEl, 'Enter a mobile number or email so we can reach you.');
+                missing.push('mobile number or email');
+            }
+
+            if (missing.length) {
+                alert('Please complete the required guest details: ' + missing.join(', ') + '.');
+                focusFirstInvalid();
+                return false;
+            }
+            return true;
+        }
+
         function validateStep(step) {
             if (step === 1) {
                 return prepareStepOneCart({ requireRoom: true });
             }
             if (step === 2) {
-                return true;
+                return validateGuestDetails();
             }
             return true;
         }
 
         function validateConfirmation() {
+            clearFieldErrors(document.getElementById('checkout-step-3'));
+            if (!validateGuestDetails()) {
+                goToStep(2);
+                return false;
+            }
             if (!form.querySelector('input[name="pay_at_hotel_channel"]:checked')) {
                 alert('Choose WhatsApp or email to send your reservation.');
+                var channelGroup = document.getElementById('pay-at-hotel-channels');
+                if (channelGroup) {
+                    channelGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return false;
             }
             if (!validateGuestContactForPayment()) {
+                goToStep(2);
                 return false;
             }
             return true;
@@ -824,22 +927,24 @@
 
         function validateGuestContactForPayment() {
             var channel = getPayAtHotelChannel();
-            var phone = (form.querySelector('[name="guest_phone"]') || {}).value || '';
-            var email = (form.querySelector('[name="guest_email"]') || {}).value || '';
+            var phoneField = form.querySelector('[name="guest_phone"]');
+            var emailField = form.querySelector('[name="guest_email"]');
+            var phone = (phoneField && phoneField.value) || '';
+            var email = (emailField && emailField.value) || '';
             if (channel === 'whatsapp') {
                 if (phone.replace(/\D/g, '').length < 8) {
+                    markFieldInvalid(phoneField, 'Enter a valid WhatsApp mobile number to submit via WhatsApp.');
                     alert('Enter a valid WhatsApp mobile number to submit via WhatsApp.');
-                    var phoneField = form.querySelector('[name="guest_phone"]');
-                    if (phoneField) phoneField.focus();
+                    focusFirstInvalid();
                     return false;
                 }
                 return true;
             }
             if (channel === 'email') {
                 if (!email || email.indexOf('@') < 1) {
+                    markFieldInvalid(emailField, 'Enter a valid email address to submit via email.');
                     alert('Enter a valid email address to submit via email.');
-                    var emailField = form.querySelector('[name="guest_email"]');
-                    if (emailField) emailField.focus();
+                    focusFirstInvalid();
                     return false;
                 }
                 return true;
@@ -1124,6 +1229,22 @@
             });
         });
 
+        ['guest_first_name', 'guest_last_name', 'guest_phone', 'guest_email'].forEach(function (name) {
+            var el = form.querySelector('[name="' + name + '"]');
+            if (!el) return;
+            el.addEventListener('input', function () {
+                el.classList.remove('is-invalid');
+                el.removeAttribute('aria-invalid');
+            });
+        });
+        [stayCheckIn, stayCheckOut, stayAdults].forEach(function (el) {
+            if (!el) return;
+            el.addEventListener('change', function () {
+                el.classList.remove('is-invalid');
+                el.removeAttribute('aria-invalid');
+            });
+        });
+
         form.addEventListener('submit', function (e) {
             if (currentStep < checkoutStepCount) {
                 e.preventDefault();
@@ -1136,6 +1257,7 @@
 
             if (!prepareStepOneCart({ requireRoom: true })) {
                 e.preventDefault();
+                goToStep(1);
                 return;
             }
 
@@ -1147,7 +1269,13 @@
             }
             if (!form.querySelector('#terms_accepted:checked')) {
                 e.preventDefault();
+                var termsEl = form.querySelector('#terms_accepted');
+                markFieldInvalid(termsEl, 'Please accept the hotel policy and terms to continue.');
                 alert('Please accept the hotel policy and terms to continue.');
+                if (termsEl) {
+                    termsEl.focus();
+                    termsEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return;
             }
         });

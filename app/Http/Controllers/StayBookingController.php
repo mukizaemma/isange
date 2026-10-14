@@ -74,8 +74,8 @@ class StayBookingController extends Controller
 
         $validated = Validator::make($request->all(), [
             'cart_json' => 'required|json|max:65535',
-            'guest_first_name' => 'nullable|string|max:120',
-            'guest_last_name' => 'nullable|string|max:120',
+            'guest_first_name' => 'required|string|max:120',
+            'guest_last_name' => 'required|string|max:120',
             'guest_phone' => 'nullable|string|max:64',
             'guest_email' => 'nullable|email|max:255',
             'guest_country' => 'nullable|string|max:120',
@@ -86,6 +86,8 @@ class StayBookingController extends Controller
             'additional_requests' => 'nullable|string|max:5000',
             'terms_accepted' => 'accepted',
         ], [
+            'guest_first_name.required' => 'Please enter the guest first name.',
+            'guest_last_name.required' => 'Please enter the guest last name.',
             'terms_accepted.accepted' => 'Please accept the hotel policy and terms to continue.',
             'cart_json.required' => 'Your booking details are missing. Please set your stay dates and try again.',
         ])->validate();
