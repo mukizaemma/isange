@@ -208,8 +208,8 @@
 
                                 @if ($tabKey === 'booking')
                                     <hr>
-                                    <h6 class="fw-semibold">Confirm booking — benefits panel</h6>
-                                    <p class="small text-muted">Shown below “How would you like to book?” on the confirm booking page. Start a line with <code>*</code> for a highlighted note (e.g. <code>*Subject to availability</code>).</p>
+                                    <h6 class="fw-semibold">Confirm booking — details beside the steps</h6>
+                                    <p class="small text-muted">These sit on the same row as Stay, Guest, and Confirm. Change a line to edit it, or add a new line to add an item. Start a line with <code>*</code> for a highlighted note (e.g. <code>*Subject to availability</code>).</p>
                                     <div class="mb-3">
                                         <label class="form-label">Benefits heading</label>
                                         <input type="text" class="form-control" name="pages[booking][sections][benefits_heading]" value="{{ old('pages.booking.sections.benefits_heading', $s['benefits_heading'] ?? '') }}">

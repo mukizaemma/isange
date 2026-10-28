@@ -2,15 +2,22 @@
     $bookingContent = \App\Support\PageContent::get('booking', $pageHeaders ?? collect());
     $benefitsHeading = $bookingContent['sections']['benefits_heading'] ?? 'Benefits of booking with us';
     $benefitsLines = $bookingContent['sections']['benefits_lines'] ?? [];
+    $benefitsInline = (bool) ($inline ?? false);
 @endphp
 
 @if ($benefitsHeading !== '' || count($benefitsLines) > 0)
-    <section class="ma-booking-benefits" aria-labelledby="booking-benefits-title">
-        <div class="ma-booking-benefits__card">
+    <section class="ma-booking-benefits{{ $benefitsInline ? ' ma-booking-benefits--inline' : '' }}" @if (! $benefitsInline) aria-labelledby="booking-benefits-title" @else aria-label="{{ $benefitsHeading !== '' ? $benefitsHeading : 'Booking benefits' }}" @endif>
+        @unless ($benefitsInline)
+            <div class="ma-booking-benefits__card">
+        @endunless
             @if ($benefitsHeading !== '')
-                <header class="ma-booking-benefits__head">
-                    <h2 class="ma-booking-benefits__title" id="booking-benefits-title">{{ $benefitsHeading }}</h2>
-                </header>
+                @if ($benefitsInline)
+                    <p class="ma-booking-benefits__title">{{ $benefitsHeading }}</p>
+                @else
+                    <header class="ma-booking-benefits__head">
+                        <h2 class="ma-booking-benefits__title" id="booking-benefits-title">{{ $benefitsHeading }}</h2>
+                    </header>
+                @endif
             @endif
 
             @if (count($benefitsLines) > 0)
@@ -37,6 +44,8 @@
                     @endforeach
                 </ul>
             @endif
-        </div>
+        @unless ($benefitsInline)
+            </div>
+        @endunless
     </section>
 @endif

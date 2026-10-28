@@ -60,7 +60,8 @@
 
         <div id="checkout-flow">
 
-        <nav class="ma-checkout-wizard mb-4" id="checkout-wizard" aria-label="Booking steps">
+        <div class="ma-checkout-toolbar">
+        <nav class="ma-checkout-wizard" id="checkout-wizard" aria-label="Booking steps">
             <ol class="ma-checkout-wizard__list">
                 <li class="ma-checkout-wizard__item is-active" data-wizard-step="1">
                     <button type="button" class="ma-checkout-wizard__btn" data-goto-step="1">
@@ -82,6 +83,8 @@
                 </li>
             </ol>
         </nav>
+        @include('frontend.includes.booking-benefits', ['inline' => true])
+        </div>
 
         @if ($errors->any())
             <div class="alert alert-danger ma-stay-checkout__alert">
@@ -344,9 +347,9 @@
                 </button>
             </div>
 
-            <div class="ma-booking-benefits-row mt-4{{ auth()->user()?->isGuest() ? ' ma-booking-benefits-row--with-nav' : '' }}">
-                @auth
-                    @if (auth()->user()->isGuest())
+            @auth
+                @if (auth()->user()->isGuest())
+                    <div class="ma-booking-benefits-row ma-booking-benefits-row--with-nav mt-4">
                         <nav class="ma-guest-account-nav" aria-label="Guest account">
                             <a class="theme-btn btn-sm style-three" href="{{ route('guest.bookings') }}"><i class="fas fa-calendar-check me-1"></i> My Bookings</a>
                             <a class="theme-btn btn-sm style-three" href="{{ route('guest.updates') }}"><i class="far fa-newspaper me-1"></i> Recent Updates</a>
@@ -355,11 +358,9 @@
                             @endif
                             @include('frontend.includes.guest-logout')
                         </nav>
-                    @endif
-                @endauth
-
-                @include('frontend.includes.booking-benefits')
-            </div>
+                    </div>
+                @endif
+            @endauth
         </form>
 
         </div>{{-- #checkout-flow --}}

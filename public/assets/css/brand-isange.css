@@ -3299,6 +3299,24 @@ body.spa-loading::before {
 }
 
 @media (max-width: 991px) {
+  .ma-checkout-toolbar {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .ma-checkout-toolbar .ma-checkout-wizard {
+    flex: 1 1 100%;
+    max-width: 22rem;
+  }
+
+  .ma-booking-benefits--inline {
+    justify-content: flex-start;
+  }
+
+  .ma-booking-benefits--inline .ma-booking-benefits__grid {
+    justify-content: flex-start;
+  }
+
   .ma-booking-benefits-row--with-nav {
     flex-direction: column;
     align-items: stretch;
@@ -3809,6 +3827,70 @@ body.spa-loading::before {
   align-items: center;
   gap: 0.35rem;
   font-size: 0.85rem;
+}
+
+/* Steps and booking details share one row inside the existing page width */
+.ma-checkout-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.5rem;
+  min-width: 0;
+}
+
+.ma-checkout-toolbar .ma-checkout-wizard {
+  flex: 0 1 22rem;
+  min-width: 15rem;
+  margin: 0;
+  overflow: visible;
+}
+
+.ma-booking-benefits--inline {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem 0.85rem;
+}
+
+.ma-booking-benefits--inline .ma-booking-benefits__title {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--eco-green, #106b38);
+  line-height: 1.2;
+}
+
+.ma-booking-benefits--inline .ma-booking-benefits__grid {
+  display: flex;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.2rem 0.75rem;
+  margin: 0;
+}
+
+.ma-booking-benefits--inline .ma-booking-benefits__item,
+.ma-booking-benefits--inline .ma-booking-benefits__item--note {
+  width: auto;
+  grid-column: auto;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 /* 4-step checkout wizard */
