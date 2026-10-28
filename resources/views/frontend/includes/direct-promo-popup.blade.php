@@ -9,7 +9,9 @@
 <div class="modal fade isange-promo-popup" id="directPromoModal" tabindex="-1" aria-labelledby="directPromoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content isange-promo-popup__content">
-            <button type="button" class="btn-close isange-promo-popup__close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="isange-promo-popup__close" data-bs-dismiss="modal" aria-label="Close">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
             <div class="isange-promo-popup__ribbon">Book direct · skip OTA fees</div>
             <div class="isange-promo-popup__hero">
                 <p class="isange-promo-popup__kicker">Special rate · website only</p>
@@ -66,6 +68,12 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!skipAuto) {
                 showBadge();
             }
+        });
+
+        modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                modal.hide();
+            });
         });
 
         if (skipAuto || dismissed) {

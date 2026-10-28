@@ -5601,14 +5601,33 @@ body.is-checkout-page {
 
 .isange-promo-popup__close {
   position: absolute;
-  top: 0.85rem;
-  right: 0.85rem;
-  z-index: 3;
-  width: 2.1rem;
-  height: 2.1rem;
-  padding: 0.55rem;
+  top: 0.4rem;
+  right: 0.55rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  padding: 0;
+  border: 0;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.92);
+  background: #fff;
+  color: #143528;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 1;
+  pointer-events: auto;
+  box-shadow: 0 2px 8px rgba(20, 53, 40, 0.28);
+}
+
+.isange-promo-popup__close:hover,
+.isange-promo-popup__close:focus {
+  background: #143528;
+  color: #fff;
+  opacity: 1;
+  outline: none;
 }
 
 .isange-promo-popup__ribbon {
