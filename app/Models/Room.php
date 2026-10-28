@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Support\Currency;
 use App\Support\DiscountStayAvailability;
 use App\Support\FrontendPageCache;
+use App\Support\RoomDiscountPromotion;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -138,11 +139,69 @@ class Room extends Model
     }
 
     /**
+     * Sale price for a hotel-wide date-range discount, or the room's own rate.
+     */
+    public function priceUsing(?string $type, mixed $value): ?float
+    {
+        $list = $this->listPriceUsd();
+        if ($list === null) {
+            return null;
+        }
+
+        $amount = (float) $value;
+        if ($type === self::DISCOUNT_PERCENT && $amount > 0 && $amount <= 100) {
+            return round($list * (1 - ($amount / 100)), 2);
+        }
+
+        if ($type === self::DISCOUNT_FIXED && $amount > 0 && $amount < $list) {
+            return round($list - $amount, 2);
+        }
+
+        return $list;
+    }
+
+    public function rateReducesPrice(?string $type, mixed $value): bool
+    {
+        $list = $this->listPriceUsd();
+        $sale = $this->priceUsing($type, $value);
+
+        return $list !== null && $sale !== null && $sale < $list;
+    }
+
+    public function badgeForRate(?string $type, mixed $value): ?string
+    {
+        if (! $this->rateReducesPrice($type, $value)) {
+            return null;
+        }
+
+        if ($type === self::DISCOUNT_PERCENT) {
+            $pct = (float) $value;
+            $fmt = $pct == floor($pct) ? (string) (int) $pct : number_format($pct, 1);
+
+            return $fmt.'% off';
+        }
+
+        $save = round($this->listPriceUsd() - $this->priceUsing($type, $value), 2);
+        $fmt = $save == floor($save) ? number_format($save, 0) : number_format($save, 2);
+
+        return '$'.$fmt.' off';
+    }
+
+    /**
      * Sale price applies only when the guest is eligible, this room has a
      * configured discount, and every night of the stay is still open.
      */
     public function discountAppliesForStay(bool $discountEligible, mixed $checkIn, mixed $checkOut): bool
     {
+        if (RoomDiscountPromotion::hasPeriods()) {
+            $period = RoomDiscountPromotion::coveringPeriod($checkIn, $checkOut);
+
+            return $discountEligible
+                && $period !== null
+                && DiscountStayAvailability::closedNightsInStay($checkIn, $checkOut) === []
+                && $this->rateReducesPrice($period->discount_type, $period->discount_value);
+        }
+
         return $discountEligible
             && $this->hasActiveDiscount()
             && DiscountStayAvailability::isOpenForStay($checkIn, $checkOut);
@@ -154,18 +213,37 @@ class Room extends Model
     public function pricingForStay(bool $discountEligible, mixed $checkIn = null, mixed $checkOut = null): array
     {
         $apply = $this->discountAppliesForStay($discountEligible, $checkIn, $checkOut);
+        $period = $apply ? RoomDiscountPromotion::coveringPeriod($checkIn, $checkOut) : null;
+        $type = $period?->discount_type ?? $this->discount_type;
+        $value = $period?->discount_value ?? $this->discount_value;
+        $price = $apply ? $this->priceUsing($type, $value) : $this->listPriceUsd();
 
         return [
-            'price' => $this->bookingPriceUsd($apply),
+            'price' => $price,
             'list_price' => $this->listPriceUsd(),
-            'price_rwf' => $this->bookingPriceRwf($apply),
+            'price_rwf' => $this->localPriceFor($apply, $price),
             'discount_applied' => $apply,
             'discount' => $apply ? [
-                'badge' => $this->discountBadgeLabel(),
-                'type' => $this->discount_type,
-                'value' => $this->discount_value,
+                'badge' => $period ? $this->badgeForRate($type, $value) : $this->discountBadgeLabel(),
+                'type' => $type,
+                'value' => $value,
             ] : null,
         ];
+    }
+
+    private function localPriceFor(bool $apply, ?float $usd): ?float
+    {
+        if (! $apply) {
+            return $this->bookingPriceRwf(false);
+        }
+
+        $list = $this->listPriceUsd();
+        $hasStoredRwf = $this->price_rwf !== null && (float) $this->price_rwf > 0;
+        if ($hasStoredRwf && $list !== null && $list > 0 && $usd !== null) {
+            return round(((float) $this->price_rwf) * ($usd / $list), 0);
+        }
+
+        return $usd === null ? null : Currency::usdToRwf($usd);
     }
 
     public function salePriceRwf(): ?float

@@ -46,6 +46,10 @@ final class DiscountStayAvailability
             return false;
         }
 
+        if (RoomDiscountPromotion::hasPeriods() && RoomDiscountPromotion::coveringPeriod($checkIn, $checkOut) === null) {
+            return false;
+        }
+
         foreach ($nights as $night) {
             if (self::isNightOff($night)) {
                 return false;

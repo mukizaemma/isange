@@ -3,17 +3,23 @@
 
     $room = $room ?? null;
     $showOnRequest = $showOnRequest ?? true;
-    $discountEligible = (bool) auth()->user()?->hasUnlockedDiscount();
-    $promoOn = $room && $room->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion();
+    $displayRate = \App\Support\RoomDiscountPromotion::displayRate();
+    $periodSale = ($room && $displayRate) ? $room->priceUsing($displayRate['type'], $displayRate['value']) : null;
+    $promoOn = $room && \App\Support\RoomDiscountPromotion::hasActivePromotion() && (
+        ($displayRate && $room->rateReducesPrice($displayRate['type'], $displayRate['value']))
+        || (! $displayRate && $room->hasActiveDiscount())
+    );
 @endphp
 
 @if ($room && $room->listPriceUsd() !== null)
     @if ($promoOn)
         @php
             $listUsd = $room->listPriceUsd();
-            $saleUsd = $room->salePriceUsd();
-            $saleRwf = $room->salePriceRwf();
-            $badge = $room->discountBadgeLabel();
+            $saleUsd = ($displayRate && $periodSale !== null && $periodSale < $listUsd) ? $periodSale : $room->salePriceUsd();
+            $saleRwf = ($displayRate && $saleUsd !== null && $listUsd > 0 && $room->price_rwf)
+                ? round(((float) $room->price_rwf) * ($saleUsd / $listUsd), 0)
+                : $room->salePriceRwf();
+            $badge = $displayRate ? $room->badgeForRate($displayRate['type'], $displayRate['value']) : $room->discountBadgeLabel();
             $tooltip = $room->discountTooltip();
             $listFmt = number_format($listUsd, $listUsd == floor($listUsd) ? 0 : 2);
         @endphp

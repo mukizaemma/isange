@@ -186,6 +186,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/getRooms', [RoomsController::class, 'index'])->name('getRooms');
     Route::post('/saveRoom', [RoomsController::class, 'store'])->name('saveRoom');
     Route::post('/rooms/bulk-discount', [RoomsController::class, 'bulkDiscount'])->name('rooms.bulkDiscount');
+    Route::post('/rooms/discount-periods/{period}', [RoomsController::class, 'destroyDiscountPeriod'])->name('rooms.discountPeriods.destroy');
     Route::post('/rooms/discount-nights', [RoomsController::class, 'discountNights'])->name('rooms.discountNights');
     Route::get('/editRoom/{id}', [RoomsController::class, 'edit'])->name('editRoom');
     Route::post('/updateRoom/{id}', [RoomsController::class, 'update'])->name('updateRoom');

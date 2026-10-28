@@ -257,11 +257,16 @@ class StayBookingController extends Controller
         $checkOut = $request->query('check_out');
         $datesProvided = DiscountStayAvailability::hasValidStay($checkIn, $checkOut);
         $stayOpen = $datesProvided && DiscountStayAvailability::isOpenForStay($checkIn, $checkOut);
+        $roomsFull = $datesProvided && DiscountStayAvailability::closedNightsInStay($checkIn, $checkOut) !== [];
         $promotionConfigured = RoomDiscountPromotion::hasActivePromotion();
+        $displayRate = RoomDiscountPromotion::displayRate();
 
         return response()->json([
-            'rooms' => $rooms->map(function (Room $r) use ($discountUnlocked, $checkIn, $checkOut) {
+            'rooms' => $rooms->map(function (Room $r) use ($discountUnlocked, $checkIn, $checkOut, $datesProvided, $displayRate) {
                 $pricing = $r->pricingForStay($discountUnlocked, $checkIn, $checkOut);
+                $undatedSale = $displayRate
+                    ? $r->priceUsing($displayRate['type'], $displayRate['value'])
+                    : ($r->hasActiveDiscount() ? $r->salePriceUsd() : $pricing['list_price']);
 
                 return [
                     'room_id' => $r->id,
@@ -269,10 +274,12 @@ class StayBookingController extends Controller
                     'name' => $r->roomName,
                     'price' => $pricing['price'],
                     'list_price' => $pricing['list_price'],
-                    'sale_price' => $r->hasActiveDiscount() ? $r->salePriceUsd() : $pricing['list_price'],
+                    'sale_price' => $datesProvided
+                        ? ($pricing['discount_applied'] ? $pricing['price'] : $pricing['list_price'])
+                        : $undatedSale,
                     'price_rwf' => $pricing['price_rwf'],
                     'discount_applied' => $pricing['discount_applied'],
-                    'discount' => $pricing['discount'] ?? ($r->hasActiveDiscount() ? [
+                    'discount' => $pricing['discount'] ?? (! $datesProvided && $r->hasActiveDiscount() ? [
                         'badge' => $r->discountBadgeLabel(),
                         'type' => $r->discount_type,
                         'value' => $r->discount_value,
@@ -293,6 +300,8 @@ class StayBookingController extends Controller
             'promotion_configured' => $promotionConfigured,
             'discount_open' => $stayOpen,
             'dates_provided' => $datesProvided,
+            'rooms_full' => $roomsFull,
+            'available_ranges' => $roomsFull ? RoomDiscountPromotion::openRangeLabel() : null,
             'discount_period' => RoomDiscountPromotion::periodLabel(),
         ]);
     }

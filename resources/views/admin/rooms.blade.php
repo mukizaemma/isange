@@ -43,18 +43,46 @@
                         </div>
                         <div class="card-body">
                             @php
-                                $window = $discountWindow ?? \App\Support\RoomDiscountPromotion::window();
-                                $defaultFrom = old('discount_from', $window ? $window['start']->toDateString() : '');
-                                $defaultTo = old('discount_to', $window ? $window['end']->toDateString() : '');
+                                $periods = $discountPeriods ?? \App\Support\RoomDiscountPromotion::allPeriods();
+                                $defaultFrom = old('discount_from', '');
+                                $defaultTo = old('discount_to', '');
                                 $defaultType = old('bulk_discount_type', $bulkDiscountType ?? 'percent');
-                                $defaultValue = old('bulk_discount_value', $bulkDiscountValue ?? '');
+                                $defaultValue = old('bulk_discount_value', $periods->isEmpty() ? ($bulkDiscountValue ?? '') : '');
                             @endphp
                             <p class="small mb-3">
-                                Set the amount and the nights guests can use it. Saving this updates the calendar to match those dates.
-                                After that, use the calendar only for busy nights you want at full rate.
+                                Save a discount for the nights it should apply. You can add another one for different dates — for example 48% through December, then a separate discount for April or next summer — without removing the one that is already running. A guest stay uses the discount whose dates cover that stay.
                             </p>
+                            @if ($periods->isNotEmpty())
+                                <div class="table-responsive mb-3">
+                                    <table class="table table-sm align-middle mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Discount</th>
+                                                <th>From</th>
+                                                <th>To</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($periods as $period)
+                                                <tr>
+                                                    <td>{{ \App\Support\RoomDiscountPromotion::ratePhrase($period->discount_type, (float) $period->discount_value) }}</td>
+                                                    <td>{{ $period->starts_on->format('j M Y') }}</td>
+                                                    <td>{{ $period->ends_on->format('j M Y') }}</td>
+                                                    <td class="text-end">
+                                                        <form method="POST" action="{{ route('rooms.discountPeriods.destroy', $period) }}" class="d-inline" onsubmit="return confirm('Remove this discount period?');">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
                             <form method="POST" action="{{ route('rooms.bulkDiscount') }}" class="row g-3 align-items-end"
-                                onsubmit="return confirm(event.submitter && event.submitter.value === 'remove' ? 'Remove discounts from all rooms and clear promo dates?' : 'Apply this discount and promo dates to all priced rooms? The calendar will match these dates.');">
+                                onsubmit="return confirm(event.submitter && event.submitter.value === 'remove' ? 'Remove discounts from all rooms and clear every promo period?' : 'Save this discount for these dates? Discounts already saved for other dates stay in place.');">
                                 @csrf
                                 <div class="col-md-3">
                                     <label for="bulk_discount_type" class="form-label">Discount type</label>
@@ -91,20 +119,16 @@
                                 </div>
                                 <div class="col-12 d-flex flex-wrap gap-2">
                                     <button type="submit" name="action" value="apply" class="btn btn-success">
-                                        <i class="fas fa-check me-1"></i> Save discount &amp; dates
+                                        <i class="fas fa-check me-1"></i> {{ $periods->isNotEmpty() ? 'Add discount period' : 'Save discount & dates' }}
                                     </button>
                                     <button type="submit" name="action" value="remove" class="btn btn-outline-danger" formnovalidate>
                                         Remove all discounts
                                     </button>
                                 </div>
                             </form>
-                            @if ($window)
+                            @if ($periods->isNotEmpty())
                                 <p class="small text-muted mb-0 mt-3">
-                                    Public site currently offers this promo for stays covering
-                                    <strong>{{ $window['start']->format('j M Y') }}</strong>
-                                    to
-                                    <strong>{{ $window['end']->format('j M Y') }}</strong>
-                                    (unless a night is turned off below).
+                                    Guests see the discount that matches their stay. Turn a night off on the calendar below when the hotel is fully booked for that night.
                                 </p>
                             @endif
                         </div>

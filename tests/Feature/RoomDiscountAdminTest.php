@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Models\DiscountClosedDate;
+use App\Models\DiscountPeriod;
 use App\Models\GuestBookingRequest;
 use App\Models\Room;
 use App\Models\Setting;
 use App\Models\User;
 use App\Support\DiscountStayAvailability;
 use App\Support\RoomDiscountPromotion;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -285,6 +287,101 @@ class RoomDiscountAdminTest extends TestCase
             ])
             ->assertRedirect()
             ->assertSessionHas('error');
+    }
+
+    public function test_admin_can_keep_several_discount_periods_and_each_stay_uses_its_own_rate(): void
+    {
+        Carbon::setTestNow('2026-10-28');
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        Setting::query()->create(['title' => 'Isange']);
+        $room = $this->room('Garden Room', 100);
+
+        $this->actingAs($admin)->post(route('rooms.bulkDiscount'), [
+            'action' => 'apply',
+            'bulk_discount_type' => Room::DISCOUNT_PERCENT,
+            'bulk_discount_value' => 48,
+            'discount_from' => '2026-10-27',
+            'discount_to' => '2026-12-12',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->actingAs($admin)->post(route('rooms.bulkDiscount'), [
+            'action' => 'apply',
+            'bulk_discount_type' => Room::DISCOUNT_PERCENT,
+            'bulk_discount_value' => 30,
+            'discount_from' => '2027-04-01',
+            'discount_to' => '2027-04-30',
+        ])->assertRedirect()->assertSessionHas('success');
+
+        $this->assertSame(2, DiscountPeriod::query()->count());
+        $this->assertSame(52.0, $room->fresh()->pricingForStay(true, '2026-11-01', '2026-11-03')['price']);
+        $this->assertSame(70.0, $room->fresh()->pricingForStay(true, '2027-04-02', '2027-04-05')['price']);
+        $this->assertSame(100.0, $room->fresh()->pricingForStay(true, '2027-03-01', '2027-03-03')['price']);
+        $this->assertStringContainsString('48% off', (string) RoomDiscountPromotion::periodLabel());
+        $this->assertStringContainsString('30% off', (string) RoomDiscountPromotion::periodLabel());
+
+        $this->actingAs($admin)
+            ->post(route('rooms.bulkDiscount'), [
+                'action' => 'apply',
+                'bulk_discount_type' => Room::DISCOUNT_PERCENT,
+                'bulk_discount_value' => 20,
+                'discount_from' => '2026-12-01',
+                'discount_to' => '2026-12-20',
+            ])
+            ->assertRedirect()
+            ->assertSessionHasErrors('discount_from');
+        $this->assertSame(2, DiscountPeriod::query()->count());
+    }
+
+    public function test_fully_booked_stay_tells_the_guest_which_dates_are_still_open(): void
+    {
+        Carbon::setTestNow('2026-10-28');
+        $admin = User::factory()->create(['role' => User::ROLE_ADMIN]);
+        Setting::query()->create(['title' => 'Isange']);
+        $this->room('Garden Room', 100);
+
+        $this->actingAs($admin)->post(route('rooms.bulkDiscount'), [
+            'action' => 'apply',
+            'bulk_discount_type' => Room::DISCOUNT_PERCENT,
+            'bulk_discount_value' => 48,
+            'discount_from' => '2026-10-27',
+            'discount_to' => '2026-12-12',
+        ])->assertRedirect();
+
+        $this->actingAs($admin)->post(route('rooms.discountNights'), [
+            'action' => 'close_range',
+            'range_from' => '2026-10-30',
+            'range_to' => '2026-10-31',
+        ])->assertRedirect();
+
+        $open = $this->getJson(route('booking.catalog', [
+            'check_in' => '2026-11-02',
+            'check_out' => '2026-11-04',
+        ]))->assertOk();
+        $open->assertJsonPath('rooms_full', false);
+        $open->assertJsonPath('discount_open', true);
+
+        $full = $this->getJson(route('booking.catalog', [
+            'check_in' => '2026-10-30',
+            'check_out' => '2026-11-01',
+        ]))->assertOk();
+        $full->assertJsonPath('rooms_full', true);
+        $full->assertJsonPath('discount_open', false);
+        $ranges = (string) $full->json('available_ranges');
+        $this->assertStringContainsString('from 28 Oct to 29 Oct 2026', $ranges);
+        $this->assertStringContainsString('from 1 Nov to 12 Dec 2026', $ranges);
+
+        $outside = $this->getJson(route('booking.catalog', [
+            'check_in' => '2027-01-04',
+            'check_out' => '2027-01-06',
+        ]))->assertOk();
+        $outside->assertJsonPath('rooms_full', false);
+        $outside->assertJsonPath('discount_open', false);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+        parent::tearDown();
     }
 
     private function room(string $name, ?float $price, ?float $discount = null): Room

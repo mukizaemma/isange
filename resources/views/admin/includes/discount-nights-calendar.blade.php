@@ -21,9 +21,13 @@
     <div class="card-body">
         <p class="small mb-3">
             Green nights are on promo. Grey nights are full rate.
-            @if ($window)
+            @php $periods = $discountPeriods ?? collect(); @endphp
+            @if ($periods->isNotEmpty())
+                A night is on promo when it falls inside one of the discount periods above.
+                Click a green night to mark the hotel fully booked for that night.
+            @elseif ($window)
                 Dates outside <strong>{{ $window['start']->format('j M') }}–{{ $window['end']->format('j M Y') }}</strong> stay off unless you change the promo dates above.
-                Click a green night to turn it off when the hotel is filling up.
+                Click a green night to mark the hotel fully booked for that night.
             @else
                 No promo dates are set, so every night can be discounted until you turn one off.
             @endif

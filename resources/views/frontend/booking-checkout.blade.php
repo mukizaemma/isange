@@ -139,7 +139,7 @@
                             <span id="stay-nights-text">0 nights</span>
                         </div>
                         <div id="stay-discount-dates-note" class="alert alert-warning py-2 px-3 mt-2 mb-0 d-none" role="status">
-                            Direct-booking discount is not available for these dates. The stay is priced at the regular rate.
+                            Rooms are fully booked for these dates.
                         </div>
 
                         <div class="ma-checkout-cart-block mt-3">
@@ -791,12 +791,13 @@
             }
             var stayClosed = !!(data.dates_provided && data.promotion_configured && !data.discount_open);
             if (discountDatesNote) {
-                var msg = 'Direct-booking discount is not available for these dates. The stay is priced at the regular rate.';
-                if (data.discount_period) {
-                    msg += ' Promo nights: ' + data.discount_period + '.';
+                var roomsFull = !!data.rooms_full;
+                var msg = 'Rooms are fully booked for these dates.';
+                if (data.available_ranges) {
+                    msg += ' Rooms are available ' + data.available_ranges + '.';
                 }
                 discountDatesNote.textContent = msg;
-                discountDatesNote.classList.toggle('d-none', !stayClosed);
+                discountDatesNote.classList.toggle('d-none', !roomsFull);
             }
             document.querySelectorAll('.js-checkout-discount-cta').forEach(function (el) {
                 el.classList.toggle('d-none', stayClosed);

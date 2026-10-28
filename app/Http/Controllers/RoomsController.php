@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DiscountClosedDate;
+use App\Models\DiscountPeriod;
 use App\Models\HotelAmenityOption;
 use App\Models\Room;
 use App\Models\roomImage;
@@ -65,8 +66,9 @@ class RoomsController extends Controller
             ->map(fn ($date) => Carbon::parse($date)->toDateString())
             ->all();
         $occupancyByNight = DiscountStayAvailability::occupancyByNight($month, $monthEnd);
-        $discountWindow = RoomDiscountPromotion::window();
+        $discountPeriods = RoomDiscountPromotion::allPeriods();
         $pricedWithDiscount = $rooms->first(fn (Room $room) => $room->hasActiveDiscount());
+        $latestPeriod = $discountPeriods->last();
 
         return view('admin.rooms', [
             'rooms' => $rooms,
@@ -75,9 +77,10 @@ class RoomsController extends Controller
             'discountCalendarMonth' => $month,
             'discountClosedDates' => $closedDates,
             'discountOccupancyByNight' => $occupancyByNight,
-            'discountWindow' => $discountWindow,
-            'bulkDiscountType' => $pricedWithDiscount?->discount_type ?? 'percent',
-            'bulkDiscountValue' => $pricedWithDiscount?->discount_value,
+            'discountWindow' => RoomDiscountPromotion::window(),
+            'discountPeriods' => $discountPeriods,
+            'bulkDiscountType' => $latestPeriod?->discount_type ?? $pricedWithDiscount?->discount_type ?? 'percent',
+            'bulkDiscountValue' => $latestPeriod?->discount_value ?? $pricedWithDiscount?->discount_value,
         ]);
     }
 
@@ -213,30 +216,66 @@ class RoomsController extends Controller
             ])->withInput();
         }
 
-        $updated = $pricedRooms->update([
-            'discount_enabled' => true,
-            'discount_type' => $type,
-            'discount_value' => $value,
-        ]);
-
         $from = $validated['discount_from'] ?? null;
         $to = $validated['discount_to'] ?? null;
-        RoomDiscountPromotion::saveWindow($from, $to);
+        $periodMessage = '';
+        $keepRoomRates = false;
         if ($from && $to) {
+            $saved = RoomDiscountPromotion::addPeriod($from, $to, $type, $value);
+            if (! $saved['ok']) {
+                return back()->withErrors(['discount_from' => $saved['message']])->withInput();
+            }
             DiscountStayAvailability::openDates(DiscountStayAvailability::dateRange($from, $to));
+            $periodMessage = ' '.$saved['message'];
+            $keepRoomRates = DiscountPeriod::query()->count() > 1;
+        } else {
+            RoomDiscountPromotion::clearWindow();
+        }
+
+        $updated = 0;
+        if (! $keepRoomRates) {
+            $updated = Room::query()->whereNotNull('price')->where('price', '>', 0)->update([
+                'discount_enabled' => true,
+                'discount_type' => $type,
+                'discount_value' => $value,
+            ]);
         }
         FrontendPageCache::forgetHomePage();
 
         $skipped = Room::query()->whereNull('price')->orWhere('price', '<=', 0)->count();
-        $message = "Discount applied to {$updated} priced room(s).";
-        if ($from && $to) {
-            $message .= ' Promo nights are '.$from.' to '.$to.'. The calendar matches this range; you can still turn off busy nights.';
+        if ($from && $to && DiscountPeriod::query()->count() > 1 && $updated === 0) {
+            $message = 'Discount period saved. Existing discounts for other dates were kept.';
+        } else {
+            $message = "Discount applied to {$updated} priced room(s).";
         }
-        if ($skipped > 0) {
+        $message .= $periodMessage;
+        if ($from && $to && DiscountPeriod::query()->count() === 1) {
+            $message .= ' You can add another discount for different dates, such as next April or next summer, without removing this one.';
+        }
+        if ($skipped > 0 && $updated > 0) {
             $message .= " {$skipped} room(s) without a USD price were skipped.";
         }
 
         return back()->with('success', $message);
+    }
+
+    public function destroyDiscountPeriod(DiscountPeriod $period)
+    {
+        $period->delete();
+        RoomDiscountPromotion::forget();
+        if (! DiscountPeriod::query()->exists()) {
+            Room::query()->where('discount_enabled', true)->update([
+                'discount_enabled' => false,
+                'discount_type' => null,
+                'discount_value' => null,
+            ]);
+            RoomDiscountPromotion::clearWindow();
+        } else {
+            RoomDiscountPromotion::mirrorEarliestPeriod();
+        }
+        FrontendPageCache::forgetHomePage();
+
+        return back()->with('success', 'That discount period was removed. Any other periods are unchanged.');
     }
 
     public function discountNights(Request $request)
@@ -253,7 +292,7 @@ class RoomsController extends Controller
         if ($validated['action'] === 'toggle') {
             if (! RoomDiscountPromotion::isNightInWindow($validated['date'])) {
                 return redirect()->route('getRooms', array_filter(['month' => $monthQuery]))
-                    ->with('error', 'That night is outside the promo dates. Change the dates above first, then use the calendar for busy nights.');
+                    ->with('error', 'That night is outside the saved discount dates. Add a discount period that includes it, or pick a night inside an existing period.');
             }
             DiscountStayAvailability::toggleNight($validated['date']);
             $closed = DiscountStayAvailability::isNightClosed($validated['date']);

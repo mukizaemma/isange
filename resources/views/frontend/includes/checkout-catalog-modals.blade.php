@@ -18,13 +18,19 @@
                                 @endif
                                 <div class="ma-checkout-pick-item__body">
                                     <h6 class="ma-checkout-pick-item__title">{{ $r->roomName }}</h6>
+                                        @php
+                                            $pickRate = \App\Support\RoomDiscountPromotion::displayRate();
+                                            $pickSale = ($pickRate && $r->rateReducesPrice($pickRate['type'], $pickRate['value']))
+                                                ? $r->priceUsing($pickRate['type'], $pickRate['value'])
+                                                : null;
+                                        @endphp
                                         @if ($r->listPriceUsd() !== null)
-                                            @if ($r->hasActiveDiscount() && \App\Support\RoomDiscountPromotion::hasActivePromotion())
+                                            @if ($pickSale || ($r->hasActiveDiscount() && ! $pickRate && \App\Support\RoomDiscountPromotion::hasActivePromotion()))
                                                 <p class="ma-checkout-pick-item__meta js-checkout-room-price small mb-0">
-                                                    <span class="text-success fw-semibold">{!! \App\Support\Currency::formatUsdWithLocal($r->salePriceUsd(), $r->salePriceRwf()) !!}</span>
+                                                    <span class="text-success fw-semibold">{!! \App\Support\Currency::formatUsdWithLocal($pickSale ?? $r->salePriceUsd(), $r->salePriceRwf()) !!}</span>
                                                     <span class="text-decoration-line-through text-muted">{{ \App\Support\Currency::formatRoomPriceLabel($r->listPriceUsd()) }}</span>
                                                     / night
-                                                    <span class="badge bg-success">{{ $r->discountBadgeLabel() }}</span>
+                                                    <span class="badge bg-success">{{ $pickRate ? $r->badgeForRate($pickRate['type'], $pickRate['value']) : $r->discountBadgeLabel() }}</span>
                                                 </p>
                                             @else
                                                 <p class="ma-checkout-pick-item__meta js-checkout-room-price small text-muted mb-0">From {!! \App\Support\Currency::formatUsdWithLocal($r->bookingPriceUsd(false), $r->bookingPriceRwf(false)) !!} / night</p>
