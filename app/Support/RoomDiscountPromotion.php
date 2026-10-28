@@ -7,6 +7,7 @@ use App\Models\DiscountPeriod;
 use App\Models\Room;
 use App\Models\Setting;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -71,7 +72,19 @@ final class RoomDiscountPromotion
      */
     public static function allPeriods(): Collection
     {
-        return self::$periodsMemo ??= DiscountPeriod::query()->orderBy('starts_on')->orderBy('id')->get();
+        if (self::$periodsMemo !== null) {
+            return self::$periodsMemo;
+        }
+
+        try {
+            self::$periodsMemo = DiscountPeriod::query()->orderBy('starts_on')->orderBy('id')->get();
+        } catch (QueryException) {
+            // The discount_periods table is created by migration. Until that
+            // runs, keep using the room discount and the single settings window.
+            self::$periodsMemo = collect();
+        }
+
+        return self::$periodsMemo;
     }
 
     /**
