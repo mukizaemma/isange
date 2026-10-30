@@ -14,7 +14,7 @@
         </div>
         <div class="table-responsive bg-white rounded shadow-sm">
             <table class="table align-middle mb-0">
-                <thead><tr><th>Reference</th><th>Stay</th><th>Room</th><th>Status</th><th>Total</th></tr></thead>
+                <thead><tr><th>Reference</th><th>Stay</th><th>Room</th><th>Status</th><th>Total</th><th></th></tr></thead>
                 <tbody>
                 @forelse ($bookings as $booking)
                     <tr>
@@ -23,9 +23,10 @@
                         <td>{{ $booking->room?->roomName ?? 'Multiple rooms' }}</td>
                         <td><span class="badge {{ \App\Models\GuestBookingRequest::statusBadgeClass($booking->status) }}">{{ \App\Models\GuestBookingRequest::statusLabel($booking->status) }}</span></td>
                         <td>{{ $booking->total_usd ? '$'.number_format((float) $booking->total_usd, 2) : '—' }} @if($booking->discount_applied)<span class="badge bg-success">Discounted</span>@endif</td>
+                        <td><a href="{{ $booking->guestManageUrl() }}">{{ $booking->canGuestUpdate() ? 'Update or cancel' : 'View' }}</a></td>
                     </tr>
                 @empty
-                    <tr><td colspan="5" class="text-center py-5 text-muted">No bookings yet.</td></tr>
+                    <tr><td colspan="6" class="text-center py-5 text-muted">No bookings yet.</td></tr>
                 @endforelse
                 </tbody>
             </table>

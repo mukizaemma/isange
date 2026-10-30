@@ -239,6 +239,10 @@ class StayBookingController extends Controller
                 ->with('error', 'Your booking was saved, but we could not send the email automatically. You can send it via WhatsApp instead, or contact the hotel directly.');
         }
 
+        if ($fulfillment === 'whatsapp' && filter_var($record->guest_email, FILTER_VALIDATE_EMAIL)) {
+            BookingEmailSender::sendGuestAcknowledgement($record, $setting);
+        }
+
         return match ($fulfillment) {
             'whatsapp' => redirect()->route('room.booking.whatsapp', $record->public_id),
             default => redirect()->route('room.booking.confirmation', $record->public_id),

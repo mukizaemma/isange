@@ -51,20 +51,16 @@ class GuestInsightsController extends Controller
     public function updateBookingStatus(Request $request, string $publicId): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', Rule::in(GuestBookingRequest::REVIEWABLE_STATUSES)],
+            'status' => ['required', Rule::in(array_merge(GuestBookingRequest::REVIEWABLE_STATUSES, [GuestBookingRequest::STATUS_CANCELED_BY_HOTEL]))],
             'admin_message' => ['nullable', 'string', 'max:5000'],
             'notify_guest' => ['sometimes', 'boolean'],
         ]);
 
         $booking = GuestBookingRequest::query()->with('room')->where('public_id', $publicId)->firstOrFail();
         $newStatus = $validated['status'];
-
-        if ($booking->isPending()) {
-            // All review outcomes allowed from pending.
-        } elseif ($booking->isConfirmed() && $newStatus === GuestBookingRequest::STATUS_NO_SHOW) {
-            // Confirmed bookings can later be marked no-show.
-        } else {
-            return back()->with('error', 'This booking cannot be changed to that status.');
+        $statusError = $booking->adminStatusError($newStatus, $request->user());
+        if ($statusError !== null) {
+            return back()->with('error', $statusError);
         }
 
         $now = now();
@@ -75,6 +71,7 @@ class GuestInsightsController extends Controller
                 : $booking->admin_message,
             'reviewed_at' => $now,
             'confirmed_at' => $newStatus === GuestBookingRequest::STATUS_CONFIRMED ? $now : $booking->confirmed_at,
+            'canceled_at' => $newStatus === GuestBookingRequest::STATUS_CANCELED_BY_HOTEL ? $now : $booking->canceled_at,
         ]);
         $booking->refresh();
 

@@ -67,6 +67,34 @@
                         </div>
                     </div>
 
+                    <div class="isange-resv-stats mb-4">
+                        @php
+                            $outcomeLink = function (string $status) use ($filters) {
+                                return route('searchBookings', array_filter(array_merge($filters, ['status' => $status]), fn ($value) => $value !== null && $value !== ''));
+                            };
+                        @endphp
+                        <a class="isange-resv-stat isange-resv-stat--confirmed {{ ($filters['status'] ?? '') === 'confirmed' ? 'isange-resv-stat--active' : '' }}" href="{{ $outcomeLink('confirmed') }}">
+                            <span>Confirmed</span>
+                            <strong>{{ $summary['confirmed'] ?? 0 }}</strong>
+                        </a>
+                        <a class="isange-resv-stat isange-resv-stat--guest-cancel {{ ($filters['status'] ?? '') === 'canceled' ? 'isange-resv-stat--active' : '' }}" href="{{ $outcomeLink('canceled') }}">
+                            <span>Canceled</span>
+                            <strong>{{ $summary['canceled'] ?? 0 }}</strong>
+                        </a>
+                        <a class="isange-resv-stat {{ ($filters['status'] ?? '') === 'canceled_by_guest' ? 'isange-resv-stat--active' : '' }}" href="{{ $outcomeLink('canceled_by_guest') }}">
+                            <span>Canceled by guest</span>
+                            <strong>{{ $summary['canceled_by_guest'] ?? 0 }}</strong>
+                        </a>
+                        <a class="isange-resv-stat {{ ($filters['status'] ?? '') === 'canceled_by_hotel' ? 'isange-resv-stat--active' : '' }}" href="{{ $outcomeLink('canceled_by_hotel') }}">
+                            <span>Canceled by hotel</span>
+                            <strong>{{ $summary['canceled_by_hotel'] ?? 0 }}</strong>
+                        </a>
+                        <a class="isange-resv-stat isange-resv-stat--noshow {{ ($filters['status'] ?? '') === 'no_show' ? 'isange-resv-stat--active' : '' }}" href="{{ $outcomeLink('no_show') }}">
+                            <span>No show</span>
+                            <strong>{{ $summary['no_show'] ?? 0 }}</strong>
+                        </a>
+                    </div>
+
                     <div class="card border-0 shadow-sm">
                         <div class="card-header bg-white d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
                             <div>
@@ -105,6 +133,9 @@
                                         <option value="unfortunate" @selected(($filters['status'] ?? '') === 'unfortunate')>Fully booked</option>
                                         <option value="rejected" @selected(($filters['status'] ?? '') === 'rejected')>Rejected</option>
                                         <option value="no_show" @selected(($filters['status'] ?? '') === 'no_show')>No show</option>
+                                        <option value="canceled" @selected(($filters['status'] ?? '') === 'canceled')>Canceled</option>
+                                        <option value="canceled_by_guest" @selected(($filters['status'] ?? '') === 'canceled_by_guest')>Canceled by guest</option>
+                                        <option value="canceled_by_hotel" @selected(($filters['status'] ?? '') === 'canceled_by_hotel')>Canceled by hotel</option>
                                     </select>
                                 </div>
                                 <div class="col-6 col-md-2">
@@ -184,19 +215,17 @@
                                                     <span class="badge bg-success">{{ \App\Models\GuestBookingRequest::channelLabel($rs->fulfillment_choice) }}</span>
                                                 </td>
                                                 <td style="min-width: 9.5rem;">
-                                                    @if ($rs->canBeReviewed() || $rs->canBeMarkedNoShow())
+                                                    @php $statusChoices = $rs->adminStatusChoices(auth()->user()); @endphp
+                                                    @if ($statusChoices !== [])
                                                         <form method="POST" action="{{ route('bookings.updateStatus', $rs->id) }}">
                                                             @csrf
                                                             <select name="status" class="form-select form-select-sm" onchange="if(!this.value || this.value === '{{ $rs->status }}'){ this.value='{{ $rs->status }}'; return; } if(confirm('Update this reservation to ' + this.options[this.selectedIndex].text + '?')){ this.form.submit(); } else { this.value='{{ $rs->status }}'; }">
                                                                 <option value="{{ $rs->status }}" selected>{{ \App\Models\GuestBookingRequest::statusLabel($rs->status) }}</option>
-                                                                @if ($rs->canBeReviewed())
-                                                                    <option value="confirmed">Confirmed</option>
-                                                                    <option value="unfortunate">Fully booked</option>
-                                                                    <option value="rejected">Rejected</option>
-                                                                    <option value="no_show">No show</option>
-                                                                @elseif ($rs->canBeMarkedNoShow())
-                                                                    <option value="no_show">No show</option>
-                                                                @endif
+                                                                @foreach ($statusChoices as $value => $label)
+                                                                    @if ($value !== $rs->status)
+                                                                        <option value="{{ $value }}">{{ $label }}</option>
+                                                                    @endif
+                                                                @endforeach
                                                             </select>
                                                         </form>
                                                     @else
@@ -263,6 +292,12 @@
 .isange-resv-stat--direct { border-top-color: #f0ad4e; }
 .isange-resv-stat--hotel { border-top-color: #198754; }
 .isange-resv-stat--amount { border-top-color: #0d6efd; background: #f8fbff; }
+a.isange-resv-stat { color: inherit; text-decoration: none; }
+a.isange-resv-stat:hover { border-color: #adb5bd; }
+.isange-resv-stat--confirmed { border-top-color: #198754; }
+.isange-resv-stat--guest-cancel { border-top-color: #f0ad4e; }
+.isange-resv-stat--noshow { border-top-color: #212529; }
+.isange-resv-stat--active { outline: 2px solid #0d6efd; }
 .isange-resv-table th { white-space: nowrap; font-size: 13px; color: #6c757d; font-weight: 600; }
 .isange-resv-table td { font-size: 14px; }
 </style>

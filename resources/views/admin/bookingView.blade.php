@@ -59,6 +59,9 @@
                                                 @if ($booking->reviewed_at)
                                                     <small class="text-muted ms-2">Reviewed {{ $booking->reviewed_at->format('Y-m-d H:i') }}</small>
                                                 @endif
+                                                @if ($booking->canceled_at)
+                                                    <small class="text-muted ms-2">Canceled {{ $booking->canceled_at->format('Y-m-d H:i') }}</small>
+                                                @endif
                                             </td>
                                         </tr>
                                         <tr>
@@ -124,21 +127,23 @@
                             <div class="card mb-4">
                                 <div class="card-header">Update status &amp; notify guest</div>
                                 <div class="card-body">
-                                    @if ($booking->canBeReviewed() || $booking->canBeMarkedNoShow())
+                                    @php
+                                        $actor = auth()->user();
+                                        $statusChoices = $booking->adminStatusChoices($actor);
+                                    @endphp
+                                    @if ($booking->isOpen() && $booking->checkInHasStarted() && ! $actor->isSuperAdmin())
+                                        <p class="small text-muted">The check-in date has passed, so this reservation can no longer be canceled here. Only the super admin can cancel it after check-in.</p>
+                                    @endif
+                                    @if ($statusChoices !== [])
                                         <form method="POST" action="{{ route('bookings.updateStatus', $booking->id) }}">
                                             @csrf
                                             <div class="mb-3">
                                                 <label for="status" class="form-label">New status</label>
                                                 <select name="status" id="status" class="form-select" required>
                                                     <option value="" disabled selected>Choose outcome…</option>
-                                                    @if ($booking->canBeReviewed())
-                                                        <option value="confirmed" @selected(old('status') === 'confirmed')>Confirmed</option>
-                                                        <option value="unfortunate" @selected(old('status') === 'unfortunate')>Fully booked</option>
-                                                        <option value="rejected" @selected(old('status') === 'rejected')>Rejected</option>
-                                                        <option value="no_show" @selected(old('status') === 'no_show')>No show</option>
-                                                    @elseif ($booking->canBeMarkedNoShow())
-                                                        <option value="no_show" @selected(old('status') === 'no_show')>No show</option>
-                                                    @endif
+                                                    @foreach ($statusChoices as $value => $label)
+                                                        <option value="{{ $value }}" @selected(old('status') === $value)>{{ $label }}</option>
+                                                    @endforeach
                                                 </select>
                                             </div>
 
@@ -165,6 +170,22 @@
                                                 Save &amp; notify
                                             </button>
                                         </form>
+                                        @if ($booking->canGuestCancel() && filter_var($booking->guest_email, FILTER_VALIDATE_EMAIL))
+                                            <hr>
+                                            <h3 class="h6">Ask the guest to cancel</h3>
+                                            <p class="small text-muted">Sends the manage link and leaves the reservation unchanged until the guest cancels it.</p>
+                                            <form method="POST" action="{{ route('bookings.requestCancel', $booking->id) }}">
+                                                @csrf
+                                                <div class="mb-3">
+                                                    <label for="cancel_request_message" class="form-label">Note to the guest <span class="text-muted fw-normal">(optional)</span></label>
+                                                    <textarea name="admin_message" id="cancel_request_message" rows="3" class="form-control" placeholder="Please cancel if you will not be arriving.">{{ old('admin_message') }}</textarea>
+                                                </div>
+                                                <button type="submit" class="btn btn-outline-dark"
+                                                    onclick="return confirm('Email {{ $booking->guest_email }} and ask them to cancel if they are not coming?');">
+                                                    Email cancel link
+                                                </button>
+                                            </form>
+                                        @endif
                                     @else
                                         <p class="text-muted mb-0">This reservation is already closed ({{ \App\Models\GuestBookingRequest::statusLabel($booking->status) }}) and cannot be changed further from here.</p>
                                     @endif

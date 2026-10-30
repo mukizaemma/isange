@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\URL;
 
 class GuestBookingRequest extends Model
 {
@@ -17,12 +18,22 @@ class GuestBookingRequest extends Model
 
     public const STATUS_NO_SHOW = 'no_show';
 
+    public const STATUS_CANCELED_BY_GUEST = 'canceled_by_guest';
+
+    public const STATUS_CANCELED_BY_HOTEL = 'canceled_by_hotel';
+
     /** @var list<string> */
     public const REVIEWABLE_STATUSES = [
         self::STATUS_CONFIRMED,
         self::STATUS_UNFORTUNATE,
         self::STATUS_REJECTED,
         self::STATUS_NO_SHOW,
+    ];
+
+    /** @var list<string> */
+    public const CANCELED_STATUSES = [
+        self::STATUS_CANCELED_BY_GUEST,
+        self::STATUS_CANCELED_BY_HOTEL,
     ];
 
     protected $fillable = [
@@ -49,6 +60,7 @@ class GuestBookingRequest extends Model
         'status',
         'confirmed_at',
         'reviewed_at',
+        'canceled_at',
         'message_body',
         'admin_message',
     ];
@@ -63,6 +75,7 @@ class GuestBookingRequest extends Model
         'discount_applied' => 'boolean',
         'confirmed_at' => 'datetime',
         'reviewed_at' => 'datetime',
+        'canceled_at' => 'datetime',
     ];
 
     public function isPending(): bool
@@ -85,6 +98,135 @@ class GuestBookingRequest extends Model
         return $this->isConfirmed();
     }
 
+    public function isCanceled(): bool
+    {
+        return in_array($this->status, self::CANCELED_STATUSES, true);
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->isPending() || $this->isConfirmed();
+    }
+
+    public function checkInHasStarted(): bool
+    {
+        if (! $this->check_in) {
+            return false;
+        }
+
+        return now()->startOfDay()->gte($this->check_in->copy()->startOfDay());
+    }
+
+    public function canGuestUpdate(): bool
+    {
+        return $this->isOpen() && ! $this->checkInHasStarted();
+    }
+
+    public function canGuestCancel(): bool
+    {
+        return $this->canGuestUpdate();
+    }
+
+    public function canAdminCancel(?User $actor): bool
+    {
+        if (! $this->isOpen()) {
+            return false;
+        }
+
+        if (! $this->checkInHasStarted()) {
+            return true;
+        }
+
+        return $actor?->isSuperAdmin() === true;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function adminStatusChoices(?User $actor = null, bool $verbs = false): array
+    {
+        $choices = [];
+
+        if ($this->canBeReviewed()) {
+            $choices[self::STATUS_CONFIRMED] = $verbs ? 'Confirm' : 'Confirmed';
+            $choices[self::STATUS_UNFORTUNATE] = 'Fully booked';
+            $choices[self::STATUS_REJECTED] = $verbs ? 'Reject (unclear)' : 'Rejected';
+            $choices[self::STATUS_NO_SHOW] = 'No show';
+        } elseif ($this->canBeMarkedNoShow()) {
+            $choices[self::STATUS_NO_SHOW] = 'No show';
+        }
+
+        if ($this->canAdminCancel($actor)) {
+            $choices[self::STATUS_CANCELED_BY_HOTEL] = $verbs ? 'Cancel (hotel)' : 'Canceled by hotel';
+        }
+
+        return $choices;
+    }
+
+    public function adminStatusError(string $newStatus, ?User $actor): ?string
+    {
+        if ($newStatus === self::STATUS_CANCELED_BY_HOTEL) {
+            if ($this->canAdminCancel($actor)) {
+                return null;
+            }
+
+            if ($this->isOpen() && $this->checkInHasStarted()) {
+                return 'This reservation can no longer be canceled. After the check-in date, only the super admin can cancel it.';
+            }
+
+            return 'This reservation cannot be canceled.';
+        }
+
+        if ($this->isPending() && in_array($newStatus, self::REVIEWABLE_STATUSES, true)) {
+            return null;
+        }
+
+        if ($this->isConfirmed() && $newStatus === self::STATUS_NO_SHOW) {
+            return null;
+        }
+
+        return 'This booking cannot be changed to that status.';
+    }
+
+    public function guestManageUrl(): string
+    {
+        return URL::temporarySignedRoute(
+            'reservation.manage',
+            $this->guestActionLinkExpiry(),
+            ['publicId' => $this->public_id]
+        );
+    }
+
+    public function guestUpdateUrl(): string
+    {
+        return URL::temporarySignedRoute(
+            'reservation.update',
+            $this->guestActionLinkExpiry(),
+            ['publicId' => $this->public_id]
+        );
+    }
+
+    public function guestCancelUrl(): string
+    {
+        return URL::temporarySignedRoute(
+            'reservation.cancel',
+            $this->guestActionLinkExpiry(),
+            ['publicId' => $this->public_id]
+        );
+    }
+
+    public function guestActionLinkExpiry(): \DateTimeInterface
+    {
+        $checkout = $this->check_out?->copy()->endOfDay();
+        $minimum = now()->addDays(45);
+
+        if ($checkout && $checkout->greaterThan($minimum)) {
+            return $checkout;
+        }
+
+        return $minimum;
+    }
+
     public static function statusLabel(string $status): string
     {
         return match ($status) {
@@ -92,6 +234,8 @@ class GuestBookingRequest extends Model
             self::STATUS_UNFORTUNATE => 'Fully booked',
             self::STATUS_REJECTED => 'Rejected',
             self::STATUS_NO_SHOW => 'No show',
+            self::STATUS_CANCELED_BY_GUEST => 'Canceled by guest',
+            self::STATUS_CANCELED_BY_HOTEL => 'Canceled by hotel',
             default => 'Pending',
         };
     }
@@ -170,6 +314,8 @@ class GuestBookingRequest extends Model
             self::STATUS_UNFORTUNATE => 'bg-warning text-dark',
             self::STATUS_REJECTED => 'bg-danger',
             self::STATUS_NO_SHOW => 'bg-dark',
+            self::STATUS_CANCELED_BY_GUEST => 'bg-warning text-dark',
+            self::STATUS_CANCELED_BY_HOTEL => 'bg-danger',
             default => 'bg-secondary',
         };
     }

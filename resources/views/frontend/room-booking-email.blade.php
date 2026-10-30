@@ -31,7 +31,10 @@
                         A confirmation email was sent to <strong>{{ $booking->guest_email }}</strong>.
                         Our team will review your reservation and send a final confirmation once approved.
                     </div>
-                    <p class="text-muted mb-0">Reference: <code>{{ $booking->public_id }}</code></p>
+                    <p class="text-muted mb-3">Reference: <code>{{ $booking->public_id }}</code></p>
+                    @if ($booking->canGuestUpdate())
+                        <a class="theme-btn style-three" href="{{ $booking->guestManageUrl() }}">Manage or cancel this reservation</a>
+                    @endif
                 @else
                     <div class="border rounded-3 p-4 p-md-5 bg-light shadow-sm text-start mb-4">
                         <p class="mb-3">Your booking is saved with reference <code>{{ $booking->public_id }}</code>. Choose how to send it to the hotel:</p>

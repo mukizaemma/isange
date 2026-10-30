@@ -32,36 +32,46 @@ class BookingEmailSender
 
     public static function sendHotelNotification(GuestBookingRequest $booking, ?Setting $setting = null): bool
     {
-        $setting = $setting ?? Setting::first();
-        $to = trim((string) (config('services.booking_notification.to') ?: ($setting->email ?? '')));
+        return self::sendToHotel(
+            $booking,
+            'Room booking — '.self::guestLabel($booking),
+            (string) $booking->message_body,
+            $setting
+        );
+    }
 
-        if ($to === '' || ! filter_var($to, FILTER_VALIDATE_EMAIL)) {
-            Log::warning('Booking hotel email not sent: notification address is missing or invalid.');
+    public static function sendHotelGuestUpdated(GuestBookingRequest $booking, string $changes, ?Setting $setting = null): bool
+    {
+        $text = implode("\n", [
+            'A guest updated reservation '.$booking->public_id.'.',
+            '',
+            $changes,
+            '',
+            self::buildStaySummary($booking),
+        ]);
 
-            return false;
-        }
+        return self::sendToHotel(
+            $booking,
+            'Reservation updated — '.self::guestLabel($booking),
+            $text,
+            $setting
+        );
+    }
 
-        $payload = [
-            'subject' => 'Room booking — '.self::guestLabel($booking),
-            'text' => (string) $booking->message_body,
-        ];
+    public static function sendHotelGuestCanceled(GuestBookingRequest $booking, ?Setting $setting = null): bool
+    {
+        $text = implode("\n", [
+            'The guest canceled reservation '.$booking->public_id.'.',
+            '',
+            self::buildStaySummary($booking),
+        ]);
 
-        $guestEmail = trim((string) ($booking->guest_email ?? ''));
-        if ($guestEmail !== '' && filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-            $payload['reply_to'] = $guestEmail;
-        }
-
-        $cc = trim((string) config('services.booking_notification.cc', ''));
-        if ($cc !== '') {
-            $ccList = array_values(array_filter(array_map('trim', explode(',', $cc)), static function ($addr) {
-                return $addr !== '' && filter_var($addr, FILTER_VALIDATE_EMAIL);
-            }));
-            if ($ccList !== []) {
-                $payload['cc'] = $ccList;
-            }
-        }
-
-        return self::deliver($to, $payload, 'hotel notification', $booking);
+        return self::sendToHotel(
+            $booking,
+            'Reservation canceled by guest — '.self::guestLabel($booking),
+            $text,
+            $setting
+        );
     }
 
     public static function sendGuestAcknowledgement(GuestBookingRequest $booking, ?Setting $setting = null): bool
@@ -89,6 +99,7 @@ class BookingEmailSender
         $lines[] = self::buildStaySummary($booking);
         $lines[] = '';
         $lines[] = 'Reference: '.$booking->public_id;
+        self::appendGuestManageLink($lines, $booking);
         $lines[] = '';
         if ($hotelEmail !== '') {
             $lines[] = 'If you have questions, reply to this email or contact us at '.$hotelEmail.'.';
@@ -111,7 +122,10 @@ class BookingEmailSender
 
     public static function sendGuestStatusUpdate(GuestBookingRequest $booking, string $status, ?Setting $setting = null): bool
     {
-        if (! in_array($status, GuestBookingRequest::REVIEWABLE_STATUSES, true)) {
+        $emailable = array_merge(GuestBookingRequest::REVIEWABLE_STATUSES, [
+            GuestBookingRequest::STATUS_CANCELED_BY_HOTEL,
+        ]);
+        if (! in_array($status, $emailable, true)) {
             return false;
         }
 
@@ -139,6 +153,7 @@ class BookingEmailSender
             GuestBookingRequest::STATUS_UNFORTUNATE => 'guest fully booked',
             GuestBookingRequest::STATUS_REJECTED => 'guest rejection',
             GuestBookingRequest::STATUS_NO_SHOW => 'guest no-show',
+            GuestBookingRequest::STATUS_CANCELED_BY_HOTEL => 'guest canceled by hotel',
             default => 'guest status update',
         };
 
@@ -165,6 +180,7 @@ class BookingEmailSender
             GuestBookingRequest::STATUS_UNFORTUNATE => 'Update on your reservation request',
             GuestBookingRequest::STATUS_REJECTED => 'Action needed on your reservation request',
             GuestBookingRequest::STATUS_NO_SHOW => 'Reservation marked as no-show',
+            GuestBookingRequest::STATUS_CANCELED_BY_HOTEL => 'Your reservation was canceled',
             default => 'Update on your reservation',
         };
 
@@ -173,6 +189,7 @@ class BookingEmailSender
             GuestBookingRequest::STATUS_UNFORTUNATE => self::appendUnfortunateBody($lines, $hotelName),
             GuestBookingRequest::STATUS_REJECTED => self::appendRejectedBody($lines, $hotelName),
             GuestBookingRequest::STATUS_NO_SHOW => self::appendNoShowBody($lines, $hotelName),
+            GuestBookingRequest::STATUS_CANCELED_BY_HOTEL => self::appendCanceledByHotelBody($lines, $hotelName),
             default => $lines[] = 'There is an update regarding your reservation.',
         };
 
@@ -187,6 +204,7 @@ class BookingEmailSender
         $lines[] = self::buildStaySummary($booking);
         $lines[] = '';
         $lines[] = 'Reference: '.$booking->public_id;
+        self::appendGuestManageLink($lines, $booking);
         $lines[] = '';
 
         if ($status === GuestBookingRequest::STATUS_CONFIRMED) {
@@ -213,6 +231,8 @@ class BookingEmailSender
             $lines[] = 'We look forward to hearing from you.';
         } elseif ($status === GuestBookingRequest::STATUS_NO_SHOW) {
             $lines[] = 'If you would like to rebook, please get in touch.';
+        } elseif ($status === GuestBookingRequest::STATUS_CANCELED_BY_HOTEL) {
+            $lines[] = 'If you would like to book different dates, please send a new request.';
         }
 
         $lines[] = '';
@@ -260,6 +280,175 @@ class BookingEmailSender
         $lines[] = 'Our records show that you did not arrive for your reservation at '.$hotelName.'.';
         $lines[] = 'Your booking has been marked as a no-show.';
         $lines[] = 'If this is incorrect or you experienced difficulties, please let us know.';
+    }
+
+    /**
+     * @param  list<string>  $lines
+     */
+    private static function appendCanceledByHotelBody(array &$lines, string $hotelName): void
+    {
+        $lines[] = 'Your reservation at '.$hotelName.' has been canceled by the hotel.';
+        $lines[] = 'The room has been released.';
+    }
+
+    public static function sendGuestUpdated(GuestBookingRequest $booking, string $changes, bool $needsReview, ?Setting $setting = null): bool
+    {
+        $guestEmail = self::guestEmail($booking);
+        if ($guestEmail === null) {
+            return false;
+        }
+
+        $setting = $setting ?? Setting::first();
+        $hotelName = self::resolveHotelName($setting);
+        $lines = [
+            'Dear '.($booking->guest_name ?: 'Guest').',',
+            '',
+            'We received your update to reservation '.$booking->public_id.' at '.$hotelName.'.',
+        ];
+        if ($needsReview) {
+            $lines[] = 'Because this stay was already confirmed, the hotel will review the new details and send another confirmation.';
+        }
+        $lines[] = '';
+        $lines[] = $changes;
+        $lines[] = '';
+        $lines[] = self::buildStaySummary($booking);
+        $lines[] = '';
+        $lines[] = 'Reference: '.$booking->public_id;
+        self::appendGuestManageLink($lines, $booking);
+        $lines[] = '';
+        $lines[] = '— '.$hotelName;
+
+        return self::deliver($guestEmail, [
+            'subject' => 'We received your reservation update — '.$hotelName,
+            'text' => implode("\n", $lines),
+        ], 'guest reservation update', $booking);
+    }
+
+    public static function sendGuestCanceled(GuestBookingRequest $booking, ?Setting $setting = null): bool
+    {
+        $guestEmail = self::guestEmail($booking);
+        if ($guestEmail === null) {
+            return false;
+        }
+
+        $setting = $setting ?? Setting::first();
+        $hotelName = self::resolveHotelName($setting);
+        $lines = [
+            'Dear '.($booking->guest_name ?: 'Guest').',',
+            '',
+            'Your reservation at '.$hotelName.' has been canceled.',
+            'The room has been released.',
+            '',
+            self::buildStaySummary($booking),
+            '',
+            'Reference: '.$booking->public_id,
+            '',
+            'If you still need a room, you can send a new request on the website.',
+            '',
+            '— '.$hotelName,
+        ];
+
+        return self::deliver($guestEmail, [
+            'subject' => 'Your reservation has been canceled — '.$hotelName,
+            'text' => implode("\n", $lines),
+        ], 'guest self cancel', $booking);
+    }
+
+    public static function sendGuestCancelRequest(GuestBookingRequest $booking, ?Setting $setting = null): bool
+    {
+        $guestEmail = self::guestEmail($booking);
+        if ($guestEmail === null) {
+            return false;
+        }
+
+        $setting = $setting ?? Setting::first();
+        $hotelName = self::resolveHotelName($setting);
+        $lines = [
+            'Dear '.($booking->guest_name ?: 'Guest').',',
+            '',
+            'Please cancel your reservation at '.$hotelName.' if you will not be arriving.',
+            'Using the link below tells us the room can be released.',
+        ];
+        $adminMessage = trim((string) ($booking->admin_message ?? ''));
+        if ($adminMessage !== '') {
+            $lines[] = '';
+            $lines[] = 'Message from the hotel:';
+            $lines[] = $adminMessage;
+        }
+        $lines[] = '';
+        $lines[] = self::buildStaySummary($booking);
+        $lines[] = '';
+        $lines[] = 'Reference: '.$booking->public_id;
+        self::appendGuestManageLink($lines, $booking);
+        $lines[] = '';
+        $lines[] = '— '.$hotelName;
+
+        return self::deliver($guestEmail, [
+            'subject' => 'Please cancel your reservation if you are not coming — '.$hotelName,
+            'text' => implode("\n", $lines),
+        ], 'guest cancel request', $booking);
+    }
+
+    /**
+     * @param  list<string>  $lines
+     */
+    private static function appendGuestManageLink(array &$lines, GuestBookingRequest $booking): void
+    {
+        if (! $booking->canGuestUpdate() && ! $booking->canGuestCancel()) {
+            return;
+        }
+
+        $lines[] = '';
+        $lines[] = 'Manage or cancel this reservation (open until the check-in date):';
+        $lines[] = $booking->guestManageUrl();
+        $lines[] = 'From that page you can update the dates, guests, room, or special requests, or cancel the reservation.';
+    }
+
+    private static function guestEmail(GuestBookingRequest $booking): ?string
+    {
+        $guestEmail = trim((string) ($booking->guest_email ?? ''));
+        if ($guestEmail === '' || ! filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+            return null;
+        }
+
+        return $guestEmail;
+    }
+
+    private static function sendToHotel(GuestBookingRequest $booking, string $subject, string $text, ?Setting $setting = null): bool
+    {
+        $setting = $setting ?? Setting::first();
+        $to = trim((string) (config('services.booking_notification.to') ?: ($setting?->email ?? '')));
+
+        if ($to === '' || ! filter_var($to, FILTER_VALIDATE_EMAIL)) {
+            Log::warning('Booking hotel email not sent: notification address is missing or invalid.', [
+                'booking_id' => $booking->public_id,
+                'subject' => $subject,
+            ]);
+
+            return false;
+        }
+
+        $payload = [
+            'subject' => $subject,
+            'text' => $text,
+        ];
+
+        $guestEmail = self::guestEmail($booking);
+        if ($guestEmail !== null) {
+            $payload['reply_to'] = $guestEmail;
+        }
+
+        $cc = trim((string) config('services.booking_notification.cc', ''));
+        if ($cc !== '') {
+            $ccList = array_values(array_filter(array_map('trim', explode(',', $cc)), static function ($addr) {
+                return $addr !== '' && filter_var($addr, FILTER_VALIDATE_EMAIL);
+            }));
+            if ($ccList !== []) {
+                $payload['cc'] = $ccList;
+            }
+        }
+
+        return self::deliver($to, $payload, 'hotel notification', $booking);
     }
 
     /**

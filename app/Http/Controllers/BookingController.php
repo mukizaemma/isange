@@ -60,20 +60,16 @@ class BookingController extends Controller
     public function updateStatus(Request $request, $id): RedirectResponse
     {
         $validated = $request->validate([
-            'status' => ['required', Rule::in(GuestBookingRequest::REVIEWABLE_STATUSES)],
+            'status' => ['required', Rule::in(array_merge(GuestBookingRequest::REVIEWABLE_STATUSES, [GuestBookingRequest::STATUS_CANCELED_BY_HOTEL]))],
             'admin_message' => ['nullable', 'string', 'max:5000'],
             'notify_guest' => ['sometimes', 'boolean'],
         ]);
 
         $booking = GuestBookingRequest::with('room')->findOrFail($id);
         $newStatus = $validated['status'];
-
-        if ($booking->isPending()) {
-            // All review outcomes allowed from pending.
-        } elseif ($booking->isConfirmed() && $newStatus === GuestBookingRequest::STATUS_NO_SHOW) {
-            // Confirmed bookings can later be marked no-show.
-        } else {
-            return back()->with('error', 'This booking cannot be changed to that status.');
+        $statusError = $booking->adminStatusError($newStatus, $request->user());
+        if ($statusError !== null) {
+            return back()->with('error', $statusError);
         }
 
         $now = now();
@@ -82,6 +78,7 @@ class BookingController extends Controller
             'admin_message' => $validated['admin_message'] ?? null,
             'reviewed_at' => $now,
             'confirmed_at' => $newStatus === GuestBookingRequest::STATUS_CONFIRMED ? $now : $booking->confirmed_at,
+            'canceled_at' => $newStatus === GuestBookingRequest::STATUS_CANCELED_BY_HOTEL ? $now : $booking->canceled_at,
         ]);
         $booking->refresh();
 
@@ -119,6 +116,36 @@ class BookingController extends Controller
         }
 
         return back()->with('success', "Booking marked as {$label}.");
+    }
+
+    public function requestGuestCancel(Request $request, $id): RedirectResponse
+    {
+        $validated = $request->validate([
+            'admin_message' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $booking = GuestBookingRequest::with('room')->findOrFail($id);
+        if (! $booking->canGuestCancel()) {
+            return back()->with('error', 'The guest can no longer cancel this reservation from their link. After the check-in date, only the super admin can cancel it.');
+        }
+
+        $email = trim((string) $booking->guest_email);
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return back()->with('error', 'This reservation has no guest email, so the cancel link cannot be sent.');
+        }
+
+        $note = trim((string) ($validated['admin_message'] ?? ''));
+        if ($note !== '') {
+            $booking->update(['admin_message' => $note]);
+            $booking->refresh();
+        }
+
+        $sent = BookingEmailSender::sendGuestCancelRequest($booking);
+        if (! $sent) {
+            return back()->with('warning', 'The cancel request could not be emailed to '.$email.'.');
+        }
+
+        return back()->with('success', 'Asked '.$email.' to cancel this reservation if they are not coming.');
     }
 
     public function edit(string $id)
@@ -208,6 +235,9 @@ class BookingController extends Controller
                 GuestBookingRequest::STATUS_UNFORTUNATE,
                 GuestBookingRequest::STATUS_REJECTED,
                 GuestBookingRequest::STATUS_NO_SHOW,
+                GuestBookingRequest::STATUS_CANCELED_BY_GUEST,
+                GuestBookingRequest::STATUS_CANCELED_BY_HOTEL,
+                'canceled',
             ], true) ? $status : null,
         ];
     }
@@ -224,7 +254,9 @@ class BookingController extends Controller
             $query->where('fulfillment_choice', $filters['channel']);
         }
 
-        if ($filters['status']) {
+        if ($filters['status'] === 'canceled') {
+            $query->whereIn('status', GuestBookingRequest::CANCELED_STATUSES);
+        } elseif ($filters['status']) {
             $query->where('status', $filters['status']);
         }
 
@@ -273,6 +305,9 @@ class BookingController extends Controller
             'fully_booked' => $bookings->where('status', GuestBookingRequest::STATUS_UNFORTUNATE)->count(),
             'rejected' => $bookings->where('status', GuestBookingRequest::STATUS_REJECTED)->count(),
             'no_show' => $bookings->where('status', GuestBookingRequest::STATUS_NO_SHOW)->count(),
+            'canceled_by_guest' => $bookings->where('status', GuestBookingRequest::STATUS_CANCELED_BY_GUEST)->count(),
+            'canceled_by_hotel' => $bookings->where('status', GuestBookingRequest::STATUS_CANCELED_BY_HOTEL)->count(),
+            'canceled' => $bookings->whereIn('status', GuestBookingRequest::CANCELED_STATUSES)->count(),
             'amount_usd' => round((float) $bookings->sum(fn (GuestBookingRequest $booking) => (float) ($booking->total_usd ?? 0)), 2),
         ];
     }

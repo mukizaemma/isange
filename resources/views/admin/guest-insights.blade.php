@@ -130,23 +130,17 @@
                                             @endif
                                         </td>
                                         <td class="text-nowrap">
-                                            @if ($b->canBeReviewed())
+                                            @php $statusChoices = $b->adminStatusChoices(auth()->user(), true); @endphp
+                                            @if ($statusChoices !== [])
                                                 <form method="POST" action="{{ route('guestInsights.booking.status', $b->public_id) }}" class="d-flex gap-1 align-items-center" data-channel="{{ $b->fulfillment_choice }}" data-guest-email="{{ $b->guest_email }}" onsubmit="return confirmBookingStatus(this);">
                                                     @csrf
                                                     <select name="status" class="form-select form-select-sm" style="min-width: 11rem;" required>
                                                         <option value="" selected disabled>Choose outcome…</option>
-                                                        <option value="confirmed">Confirm</option>
-                                                        <option value="unfortunate">Fully booked</option>
-                                                        <option value="rejected">Reject (unclear)</option>
-                                                        <option value="no_show">No show</option>
+                                                        @foreach ($statusChoices as $value => $label)
+                                                            <option value="{{ $value }}">{{ $label }}</option>
+                                                        @endforeach
                                                     </select>
                                                     <button type="submit" class="btn btn-sm btn-primary">Apply</button>
-                                                </form>
-                                            @elseif ($b->canBeMarkedNoShow())
-                                                <form method="POST" action="{{ route('guestInsights.booking.status', $b->public_id) }}" class="d-inline" onsubmit="return confirm('Mark this reservation as no-show{{ $b->fulfillment_choice === 'email' ? ' and notify '.$b->guest_email : '' }}?');">
-                                                    @csrf
-                                                    <input type="hidden" name="status" value="no_show">
-                                                    <button type="submit" class="btn btn-sm btn-outline-dark">Mark no show</button>
                                                 </form>
                                             @else
                                                 <span class="text-muted small">—</span>
@@ -215,7 +209,8 @@ function confirmBookingStatus(form) {
         confirmed: 'confirm this reservation',
         unfortunate: 'mark as fully booked',
         rejected: 'reject this reservation (unclear details)',
-        no_show: 'mark as no-show'
+        no_show: 'mark as no-show',
+        canceled_by_hotel: 'cancel this reservation on behalf of the hotel'
     };
     var channel = form.getAttribute('data-channel') || '';
     var guestEmail = form.getAttribute('data-guest-email') || '';

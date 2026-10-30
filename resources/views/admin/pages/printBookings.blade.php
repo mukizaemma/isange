@@ -85,6 +85,63 @@
                         ${{ number_format((float) ($summary['amount_usd'] ?? 0), 2) }} total
                     </div>
                 @endif
+
+                <p class="mb-4">
+                    <strong>Confirmed:</strong> {{ $summary['confirmed'] ?? 0 }}
+                    · <strong>Canceled:</strong> {{ $summary['canceled'] ?? 0 }}
+                    (guest {{ $summary['canceled_by_guest'] ?? 0 }}, hotel {{ $summary['canceled_by_hotel'] ?? 0 }})
+                    · <strong>No-show:</strong> {{ $summary['no_show'] ?? 0 }}
+                </p>
+
+                @php
+                    $outcomeGroups = [
+                        'Confirmed reservations' => $bookings->where('status', \App\Models\GuestBookingRequest::STATUS_CONFIRMED),
+                        'Canceled reservations' => $bookings->whereIn('status', \App\Models\GuestBookingRequest::CANCELED_STATUSES),
+                        'No-show reservations' => $bookings->where('status', \App\Models\GuestBookingRequest::STATUS_NO_SHOW),
+                    ];
+                @endphp
+                @foreach ($outcomeGroups as $groupTitle => $groupRows)
+                    <h3 class="h5 mt-4">{{ $groupTitle }} ({{ $groupRows->count() }})</h3>
+                    <table class="table print-table mb-4">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Guest</th>
+                                <th>Stay</th>
+                                <th>Room</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse ($groupRows as $rs)
+                                <tr>
+                                    <td>#{{ $rs->public_id }}</td>
+                                    <td>
+                                        {{ $rs->guest_name }}<br>
+                                        {{ $rs->guest_email }}<br>
+                                        {{ $rs->guest_phone }}
+                                    </td>
+                                    <td>{{ $rs->check_in?->format('Y-m-d') }} → {{ $rs->check_out?->format('Y-m-d') }}</td>
+                                    <td>{{ $rs->roomSummary() }}</td>
+                                    <td>{{ $rs->formattedTotalUsd() }}</td>
+                                    <td>
+                                        {{ \App\Models\GuestBookingRequest::statusLabel($rs->status) }}
+                                        @if ($rs->canceled_at)
+                                            <br>{{ $rs->canceled_at->format('Y-m-d H:i') }}
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-muted">None in this report.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                @endforeach
+
+                <h3 class="h5 mt-4">All reservations in this report</h3>
     
                 <table class="table print-table">
                     <thead>

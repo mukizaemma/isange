@@ -18,6 +18,9 @@
         pointer-events: auto !important;
         cursor: pointer !important;
     }
+    .swal2-container {
+        z-index: 20000 !important;
+    }
 </style>
 @endpush
 
@@ -374,6 +377,7 @@
 @endpush
 
 @section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function () {
     window.IsangeCheckout = window.IsangeCheckout || { next: null, back: null };
@@ -985,6 +989,45 @@
             }
         }
 
+        function closeCheckoutModal(id, then) {
+            var el = document.getElementById(id);
+            if (!el || !window.bootstrap || !bootstrap.Modal) {
+                if (then) then();
+                return;
+            }
+            var instance = bootstrap.Modal.getInstance(el) || bootstrap.Modal.getOrCreateInstance(el);
+            if (then) {
+                el.addEventListener('hidden.bs.modal', function onHidden() {
+                    el.removeEventListener('hidden.bs.modal', onHidden);
+                    then();
+                });
+            }
+            instance.hide();
+        }
+
+        function allowSweetAlertOverModal() {
+            if (document.documentElement.dataset.swalFocusFix) return;
+            document.documentElement.dataset.swalFocusFix = '1';
+            document.addEventListener('focusin', function (event) {
+                if (event.target && event.target.closest && event.target.closest('.swal2-container')) {
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+        }
+
+        function showRoomAddedAlert(roomName) {
+            var name = roomName || 'This room';
+            if (!window.Swal) return;
+            allowSweetAlertOverModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Room added',
+                text: name + ' is in your stay. Add another room, or continue to your guest details.',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#e67e22',
+            });
+        }
+
         function syncPickModals(cart) {
             var roomIds = cart.rooms.map(function (r) { return r.room_id; });
             var expIds = cart.experiences.map(function (e) { return e.id; });
@@ -1002,6 +1045,17 @@
                 btn.disabled = added;
                 btn.textContent = added ? 'Added' : 'Add';
             });
+            var continueBtn = document.getElementById('checkout-pick-room-continue');
+            var continueHint = document.getElementById('checkout-pick-room-next-hint');
+            var hasRoom = cart.rooms.some(function (room) { return room && room.room_id; });
+            if (continueBtn) {
+                continueBtn.disabled = !hasRoom;
+            }
+            if (continueHint) {
+                continueHint.textContent = hasRoom
+                    ? 'Room added. Continue to enter your guest details.'
+                    : 'Add a room, then continue to your guest details.';
+            }
         }
 
         function renderStep1CartItems(cart) {
@@ -1323,9 +1377,20 @@
                 if (added) {
                     var partial = readStayFields();
                     IsangeStayCart.setRoomsCount(partial.rooms_count);
+                    showRoomAddedAlert(btn.getAttribute('data-room-name') || 'This room');
                 }
             });
         });
+
+        var pickRoomContinue = document.getElementById('checkout-pick-room-continue');
+        if (pickRoomContinue) {
+            pickRoomContinue.addEventListener('click', function () {
+                if (pickRoomContinue.disabled) return;
+                closeCheckoutModal('checkoutPickRoomModal', function () {
+                    advanceCheckoutStep();
+                });
+            });
+        }
 
         document.querySelectorAll('[data-checkout-add-experience]').forEach(function (btn) {
             btn.addEventListener('click', function () {

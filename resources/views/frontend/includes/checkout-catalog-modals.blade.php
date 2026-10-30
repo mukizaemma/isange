@@ -57,6 +57,12 @@
                     <p class="text-muted mb-0">No rooms available. <a href="{{ route('rooms') }}">Browse accommodation</a>.</p>
                 @endif
             </div>
+            <div class="modal-footer ma-checkout-pick-modal__footer">
+                <p class="ma-checkout-pick-modal__next mb-0" id="checkout-pick-room-next-hint">Add a room, then continue to your guest details.</p>
+                <button type="button" class="theme-btn ma-checkout-pick-modal__continue" id="checkout-pick-room-continue" disabled>
+                    Continue <i class="fas fa-arrow-right ms-1" aria-hidden="true"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>

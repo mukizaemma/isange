@@ -17,6 +17,7 @@ use App\Http\Controllers\GuestDiningSubmissionController;
 use App\Http\Controllers\GuestDiscountController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PartnersController;
+use App\Http\Controllers\ReservationManageController;
 use App\Http\Controllers\RoomsController;
 use App\Http\Controllers\ServicesController;
 use App\Http\Controllers\SettingController;
@@ -64,6 +65,9 @@ Route::get('/book-room/confirmation/{publicId}', [GuestBookingController::class,
 Route::get('/book-room/open-whatsapp/{publicId}', [GuestBookingController::class, 'openWhatsapp'])->name('room.booking.whatsapp');
 Route::get('/book-room/email-instructions/{publicId}', [GuestBookingController::class, 'emailInstructions'])->name('room.booking.email');
 Route::get('/book-room/ota/{publicId}/{which}', [GuestBookingController::class, 'otaRedirect'])->name('room.booking.ota');
+Route::get('/reservation/{publicId}/manage', [ReservationManageController::class, 'show'])->middleware('signed')->name('reservation.manage');
+Route::post('/reservation/{publicId}/update', [ReservationManageController::class, 'update'])->middleware(['signed', 'throttle:20,1'])->name('reservation.update');
+Route::post('/reservation/{publicId}/cancel', [ReservationManageController::class, 'cancel'])->middleware(['signed', 'throttle:10,1'])->name('reservation.cancel');
 Route::get('/pay/dpo', DirectPayPlaceholderController::class)->name('pay.dpo');
 Route::post('/track/analytics', [SiteAnalyticsController::class, 'store'])->middleware('throttle:180,1')->name('track.analytics');
 Route::post('/guest/dining-submission', [GuestDiningSubmissionController::class, 'store'])->middleware('throttle:60,1')->name('guest.dining.store');
@@ -224,6 +228,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/bookings/search', [BookingController::class, 'search'])->name('searchBookings');
     Route::get('/bookings/print', [BookingController::class, 'export'])->name('bookings.print');
     Route::post('/bookings/{id}/status', [BookingController::class, 'updateStatus'])->name('bookings.updateStatus');
+    Route::post('/bookings/{id}/request-cancel', [BookingController::class, 'requestGuestCancel'])->name('bookings.requestCancel');
     Route::get('/TablesBookings', [BookingController::class, 'TablesBookings'])->name('TablesBookings');
     Route::get('/testBooking', [BookingController::class, 'create'])->name('testBooking');
     Route::post('/saveBooking', [BookingController::class, 'store'])->name('saveBooking');
